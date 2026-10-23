@@ -1,0 +1,62 @@
+# Copy to config/<client>.yaml and fill in values.
+client:
+  name: "demo-client"
+  region: "asia-south1"  # Mumbai — India region
+
+stack:
+  type: matomo
+  url: "https://analytics.example.com"
+  site_id: 1
+  api_token: "${MATOMO_API_TOKEN}"
+
+ga4:
+  property_id: "123456789"
+  measurement_id: "G-XXXXXXXX"
+  credentials_file: "credentials/ga-service-account.json"
+
+gtm:
+  account_id: "1234567"
+  container_id: "7654321"
+  credentials_file: "credentials/ga-service-account.json"
+
+dpdp:
+  # DPDP-ready defaults — not "compliant" (depends on client processes)
+  require_consent: true
+  cmp_provider: "klaro"  # klaro | cookiebot | osano
+  data_retention_days: 365
+  pii_scrub_enabled: true
+  audit_log_enabled: true
+
+parity:
+  schedule_migration: "0 6 * * *"   # daily at 6 AM during migration
+  schedule_steady: "0 6 * * 1"      # weekly on Monday after cutover
+  target_gap_percent: 5
+  metrics:
+    - users
+    - sessions
+    - key_events
+    - traffic_sources
+  key_events:
+    - purchase
+    - add_to_cart
+    - sign_up
+  alert_email: "analytics-owner@client.com"
+  alert_slack_webhook: "${SLACK_WEBHOOK_URL}"
+
+connectors:
+  google_ads:
+    customer_id: "1234567890"
+    conversion_action_id: "987654321"
+  meta:
+    pixel_id: "1234567890"
+    access_token: "${META_ACCESS_TOKEN}"
+  bigquery:
+    project_id: "client-gcp-project"
+    dataset: "matomo_export"
+    table: "events"
+  looker:
+    dashboard_id: "matomo-marketing-overview"
+
+migration:
+  gtm_draft_only: true  # NEVER auto-publish GTM changes
+  output_dir: "output/migration"

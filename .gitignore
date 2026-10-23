@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Terraform
+deploy/terraform/.terraform/
+deploy/terraform/*.tfstate
+deploy/terraform/*.tfstate.*
+deploy/terraform/.terraform.lock.hcl
+deploy/terraform/terraform.tfvars
+
+# Secrets
+credentials/
+*.json
+!config/example.client.yaml
+!connectors/looker/templates/*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Output
+output/
+reports/
+*.log
+
+# Docker
+deploy/docker/.env

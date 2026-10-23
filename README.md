@@ -1,0 +1,106 @@
+# Own-Your-Data Analytics Kit
+
+Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — deployed on the client's own cloud in India, with migration done mostly by an agent.
+
+**Built by Tatvic** | Stack: Matomo (self-hosted) | Region: India (`asia-south1`)
+
+---
+
+## What this kit does
+
+| Component | What it does |
+|-----------|-------------|
+| **One-command deploy** | Full stack on a fresh GCP project in an India region |
+| **DPDP-ready defaults** | Consent gating, PII scrubbing, retention limits, DSAR, audit log |
+| **GA4 migration agent** | Reads GA4 + GTM via APIs, builds Matomo setup, writes GTM draft |
+| **Parity checker** | Daily/weekly GA4 vs Matomo comparison with alerts and diagnosis |
+| **Connectors** | Google Ads, Meta CAPI, BigQuery export, Looker Studio dashboard |
+
+## Quick start
+
+### Prerequisites
+
+- Python 3.11+
+- Docker & Docker Compose
+- `gcloud` CLI (for cloud deploy)
+- Terraform 1.5+
+
+### Local development
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Start local stack (Matomo + kit services)
+$env:OYDK_LOCAL = "1"          # Windows
+export OYDK_LOCAL=1            # Linux/Mac
+.\deploy\deploy.ps1 -ProjectId local
+
+# Matomo:  http://localhost:8080
+# Kit API: http://localhost:8090
+```
+
+### Cloud deployment
+
+```bash
+./deploy/deploy.sh <gcp-project-id> <client-name>
+```
+
+### Configure a client
+
+```bash
+cp config/example.client.yaml config/client.yaml
+# Edit with GA4 property ID, GTM container ID, Matomo URL, API tokens
+```
+
+### Run the agents
+
+```bash
+# Migrate GA4 → Matomo
+python -m agents.migration.run --config config/client.yaml
+
+# Check parity
+python -m agents.parity.run --config config/client.yaml
+
+# DPDP: look up / delete a person's data
+python -m kit.cli dsar-lookup --user-id visitor-123
+python -m kit.cli dsar-delete --user-id visitor-123
+
+# Test connectors
+python -m kit.cli connectors-test
+```
+
+## Project structure
+
+```
+own-your-data-kit/
+├── deploy/              # One-command deploy (Terraform + Docker)
+│   ├── terraform/       # GCP infrastructure
+│   ├── docker/          # Matomo + kit services
+│   ├── deploy.sh        # Linux/Mac deploy script
+│   └── deploy.ps1       # Windows deploy script
+├── agents/
+│   ├── migration/       # GA4/GTM → Matomo migration agent
+│   └── parity/          # Scheduled parity checker + diagnosis
+├── dpdp/                # Consent, PII scrub, DSAR, audit log
+├── connectors/          # Google Ads, Meta, BigQuery, Looker
+├── kit/                 # Shared library (config, Matomo client, CLI)
+├── config/              # Per-client configuration
+└── docs/                # Stack choice, demo runbook
+```
+
+## DPDP-ready (not "compliant")
+
+This kit provides **DPDP-ready defaults**. Compliance depends on the client's processes, legal review, and operational practices — not on a tool alone.
+
+Defaults included:
+- No tracking until visitor consents (enforced via CMP)
+- Personal data stripped from URLs and events
+- Configurable data retention limits
+- DSAR flow to find and delete a person's data
+- Audit log of who accessed or changed what
+
+## Licence
+
+Kit code: proprietary (Tatvic IP).
+Matomo: GPL v3 (unchanged, deployed as-is).

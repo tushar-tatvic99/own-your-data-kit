@@ -1,0 +1,12 @@
+[project]
+name = "own-your-data-kit"
+version = "0.1.0"
+description = "DPDP-ready analytics kit: deploy, migrate from GA4, parity check, connectors"
+requires-python = ">=3.11"
+
+[project.scripts]
+oydk = "kit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kit*", "agents*", "dpdp*", "connectors*"]

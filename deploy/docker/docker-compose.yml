@@ -1,0 +1,97 @@
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: matomo
+      MYSQL_USER: matomo
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - matomo-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - matomo-redis:/data
+
+  matomo:
+    image: matomo:5-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MATOMO_DATABASE_HOST: db
+      MATOMO_DATABASE_ADAPTER: mysql
+      MATOMO_DATABASE_TABLES_PREFIX: matomo_
+      MATOMO_DATABASE_USERNAME: matomo
+      MATOMO_DATABASE_PASSWORD: ${MYSQL_PASSWORD}
+      MATOMO_DATABASE_DBNAME: matomo
+    volumes:
+      - matomo-data:/var/www/html
+    ports:
+      - "8080:80"
+
+  # Kit services: DSAR API, audit log, connector workers
+  kit-api:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.kit
+    restart: unless-stopped
+    depends_on:
+      - matomo
+      - kit-db
+    environment:
+      MATOMO_URL: http://matomo:80
+      MATOMO_SITE_ID: ${MATOMO_SITE_ID:-1}
+      MATOMO_API_TOKEN: ${MATOMO_API_TOKEN}
+      KIT_DB_URL: postgresql://kit:${KIT_DB_PASSWORD}@kit-db:5432/kit
+      DATA_RETENTION_DAYS: ${DATA_RETENTION_DAYS:-365}
+    ports:
+      - "8090:8090"
+    volumes:
+      - ../../config:/app/config:ro
+      - ../../output:/app/output
+
+  kit-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kit
+      POSTGRES_PASSWORD: ${KIT_DB_PASSWORD}
+      POSTGRES_DB: kit
+    volumes:
+      - kit-db:/var/lib/postgresql/data
+
+  # Scheduled parity + connector jobs
+  kit-scheduler:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.kit
+    restart: unless-stopped
+    command: ["python", "-m", "agents.parity.scheduler"]
+    depends_on:
+      - kit-api
+      - matomo
+    environment:
+      CLIENT_CONFIG: /app/config/client.yaml
+      MATOMO_URL: http://matomo:80
+      MATOMO_API_TOKEN: ${MATOMO_API_TOKEN}
+      GA4_CREDENTIALS: /app/credentials/ga-service-account.json
+    volumes:
+      - ../../config:/app/config:ro
+      - ../../credentials:/app/credentials:ro
+      - ../../output:/app/output
+
+volumes:
+  matomo-db:
+  matomo-redis:
+  matomo-data:
+  kit-db:
