@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "elementID": "klaro",
+  "styling": {
+    "theme": ["light", "top", "wide"]
+  },
+  "translations": {
+    "en": {
+      "consentModal": {
+        "title": "Privacy & Cookie Consent",
+        "description": "We use cookies and similar technologies for analytics. Under India's DPDP Act, we need your consent before collecting any data. You can change your preferences at any time."
+      },
+      "matomo": {
+        "title": "Analytics (Matomo)",
+        "description": "Helps us understand how visitors use our website. Data is stored on our own servers in India. No data is shared with third parties."
+      },
+      "purposes": {
+        "analytics": "Analytics"
+      }
+    }
+  },
+  "services": [
+    {
+      "name": "matomo",
+      "title": "Analytics (Matomo)",
+      "purposes": ["analytics"],
+      "required": false,
+      "optOut": false,
+      "default": false,
+      "cookies": ["_pk_id", "_pk_ses", "_pk_ref"]
+    }
+  ],
+  "purposes": ["analytics"],
+  "mustNoticeConsent": true,
+  "acceptAll": true,
+  "hideDeclineAll": false
+}

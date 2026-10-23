@@ -19,6 +19,7 @@ deploy/terraform/terraform.tfvars
 credentials/
 *.json
 !config/example.client.yaml
+!dpdp/klaro_config.json
 !connectors/looker/templates/*.json
 
 # OS
@@ -32,3 +33,6 @@ reports/
 
 # Docker
 deploy/docker/.env
+
+# Local tooling (portable CLI downloads)
+.tools/
