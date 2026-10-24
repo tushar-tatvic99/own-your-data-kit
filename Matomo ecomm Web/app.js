@@ -1932,7 +1932,37 @@ function initBfsiEngine() {
 }
 
 // ================= INITIALIZATION =================
+
+// ================= MOBILE NAVIGATION TOGGLE =================
+function initMobileNav() {
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const siteHeader = document.getElementById('siteHeader');
+  const mainNavLinks = document.querySelectorAll('#mainNav a');
+
+  if (mobileMenuBtn && siteHeader) {
+    mobileMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      siteHeader.classList.toggle('mobile-nav-open');
+    });
+
+    // Close when a nav link is clicked
+    mainNavLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        siteHeader.classList.remove('mobile-nav-open');
+      });
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!siteHeader.contains(e.target)) {
+        siteHeader.classList.remove('mobile-nav-open');
+      }
+    });
+  }
+}
+
 function initApp() {
+  try { initMobileNav(); } catch (e) { console.error(e); }
   try { initBfsiEngine(); } catch (e) { console.error('Error initializing BFSI:', e); }
   try { renderProducts(); } catch (e) { console.error('Error rendering products:', e); }
   try { renderCart(); } catch (e) { console.error('Error rendering cart:', e); }

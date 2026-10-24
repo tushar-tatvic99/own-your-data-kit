@@ -5006,3 +5006,392 @@ button {
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
 }
+
+
+/* ==========================================================================
+   COMPREHENSIVE FULL-SPECTRUM RESPONSIVE DESIGN (Mobile, Tablet & Desktop)
+   ========================================================================== */
+
+/* Tablet & Smaller Desktops (max-width: 992px) */
+@media (max-width: 992px) {
+  /* Announcement */
+  .announcement-bar {
+    font-size: 0.74rem;
+    padding: 7px 12px;
+  }
+
+  /* Header & Navigation */
+  .header-container {
+    padding: 12px 18px;
+  }
+
+  .mobile-toggle-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #0F172A;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-toggle-btn:hover {
+    background: #F1F5F9;
+  }
+
+  /* Main Nav Hidden by default on Mobile/Tablet */
+  .nav-links.desktop-only {
+    display: none;
+  }
+
+  /* Main Nav when Mobile Menu is Active */
+  .site-header.mobile-nav-open .nav-links {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: 74px;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border-bottom: 2px solid #0F172A;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+    padding: 24px 20px;
+    gap: 16px;
+    z-index: 999;
+    animation: slideDownNav 0.25s ease-out forwards;
+  }
+
+  @keyframes slideDownNav {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .site-header.mobile-nav-open .nav-item {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #F8FAFC;
+    color: #0F172A;
+  }
+
+  .brand-name {
+    font-size: 1.6rem !important;
+  }
+
+  .brand-sub, .brand-tag {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 8px !important;
+  }
+
+  .header-dpdp-pill span {
+    display: none;
+  }
+
+  .header-dpdp-pill {
+    padding: 0 10px !important;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    padding: 32px 18px 56px !important;
+  }
+
+  .hero-container {
+    grid-template-columns: 1fr !important;
+    gap: 36px !important;
+  }
+
+  .hero-title {
+    font-size: 2.6rem !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem !important;
+    max-width: 100% !important;
+  }
+
+  .hero-actions {
+    gap: 12px !important;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+
+  .hero-visual {
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .banking-card-mockup {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1.58 / 1;
+    padding: 24px 20px !important;
+  }
+
+  /* BFSI Explore Section */
+  .bfsi-section {
+    padding: 56px 18px !important;
+  }
+
+  .bfsi-tabs-nav {
+    display: flex !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    padding-bottom: 8px !important;
+    gap: 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none;
+  }
+
+  .bfsi-tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bfsi-tab {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 10px 16px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .bfsi-calculator-card {
+    grid-template-columns: 1fr !important;
+    border-radius: 16px !important;
+  }
+
+  .calc-main-content {
+    padding: 24px 20px !important;
+  }
+
+  .calc-results-sidebar {
+    padding: 28px 20px !important;
+  }
+
+  /* Products Section */
+  .products-section {
+    padding: 56px 18px !important;
+  }
+
+  .controls-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+
+  .category-tabs {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none;
+  }
+
+  .category-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cat-pill {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* DPDP Section */
+  .dpdp-section {
+    padding: 56px 18px !important;
+  }
+
+  .dpdp-title {
+    font-size: 2.1rem !important;
+  }
+
+  .dpdp-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .dpdp-card {
+    padding: 24px 20px !important;
+    border-radius: 16px !important;
+  }
+
+  .dpdp-matrix-box {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Footer */
+  .site-footer {
+    padding: 48px 18px 24px !important;
+  }
+
+  .footer-container {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 32px !important;
+  }
+
+  /* Checkout Body */
+  .checkout-body {
+    grid-template-columns: 1fr !important;
+    padding: 20px !important;
+  }
+
+  .checkout-summary-column {
+    order: -1;
+    margin-bottom: 20px;
+  }
+
+  .checkout-stepper .step-text {
+    display: none;
+  }
+}
+
+/* Phones & Small Handhelds (max-width: 640px) */
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 2.1rem !important;
+  }
+
+  .hero-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    padding-top: 16px !important;
+  }
+
+  .stat-pill {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 4px !important;
+  }
+
+  .stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1.1rem !important;
+  }
+
+  .stat-pill strong {
+    font-size: 0.76rem !important;
+  }
+
+  .stat-pill small {
+    font-size: 0.65rem !important;
+  }
+
+  /* Banking Card on Mobile */
+  .card-logo {
+    font-size: 0.85rem !important;
+  }
+
+  .card-number {
+    font-size: 0.95rem !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .card-holder-name {
+    font-size: 0.74rem !important;
+  }
+
+  .visual-floating-tag {
+    display: none !important;
+  }
+
+  /* BFSI Tabs & Tenure */
+  .tenure-pills {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  .tenure-btn {
+    padding: 8px 10px !important;
+    font-size: 0.76rem !important;
+  }
+
+  .insurance-tiers-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .result-metric-card .metric-number {
+    font-size: 1.8rem !important;
+  }
+
+  .bfsi-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Footer on Mobile */
+  .footer-container {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* Cart Drawer Fullscreen on Mobile */
+  .cart-drawer, .wishlist-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Modals */
+  .bfsi-modal-window {
+    max-width: 100% !important;
+    border-radius: 14px !important;
+  }
+
+  .bfsi-modal-body {
+    padding: 20px 16px !important;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .checkout-modal-backdrop {
+    padding: 8px !important;
+  }
+
+  .checkout-modal-window {
+    border-radius: 12px !important;
+  }
+
+  .checkout-header {
+    padding: 16px !important;
+  }
+
+  .audit-decision-table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .audit-decision-table {
+    min-width: 480px !important;
+  }
+}
