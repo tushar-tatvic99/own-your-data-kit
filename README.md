@@ -16,6 +16,12 @@ Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — dep
 | **Parity checker** | Daily/weekly GA4 vs Matomo comparison with alerts and diagnosis |
 | **Connectors** | Google Ads, Meta CAPI, BigQuery export, Looker Studio dashboard |
 
+## Aurablush production (asia-south1)
+
+- **Site:** https://auraandblush-61760469326.asia-south1.run.app  
+- **Tracking:** Google GTM → GA4; Matomo via MTM (see [docs/aurablush-tracking-architecture.md](docs/aurablush-tracking-architecture.md))  
+- **Config:** `config/client.yaml`
+
 ## Quick start
 
 ### Prerequisites
@@ -40,11 +46,19 @@ export OYDK_LOCAL=1            # Linux/Mac
 # Kit API: http://localhost:8090
 ```
 
-### Cloud deployment
+### Cloud deployment (one command)
+
+**One command** provisions the full stack on a **new GCP project** (VM, Matomo, TLS, kit API, backups, schedulers — India region). No manual Terraform or Docker assembly.
+
+```powershell
+.\deploy\deploy.ps1 -ProjectId <gcp-project-id> -ClientName <client> -Profile standard
+```
 
 ```bash
-./deploy/deploy.sh <gcp-project-id> <client-name>
+SCALE_PROFILE=enterprise ./deploy/deploy.sh <gcp-project-id> <client-name>
 ```
+
+**After that**, the client’s Google/Matomo logins need **~3 short steps** (wizard + `client.yaml` + site tags) — things no deploy script can do without their accounts. See **[docs/post-deploy-checklist.md](docs/post-deploy-checklist.md)**.
 
 ### Configure a client
 
@@ -68,7 +82,12 @@ python -m kit.cli dsar-delete --user-id visitor-123
 
 # Test connectors
 python -m kit.cli connectors-test
+
+# Verify all five required build parts (hackathon checklist)
+python -m kit.cli verify-parts
 ```
+
+See **[docs/five-parts-complete.md](docs/five-parts-complete.md)** for the full rubric mapping.
 
 ## Project structure
 

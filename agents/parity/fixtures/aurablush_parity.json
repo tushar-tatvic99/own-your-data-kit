@@ -1,0 +1,32 @@
+{
+  "description": "Aurablush dual-tag rehearsal — GA4 vs Matomo within ±5% on a steady migration day",
+  "dates": {
+    "2026-10-24": {
+      "ga4": {
+        "users": 120,
+        "sessions": 145,
+        "key_events": {
+          "purchase": 17,
+          "add_to_cart": 52,
+          "sign_up": 9
+        },
+        "traffic_sources": {
+          "Organic Search": 40,
+          "Direct": 55,
+          "Paid Search": 30,
+          "Social": 20
+        }
+      },
+      "matomo": {
+        "users": 118,
+        "sessions": 142,
+        "key_events": {
+          "purchase": 17,
+          "add_to_cart": 50,
+          "sign_up": 9
+        },
+        "traffic_sources_total": 140
+      }
+    }
+  }
+}

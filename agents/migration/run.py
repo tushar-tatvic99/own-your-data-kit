@@ -7,8 +7,10 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 
+from agents.migration.fixture_reader import FixtureGA4Reader, FixtureGTMReader
 from agents.migration.ga4_reader import GA4Reader
 from agents.migration.gtm_reader import GTMReader
+from agents.migration.gtm_draft_writer import write_gtm_draft_bundle
 from agents.migration.mapper import (
     UNMIGRATABLE,
     generate_gtm_draft_changes,
@@ -18,21 +20,44 @@ from agents.migration.mapper import (
 from dpdp.audit_log import log_action
 from kit.config import load_config
 from kit.matomo_client import MatomoClient
+from kit.matomo_token import resolve_matomo_token, verify_matomo_token
 
 console = Console()
 
 
-def run_migration(config_path: str) -> dict:
+def _fixture_paths(cfg: dict) -> tuple[Path, Path]:
+    mig = cfg.get("migration", {})
+    fixture_dir = Path(mig.get("fixture_dir", "agents/migration/fixtures"))
+    ga4_name = mig.get("fixture_ga4", "aurablush_ga4.json")
+    gtm_name = mig.get("fixture_gtm", "aurablush_gtm.json")
+    return fixture_dir / ga4_name, fixture_dir / gtm_name
+
+
+def _use_fixture_mode(cfg: dict, fixture_flag: bool) -> bool:
+    if fixture_flag or cfg.get("migration", {}).get("use_fixture"):
+        return True
+    creds = Path(cfg["ga4"]["credentials_file"])
+    return not creds.exists()
+
+
+def run_migration(config_path: str, fixture: bool = False) -> dict:
     """Execute the full migration agent pipeline."""
     cfg = load_config(config_path)
     output_dir = Path(cfg.get("migration", {}).get("output_dir", "output/migration"))
     output_dir.mkdir(parents=True, exist_ok=True)
+    fixture_mode = _use_fixture_mode(cfg, fixture)
 
     console.print("\n[bold]GA4/GTM Migration Agent[/bold]\n")
+    if fixture_mode:
+        console.print("[yellow]Fixture mode[/yellow] — using offline GA4/GTM snapshots (no Google APIs)\n")
 
     # --- Step 1: Read GA4 setup ---
     console.print("[1/5] Reading GA4 property configuration...")
-    ga4 = GA4Reader(cfg["ga4"]["property_id"], cfg["ga4"]["credentials_file"])
+    if fixture_mode:
+        ga4_path, gtm_path = _fixture_paths(cfg)
+        ga4 = FixtureGA4Reader(ga4_path)
+    else:
+        ga4 = GA4Reader(cfg["ga4"]["property_id"], cfg["ga4"]["credentials_file"])
     ga4_setup = ga4.get_full_setup()
     console.print(f"  Found {len(ga4_setup['custom_dimensions'])} custom dimensions, "
                   f"{len(ga4_setup['conversion_events'])} conversions, "
@@ -40,32 +65,68 @@ def run_migration(config_path: str) -> dict:
 
     # --- Step 2: Read GTM container ---
     console.print("[2/5] Reading GTM container...")
-    gtm = GTMReader(cfg["gtm"]["account_id"], cfg["gtm"]["container_id"],
-                    cfg["gtm"]["credentials_file"])
+    if fixture_mode:
+        gtm = FixtureGTMReader(
+            gtm_path,
+            cfg["gtm"]["account_id"],
+            cfg["gtm"]["container_id"],
+        )
+    else:
+        gtm = GTMReader(
+            cfg["gtm"]["account_id"],
+            cfg["gtm"]["container_id"],
+            cfg["gtm"]["credentials_file"],
+        )
     gtm_container = gtm.get_full_container()
+    gtm_public = gtm_container.get("public_id") or cfg["gtm"].get("public_id")
     console.print(f"  Found {len(gtm_container['tags'])} tags, "
                   f"{len(gtm_container['triggers'])} triggers, "
                   f"{len(gtm_container['variables'])} variables")
 
     # --- Step 3: Build Matomo setup ---
     console.print("[3/5] Building Matomo configuration...")
-    matomo = MatomoClient(cfg["stack"]["url"], cfg["stack"]["site_id"],
-                            cfg["stack"]["api_token"])
+    api_token = resolve_matomo_token(cfg["stack"]["api_token"])
+    verify_matomo_token(cfg["stack"]["url"], api_token, int(cfg["stack"]["site_id"]))
+    matomo = MatomoClient(cfg["stack"]["url"], cfg["stack"]["site_id"], api_token)
 
     migrated = {"dimensions": [], "goals": [], "errors": []}
+    existing_dims = {
+        d.get("name", "").lower()
+        for d in matomo.list_custom_dimensions()
+        if isinstance(d, dict)
+    }
+    existing_goals = {
+        g.get("name", "").lower()
+        for g in matomo.list_goals()
+        if isinstance(g, dict)
+    }
 
     for dim in ga4_setup["custom_dimensions"]:
         mapped = map_custom_dimension(dim)
+        if mapped["name"].lower() in existing_dims:
+            console.print(f"  [blue]○[/blue] Dimension exists: {mapped['name']}")
+            migrated["dimensions"].append({**mapped, "matomo_result": "already_exists"})
+            continue
         try:
             result = matomo.create_custom_dimension(mapped["name"], mapped["scope"])
             migrated["dimensions"].append({**mapped, "matomo_result": result})
+            existing_dims.add(mapped["name"].lower())
             console.print(f"  [green]✓[/green] Dimension: {mapped['name']}")
         except Exception as e:
-            migrated["errors"].append({"type": "dimension", "name": mapped["name"], "error": str(e)})
-            console.print(f"  [red]✗[/red] Dimension: {mapped['name']} — {e}")
+            err = str(e)
+            if "already" in err.lower() or "exist" in err.lower():
+                console.print(f"  [blue]○[/blue] Dimension exists: {mapped['name']}")
+                migrated["dimensions"].append({**mapped, "matomo_result": "already_exists"})
+            else:
+                migrated["errors"].append({"type": "dimension", "name": mapped["name"], "error": err})
+                console.print(f"  [red]✗[/red] Dimension: {mapped['name']} — {e}")
 
     for conv in ga4_setup["conversion_events"]:
         mapped = map_conversion_event(conv)
+        if mapped["name"].lower() in existing_goals:
+            console.print(f"  [blue]○[/blue] Goal exists: {mapped['name']}")
+            migrated["goals"].append({**mapped, "matomo_result": "already_exists"})
+            continue
         try:
             result = matomo.add_goal(
                 mapped["name"],
@@ -74,21 +135,43 @@ def run_migration(config_path: str) -> dict:
                 mapped.get("pattern_type", "contains"),
             )
             migrated["goals"].append({**mapped, "matomo_result": result})
+            existing_goals.add(mapped["name"].lower())
             console.print(f"  [green]✓[/green] Goal: {mapped['name']}")
         except Exception as e:
-            migrated["errors"].append({"type": "goal", "name": mapped["name"], "error": str(e)})
-            console.print(f"  [red]✗[/red] Goal: {mapped['name']} — {e}")
+            err = str(e)
+            if "already" in err.lower() or "exist" in err.lower():
+                console.print(f"  [blue]○[/blue] Goal exists: {mapped['name']}")
+                migrated["goals"].append({**mapped, "matomo_result": "already_exists"})
+            else:
+                migrated["errors"].append({"type": "goal", "name": mapped["name"], "error": err})
+                console.print(f"  [red]✗[/red] Goal: {mapped['name']} — {e}")
 
     # --- Step 4: Write GTM draft ---
     console.print("[4/5] Creating GTM migration workspace (draft only)...")
-    workspace = gtm.create_migration_workspace()
+    if fixture_mode:
+        workspace = {
+            "workspace_id": "fixture",
+            "name": "OYDK Migration Draft",
+            "created": False,
+            "simulated": True,
+        }
+    else:
+        workspace = gtm.get_or_create_migration_workspace()
+        if workspace.get("error"):
+            console.print(f"  [yellow]GTM workspace API: {workspace['error']}[/yellow]")
+            console.print("  [yellow]Draft saved to output/migration/gtm-draft-bundle.json for manual import.[/yellow]")
+        elif workspace.get("created"):
+            console.print(f"  [green]Created[/green] workspace: {workspace['name']} (ID: {workspace['workspace_id']})")
+        else:
+            console.print(f"  Using existing workspace: {workspace['name']} (ID: {workspace['workspace_id']})")
     gtm_draft = generate_gtm_draft_changes(
         gtm_container["tags"],
         cfg["stack"]["url"],
         cfg["stack"]["site_id"],
     )
-    console.print(f"  Workspace created: {workspace['name']} (ID: {workspace['workspace_id']})")
-    console.print(f"  [yellow]NOT PUBLISHED[/yellow] — human review required")
+    draft_path = write_gtm_draft_bundle(output_dir, workspace, gtm_draft, gtm_container)
+    console.print(f"  GTM draft bundle: {draft_path}")
+    console.print("  [yellow]NOT PUBLISHED[/yellow] — human review required")
 
     # --- Step 5: Generate migration report ---
     console.print("[5/5] Writing migration report...")
@@ -107,8 +190,10 @@ def run_migration(config_path: str) -> dict:
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "mode": "fixture" if fixture_mode else "live",
         "ga4_property": cfg["ga4"]["property_id"],
         "gtm_container": cfg["gtm"]["container_id"],
+        "gtm_public_id": gtm_public,
         "migrated": migrated,
         "gtm_workspace": workspace,
         "gtm_draft_changes": gtm_draft,
@@ -124,10 +209,17 @@ def run_migration(config_path: str) -> dict:
     md_path = output_dir / "migration-report.md"
     _write_markdown_report(md_path, report)
 
-    log_action("migration-agent", "migrate", f"ga4:{cfg['ga4']['property_id']}",
-               details={"migrated_dims": len(migrated["dimensions"]),
-                        "migrated_goals": len(migrated["goals"]),
-                        "unmigrated": len(unmigrated)})
+    log_action(
+        "migration-agent",
+        "migrate",
+        f"ga4:{cfg['ga4']['property_id']}",
+        details={
+            "mode": "fixture" if fixture_mode else "live",
+            "migrated_dims": len(migrated["dimensions"]),
+            "migrated_goals": len(migrated["goals"]),
+            "unmigrated": len(unmigrated),
+        },
+    )
 
     # Summary table
     table = Table(title="Migration Summary")
@@ -149,7 +241,10 @@ def _write_markdown_report(path: Path, report: dict) -> None:
     lines = [
         "# Migration Report",
         f"Generated: {report['generated_at']}",
+        f"Mode: **{report.get('mode', 'live')}**",
         f"GA4 Property: {report['ga4_property']}",
+        f"GTM Container: {report['gtm_container']}"
+        + (f" (`{report['gtm_public_id']}`)" if report.get("gtm_public_id") else ""),
         "",
         "## Migrated",
         "",
@@ -180,5 +275,9 @@ def _write_markdown_report(path: Path, report: dict) -> None:
 
 if __name__ == "__main__":
     import sys
-    config = sys.argv[1] if len(sys.argv) > 1 else "config/client.yaml"
-    run_migration(config)
+
+    args = sys.argv[1:]
+    fixture = "--fixture" in args
+    args = [a for a in args if a != "--fixture"]
+    config = args[0] if args else "config/client.yaml"
+    run_migration(config, fixture=fixture)

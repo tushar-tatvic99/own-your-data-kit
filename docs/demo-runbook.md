@@ -1,97 +1,107 @@
-# Demo Runbook
+# Demo Runbook — Aurablush (OYDK)
 
-Rehearse this twice before the event. Total demo time: ~25 minutes.
+Rehearse once before the event. Total demo time: ~25 minutes.
+
+**Production URLs**
+
+| System | URL |
+|--------|-----|
+| Shop | https://auraandblush-61760469326.asia-south1.run.app |
+| Matomo admin | https://matomo.35-234-210-199.nip.io |
+| GA4 | Property `560630351`, `G-SBRP8M6S83` |
+| GTM | `GTM-MMXM5L53` |
 
 ---
 
 ## Pre-demo checklist
 
-- [ ] GCP project with credits, APIs enabled
-- [ ] Service account JSON in `credentials/ga-service-account.json`
-- [ ] `config/client.yaml` filled in (copy from `example.client.yaml`)
-- [ ] Tatvic test website accessible
-- [ ] Google Ads / Meta test account credentials ready
-- [ ] Slack webhook URL for parity alerts (optional)
+- [ ] `credentials/ga-service-account.json` present
+- [ ] `config/client.yaml` filled in
+- [ ] `$env:MATOMO_API_TOKEN` set (Matomo → Personal → Security → **Auth token**, HTTPS-only)
+- [ ] Shop loads; cookie banner works
+- [ ] Optional: Slack webhook in `config/client.yaml`
 
 ---
 
-## Demo 1: One-command deploy (~10 min)
-
-```bash
-# Fresh GCP project
-./deploy/deploy.sh <gcp-project-id> demo
-
-# Or locally for rehearsal:
-$env:OYDK_LOCAL = "1"
-.\deploy\deploy.ps1 -ProjectId local
-```
+## Demo 1: Stack on GCP (~5 min)
 
 **Show judges:**
-- Script output progressing through 6 steps
-- Matomo UI at `http://<ip>:8080` — complete setup wizard
-- Kit API health check at `http://<ip>:8090/health`
+
+- Matomo admin on **HTTPS** (no “insecure HTTP” banner)
+- Aurablush site id **1**, goals migrated from GA4
+- Architecture: GTM → GA4; Matomo via `matomo-tracker.js` + MTM container
 
 ---
 
-## Demo 2: Migration agent on hidden GA4 property (~5 min)
+## Demo 2: Migration agent (~5 min)
 
-```bash
-python -m agents.migration.run --config config/client.yaml
-# or: oydk migrate -c config/client.yaml
+```powershell
+$env:MATOMO_API_TOKEN = "<token>"
+py -3 -m kit.cli migrate -c config/client.yaml
 ```
 
-**Show judges:**
-1. Terminal output: dimensions, goals being created
-2. `output/migration/migration-report.md` — migrated items
-3. GTM UI: new workspace "OYDK Migration Draft" (NOT published)
-4. Unmigrated items list with reasons
+**Show:** `output/migration/migration-report.md` and Matomo **Goals**.
+
+*(GTM “OYDK Migration Draft” is optional — not required for Aurablush architecture.)*
 
 ---
 
-## Demo 3: Parity check + break tag (~5 min)
+## Demo 3: Parity (~5 min)
 
-```bash
-# Run parity check
-python -m agents.parity.run --config config/client.yaml
-
-# Judge breaks a tag — then re-run:
-python -m agents.parity.run --config config/client.yaml
+```powershell
+py -3 -m kit.cli parity -d 2026-10-24 -c config/client.yaml
 ```
 
-**Show judges:**
-1. Parity table: GA4 vs Matomo side by side
-2. Red "MISS" on broken metric
-3. Diagnosis: likely cause + proposed fix
-4. Alert sent (Slack or console output)
+**Show:** GA4 vs Matomo table, diagnosis on MISS.
 
----
+Fixture rehearsal (offline):
 
-## Demo 4: DPDP flows (~3 min)
-
-**Consent:**
-1. Open test site in incognito
-2. Decline cookies → show Network tab: zero Matomo requests
-3. Accept cookies → Matomo requests appear
-
-**DSAR delete:**
-```bash
-oydk dsar-lookup --user-id test-visitor-123
-oydk dsar-delete --user-id test-visitor-123
-oydk dsar-lookup --user-id test-visitor-123  # confirm empty
+```powershell
+py -3 -m kit.cli parity -c config/client.yaml --fixture
+py -3 -m kit.cli parity -c config/client.yaml --fixture --break-tag purchase
 ```
 
 ---
 
-## Demo 5: Conversion connector (~2 min)
+## Demo 4: DPDP (~5 min)
 
-```bash
-oydk connectors-test -c config/client.yaml
+**Consent (live shop, incognito):**
+
+1. Decline → no `matomo.php` to `matomo.35-234-210-199.nip.io`
+2. Accept → `matomo.php` + GTM/GA4 fire
+
+**DSAR:**
+
+```powershell
+py -3 -m kit.cli dsar-lookup --user-id <userId> -c config/client.yaml
+py -3 -m kit.cli dsar-delete --user-id <userId> -c config/client.yaml -y
+py -3 -m kit.cli dsar-lookup --user-id <userId> -c config/client.yaml
 ```
 
-**Show judges:** conversion visible in Google Ads or Meta test events manager.
+---
+
+## Demo 5: Connectors (optional)
+
+```powershell
+py -3 -m kit.cli connectors-test -c config/client.yaml
+```
+
+Requires Ads/Meta IDs in `config/client.yaml` (not configured for Aurablush yet).
 
 ---
 
 ## Demo 6: Stack choice (~2 min)
 
-Walk through `docs/stack-choice.md` — five tests, why Matomo, when PostHog.
+Walk through `docs/stack-choice.md`.
+
+---
+
+## Token rotation (after exposure)
+
+1. Matomo → **Personal → Security** → create new auth token (allow secure connections).
+2. On VM: update `deploy/docker/.env` `MATOMO_API_TOKEN`, then `sudo docker-compose up -d kit-api kit-scheduler`.
+3. Locally: `$env:MATOMO_API_TOKEN = "<new>"`.
+4. Optional: `echo -n "<new>" | gcloud secrets versions add aurablush-matomo-api-token --data-file=- --project=tvc-int-matomo`
+5. Revoke old token in Matomo UI.
+
+Helper on VM (after token works): `deploy/docker/rotate-matomo-token.sh`

@@ -1,0 +1,4 @@
+# Only exclude VCS — keep all static assets (styles.css, assets/, etc.)
+.git
+.gitignore
+README-DPDP-WIRING.md

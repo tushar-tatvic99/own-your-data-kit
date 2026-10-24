@@ -5,6 +5,12 @@ from datetime import datetime, timezone
 from google.cloud import bigquery
 
 
+def _ensure_dataset(client: bigquery.Client, project_id: str, dataset: str) -> None:
+    dataset_ref = bigquery.Dataset(f"{project_id}.{dataset}")
+    dataset_ref.location = "asia-south1"
+    client.create_dataset(dataset_ref, exists_ok=True)
+
+
 def export_events(
     project_id: str,
     dataset: str,
@@ -17,13 +23,8 @@ def export_events(
 
     table_ref = f"{project_id}.{dataset}.{table}"
 
-    # Ensure dataset exists
-    dataset_ref = bigquery.Dataset(f"{project_id}.{dataset}")
-    dataset_ref.location = "asia-south1"
-    try:
-        client.create_dataset(dataset_ref, exists_ok=True)
-    except Exception:
-        pass
+    _ensure_dataset(client, project_id, dataset)
+    create_export_schema(project_id, dataset, table)
 
     rows = []
     for event in events:
@@ -49,6 +50,7 @@ def export_events(
 def create_export_schema(project_id: str, dataset: str, table: str) -> None:
     """Create the BigQuery table with standard schema if it doesn't exist."""
     client = bigquery.Client(project=project_id)
+    _ensure_dataset(client, project_id, dataset)
     schema = [
         bigquery.SchemaField("event_timestamp", "TIMESTAMP"),
         bigquery.SchemaField("event_name", "STRING"),

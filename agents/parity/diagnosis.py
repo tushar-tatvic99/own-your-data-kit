@@ -14,7 +14,7 @@ class Diagnosis:
 DIAGNOSIS_RULES = [
     {
         "condition": lambda gaps: any(
-            g["metric"] == "key_events" and g["gap_percent"] > 20 for g in gaps
+            g["metric"].startswith("key_event:") and g["gap_percent"] > 20 for g in gaps
         ),
         "cause": "A key event tag is likely missing or broken on one or more pages",
         "confidence": "high",

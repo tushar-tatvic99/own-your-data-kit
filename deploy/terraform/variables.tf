@@ -21,16 +21,27 @@ variable "zone" {
   default     = "asia-south1-a"
 }
 
-variable "machine_type" {
-  description = "VM machine type"
+variable "scale_profile" {
+  description = "Sizing profile: small | standard | enterprise (see docs/scaling.md)"
   type        = string
-  default     = "e2-standard-4"
+  default     = "standard"
+
+  validation {
+    condition     = contains(["small", "standard", "enterprise"], var.scale_profile)
+    error_message = "scale_profile must be small, standard, or enterprise."
+  }
+}
+
+variable "machine_type" {
+  description = "Optional VM machine type override (empty = use scale_profile)"
+  type        = string
+  default     = ""
 }
 
 variable "disk_size_gb" {
-  description = "Boot disk size in GB"
+  description = "Optional boot disk GB override (0 = use scale_profile)"
   type        = number
-  default     = 100
+  default     = 0
 }
 
 variable "admin_cidr_blocks" {

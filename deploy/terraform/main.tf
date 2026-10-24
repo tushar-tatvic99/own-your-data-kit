@@ -33,7 +33,7 @@ resource "google_compute_firewall" "allow_web" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443", "22"]
+    ports    = ["80", "443", "22", "8080", "8090"]
   }
 
   source_ranges = var.admin_cidr_blocks
@@ -49,14 +49,14 @@ resource "google_compute_address" "analytics_ip" {
 # VM — runs Docker Compose stack (Matomo + kit services)
 resource "google_compute_instance" "analytics" {
   name         = "${var.client_name}-analytics"
-  machine_type = var.machine_type
+  machine_type = local.effective_machine_type
   zone         = var.zone
   tags         = ["analytics-server"]
 
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-12"
-      size  = var.disk_size_gb
+      size  = local.effective_disk_size_gb
       type  = "pd-ssd"
     }
   }
@@ -137,8 +137,8 @@ resource "google_monitoring_uptime_check_config" "matomo" {
 
   http_check {
     path         = "/"
-    port         = 80
-    use_ssl      = false
+    port         = 443
+    use_ssl      = true
     request_method = "GET"
   }
 
@@ -161,8 +161,34 @@ resource "google_cloud_scheduler_job" "daily_backup" {
   http_target {
     uri         = "http://${google_compute_address.analytics_ip.address}:8090/internal/backup"
     http_method = "POST"
-    oidc_token {
-      service_account_email = google_service_account.analytics.email
+    # OIDC requires https:// — enable when TLS is on the kit API
+  }
+}
+
+resource "google_cloud_scheduler_job" "daily_parity" {
+  name        = "${var.client_name}-analytics-daily-parity"
+  description = "Trigger daily GA4 vs Matomo parity check during migration"
+  schedule    = "0 6 * * *"
+  time_zone   = "Asia/Kolkata"
+
+  http_target {
+    uri         = "http://${google_compute_address.analytics_ip.address}:8090/internal/parity"
+    http_method = "POST"
+    body        = base64encode("{}")
+    headers = {
+      "Content-Type" = "application/json"
     }
+  }
+}
+
+resource "google_cloud_scheduler_job" "weekly_retention" {
+  name        = "${var.client_name}-analytics-weekly-retention"
+  description = "Audit configured data retention policy"
+  schedule    = "0 3 * * 1"
+  time_zone   = "Asia/Kolkata"
+
+  http_target {
+    uri         = "http://${google_compute_address.analytics_ip.address}:8090/internal/retention"
+    http_method = "POST"
   }
 }

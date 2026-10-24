@@ -36,8 +36,23 @@ services:
       MATOMO_DATABASE_DBNAME: matomo
     volumes:
       - matomo-data:/var/www/html
+    expose:
+      - "80"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - matomo
+    environment:
+      MATOMO_PUBLIC_HOST: ${MATOMO_PUBLIC_HOST:-matomo.35-234-210-199.nip.io}
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
   # Kit services: DSAR API, audit log, connector workers
   kit-api:
@@ -54,11 +69,17 @@ services:
       MATOMO_API_TOKEN: ${MATOMO_API_TOKEN}
       KIT_DB_URL: postgresql://kit:${KIT_DB_PASSWORD}@kit-db:5432/kit
       DATA_RETENTION_DAYS: ${DATA_RETENTION_DAYS:-365}
+      OYDK_EMAIL_FROM: ${OYDK_EMAIL_FROM:-}
+      OYDK_SMTP_HOST: ${OYDK_SMTP_HOST:-smtp.gmail.com}
+      OYDK_SMTP_PORT: ${OYDK_SMTP_PORT:-587}
+      OYDK_SMTP_USER: ${OYDK_SMTP_USER:-}
+      OYDK_SMTP_PASS: ${OYDK_SMTP_PASS:-}
     ports:
       - "8090:8090"
     volumes:
       - ../../config:/app/config:ro
       - ../../output:/app/output
+      - ../../credentials:/app/credentials:ro
 
   kit-db:
     image: postgres:16-alpine
@@ -85,6 +106,11 @@ services:
       MATOMO_URL: http://matomo:80
       MATOMO_API_TOKEN: ${MATOMO_API_TOKEN}
       GA4_CREDENTIALS: /app/credentials/ga-service-account.json
+      OYDK_EMAIL_FROM: ${OYDK_EMAIL_FROM:-}
+      OYDK_SMTP_HOST: ${OYDK_SMTP_HOST:-smtp.gmail.com}
+      OYDK_SMTP_PORT: ${OYDK_SMTP_PORT:-587}
+      OYDK_SMTP_USER: ${OYDK_SMTP_USER:-}
+      OYDK_SMTP_PASS: ${OYDK_SMTP_PASS:-}
     volumes:
       - ../../config:/app/config:ro
       - ../../credentials:/app/credentials:ro
@@ -94,4 +120,6 @@ volumes:
   matomo-db:
   matomo-redis:
   matomo-data:
+  caddy-data:
+  caddy-config:
   kit-db:

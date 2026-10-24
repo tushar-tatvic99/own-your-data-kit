@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurablush Demo Store — OYDK</title>
+  <link rel="stylesheet" href="https://cdn.kiprotect.com/klaro/v0.7/klaro.min.css" />
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.5rem; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    button { margin: 0.25rem 0.25rem 0.25rem 0; padding: 0.5rem 1rem; cursor: pointer; }
+    .hint { color: #555; font-size: 0.9rem; }
+    code { background: #f4f4f4; padding: 0.1rem 0.3rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Aurablush demo store</h1>
+  <p class="hint">
+    Step 1 demo: <strong>no Matomo requests until you accept cookies</strong>.
+    Matomo: <code>http://localhost:8080</code> · Site ID <code>1</code>
+  </p>
+
+  <div class="card">
+    <h2>Shop actions (test events)</h2>
+    <p>These only send data after consent + Matomo is loaded.</p>
+    <button type="button" id="btn-cart">Add to cart</button>
+    <button type="button" id="btn-purchase">Purchase (₹999)</button>
+    <button type="button" id="btn-signup">Sign up</button>
+  </div>
+
+  <div class="card">
+    <h2>Cookie consent (DPDP demo)</h2>
+    <p class="hint">Use Klaro <strong>Decline all</strong> or the buttons below (same behaviour).</p>
+    <button type="button" id="btn-accept" style="background:#0a7;font-weight:bold;color:#fff;border:none">Accept analytics</button>
+    <button type="button" id="btn-decline" style="background:#c33;font-weight:bold;color:#fff;border:none">Decline analytics</button>
+    <button type="button" id="btn-reopen-cmp">Open Klaro preferences</button>
+    <p id="consent-status" class="hint">Status: waiting for your choice…</p>
+  </div>
+
+  <script>
+    window.klaroConfig = {
+      version: 1,
+      elementID: "klaro",
+      lang: "en",
+      styling: { theme: ["wide", "light", "bottom"] },
+      translations: {
+        en: {
+          acceptAll: "Accept all",
+          declineAll: "Decline all",
+          acceptSelected: "Save choices",
+          close: "Close",
+          consentModal: {
+            title: "Privacy & Cookie Consent",
+            description: "Under India's DPDP Act, we need your consent before analytics. Data stays on our Matomo server (localhost for this demo)."
+          },
+          consentNotice: {
+            title: "Cookie consent",
+            description: "We use analytics only if you agree. You can decline — no tracking will run.",
+            learnMore: "Customize"
+          },
+          matomo: {
+            title: "Analytics (Matomo)",
+            description: "Helps us understand how visitors use our site. No third-party ad trackers."
+          },
+          purposes: { analytics: "Analytics" }
+        }
+      },
+      services: [{
+        name: "matomo",
+        title: "Analytics (Matomo)",
+        purposes: ["analytics"],
+        required: false,
+        default: false,
+        cookies: ["_pk_id", "_pk_ses", "_pk_ref"]
+      }],
+      purposes: ["analytics"],
+      mustNoticeConsent: false,
+      acceptAll: true,
+      hideDeclineAll: false,
+      hideAcceptAll: false
+    };
+  </script>
+  <script src="https://cdn.kiprotect.com/klaro/v0.7/klaro.min.js"></script>
+
+  <script>
+    (function () {
+      var MATOMO_URL = "http://localhost:8080";
+      var SITE_ID = "1";
+      var _paq = window._paq = window._paq || [];
+      var matomoLoaded = false;
+
+      function loadMatomo() {
+        if (matomoLoaded) return;
+        matomoLoaded = true;
+        _paq.push(["requireConsent"]);
+        _paq.push(["rememberConsentGiven"]);
+        _paq.push(["setConsentGiven"]);
+        _paq.push(["setTrackerUrl", MATOMO_URL + "/matomo.php"]);
+        _paq.push(["setSiteId", SITE_ID]);
+        _paq.push(["setUserId", "demo-visitor-001"]);
+        _paq.push(["enableLinkTracking"]);
+        _paq.push(["trackPageView"]);
+        var g = document.createElement("script");
+        g.async = true;
+        g.src = MATOMO_URL + "/matomo.js";
+        document.head.appendChild(g);
+      }
+
+      function setStatus(text) {
+        var el = document.getElementById("consent-status");
+        if (el) el.textContent = "Status: " + text;
+      }
+
+      function unloadMatomo() {
+        _paq.push(["forgetConsentGiven"]);
+        matomoLoaded = false;
+        document.querySelectorAll('script[src*="matomo.js"]').forEach(function (n) { n.remove(); });
+        setStatus("declined — no Matomo tracking");
+      }
+
+      function applyKlaroConsent(granted) {
+        if (!window.klaro || !klaro.getManager) return;
+        var m = klaro.getManager();
+        m.updateConsent("matomo", granted);
+        if (typeof m.saveAndApplyConsents === "function") {
+          m.saveAndApplyConsents();
+        } else if (typeof m.applyConsents === "function") {
+          m.applyConsents();
+        }
+      }
+
+      function acceptConsent() {
+        applyKlaroConsent(true);
+        loadMatomo();
+        setStatus("accepted — Matomo active");
+      }
+
+      function declineConsent() {
+        applyKlaroConsent(false);
+        unloadMatomo();
+      }
+
+      document.addEventListener("klaro:consent-changed", function (e) {
+        var c = e.detail || {};
+        if (c.matomo) {
+          loadMatomo();
+          setStatus("accepted (Klaro) — Matomo active");
+        } else {
+          unloadMatomo();
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.addEventListener("load", function () {
+          if (window.klaro && klaro.getManager && !klaro.getManager().confirmed) {
+            klaro.show(undefined, true);
+          }
+        });
+
+        if (window.klaro && klaro.getManager) {
+          var m = klaro.getManager();
+          if (m.confirmed && m.getConsent("matomo")) loadMatomo();
+        }
+
+        document.getElementById("btn-accept").onclick = acceptConsent;
+        document.getElementById("btn-decline").onclick = declineConsent;
+
+        function track(name) {
+          if (!matomoLoaded) {
+            setStatus("declined — event blocked (no Matomo). Click Accept analytics first.");
+            return;
+          }
+          _paq.push(["trackEvent", "Ecommerce", name]);
+          setStatus("sent event: " + name + " (check Matomo Real-time)");
+        }
+        document.getElementById("btn-cart").onclick = function () { track("add_to_cart"); };
+        document.getElementById("btn-purchase").onclick = function () {
+          if (!matomoLoaded) {
+            setStatus("declined — event blocked (no Matomo). Click Accept analytics first.");
+            return;
+          }
+          _paq.push(["trackEvent", "Ecommerce", "purchase", "order", 999]);
+          setStatus("sent event: purchase (check Matomo Real-time)");
+        };
+        document.getElementById("btn-signup").onclick = function () { track("sign_up"); };
+        document.getElementById("btn-reopen-cmp").onclick = function () {
+          if (window.klaro) klaro.show();
+        };
+      });
+    })();
+  </script>
+</body>
+</html>
