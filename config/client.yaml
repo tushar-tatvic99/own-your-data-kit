@@ -1,9 +1,10 @@
 client:
   name: "aurablush"
   region: "asia-south1"
+  environment: "gcp"
 
 stack:
-  type: matomo
+  type: "matomo"
   url: "https://matomo.35-234-210-199.nip.io"
   site_id: 1
   api_token: "5f18309ca2e10e1c1ff5c5b2cc760842"
@@ -39,7 +40,7 @@ parity:
     - financial_lead_submitted
     - calculate_loan_emi
     - calculate_fd_yield
-  alert_email: "parshwa@tatvic.com"
+  alert_email: "analytics-owner@client.com"
   alert_slack_webhook: ""
 
 connectors:

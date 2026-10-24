@@ -15,6 +15,25 @@ def main():
 
 @main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+def health(config: str):
+    """Check health and connectivity of the configured analytics stack."""
+    from kit.config import load_config
+    from kit.adapters import get_stack_adapter
+
+    try:
+        cfg = load_config(config)
+        adapter = get_stack_adapter(cfg)
+        result = adapter.health_check()
+        console.print(f"[bold green]✓ Stack Status:[/bold green] {result['status'].upper()}")
+        console.print(f"  • Engine  : {result.get('engine', 'unknown').upper()}")
+        console.print(f"  • Version : {result.get('version', 'N/A')}")
+        console.print(f"  • Site ID : {result.get('site_id', 'N/A')}")
+    except Exception as e:
+        console.print(f"[bold red]✗ Stack Health Check Failed:[/bold red] {e}")
+
+
+@main.command()
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 def migrate(config: str):
     """Run GA4/GTM migration agent."""
     from agents.migration.run import run_migration
@@ -26,7 +45,7 @@ def migrate(config: str):
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--date", "-d", default=None, help="Date to check (YYYY-MM-DD, default yesterday)")
 def parity(config: str, date: str | None):
-    """Run parity check between GA4 and Matomo."""
+    """Run parity check between GA4 and target analytics stack."""
     from agents.parity.run import run_parity
 
     run_parity(config, date)
@@ -60,7 +79,7 @@ def dsar_delete(config: str, user_id: str):
 @click.option("--continuous", is_flag=True, default=False, help="Run continuously in background")
 @click.option("--interval", default=60, help="Interval in seconds for continuous sync")
 def bq_sync(config: str, continuous: bool, interval: int):
-    """Sync Matomo live events and conversions into BigQuery."""
+    """Sync live events and conversions into BigQuery."""
     from connectors.bigquery_export import run_bigquery_sync
 
     console.print(f"[bold cyan]Starting BigQuery Sync[/bold cyan] (continuous={continuous})...")

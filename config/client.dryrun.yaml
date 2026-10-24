@@ -1,0 +1,25 @@
+# SIMULATED CLIENT CONFIGURATION (DRY-RUN)
+client:
+  name: "client-766"
+  region: "asia-south1"
+  environment: "gcp"
+  simulation_mode: true
+
+stack:
+  type: "matomo"
+  url: "https://matomo.35-234-210-199.nip.io"
+  site_id: 1
+  api_token: "simulated_token_5f18309ca2e10e1c1ff5c5b2cc760842"
+
+dpdp:
+  require_consent: true
+  cmp_provider: "cookieconsent"
+  data_retention_days: 365
+  pii_scrub_enabled: true
+  audit_log_enabled: true
+
+connectors:
+  bigquery:
+    project_id: "tvc-int-matomo"
+    dataset: "matomo_export"
+    table: "events"
