@@ -1552,7 +1552,7 @@ function initDpdpCenter() {
       }
 
       if (typeof MatomoTracker !== 'undefined' && typeof MatomoTracker.trackCustomEvent === 'function') {
-        MatomoTracker.trackCustomEvent('DPDP Compliance', 'Erasure Petition Submitted', scope, 1);
+        MatomoTracker.trackCustomEvent('DPDP Rights', 'Erasure Petition Submitted', scope, 1);
       }
 
       // Render executive receipt state

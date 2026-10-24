@@ -1,62 +1,55 @@
 client:
-  name: "aurablush"
-  region: "asia-south1"
-  environment: "gcp"
-
+  name: aurablush
+  region: asia-south1
+  environment: gcp
 stack:
-  type: "matomo"
-  url: "https://matomo.35-234-210-199.nip.io"
+  type: matomo
+  url: https://matomo.35-234-210-199.nip.io
   site_id: 1
-  api_token: "5f18309ca2e10e1c1ff5c5b2cc760842"
-
+  api_token: 5f18309ca2e10e1c1ff5c5b2cc760842
 ga4:
-  property_id: "61760469326"
-  credentials_file: "credentials/ga-service-account.json"
-
+  property_id: '61760469326'
+  credentials_file: credentials/ga-service-account.json
 gtm:
-  account_id: "6000000000"
-  container_id: "GTM-MMXM5L53"
-  credentials_file: "credentials/ga-service-account.json"
-
+  account_id: '6000000000'
+  container_id: GTM-MMXM5L53
+  credentials_file: credentials/ga-service-account.json
 dpdp:
   require_consent: true
-  cmp_provider: "cookieconsent"
+  cmp_provider: cookieconsent
   data_retention_days: 365
   pii_scrub_enabled: true
   audit_log_enabled: true
-
 parity:
-  schedule_migration: "0 6 * * *"
-  schedule_steady: "0 6 * * 1"
+  schedule_migration: 0 6 * * *
+  schedule_steady: 0 6 * * 1
   target_gap_percent: 5
   metrics:
-    - users
-    - sessions
-    - key_events
-    - traffic_sources
+  - users
+  - sessions
+  - key_events
+  - traffic_sources
   key_events:
-    - purchase
-    - add_to_cart
-    - financial_lead_submitted
-    - calculate_loan_emi
-    - calculate_fd_yield
-  alert_email: "analytics-owner@client.com"
-  alert_slack_webhook: ""
-
+  - purchase
+  - add_to_cart
+  - financial_lead_submitted
+  - calculate_loan_emi
+  - calculate_fd_yield
+  alert_email: analytics-owner@client.com
+  alert_slack_webhook: ''
 connectors:
   google_ads:
-    customer_id: "1112110147"
-    conversion_action_id: "7868766365"
-    conversion_name: "tvc_synminds_ecom_web (web) purchase"
-    credentials_file: "credentials/google-ads.yaml"
+    customer_id: '1112110147'
+    conversion_action_id: '7868766365'
+    conversion_name: tvc_synminds_ecom_web (web) purchase
+    credentials_file: credentials/google-ads.yaml
   bigquery:
-    project_id: "tvc-int-matomo"
-    dataset: "matomo_export"
-    table: "events"
-    conversions_table: "connector_conversions"
+    project_id: tvc-int-matomo
+    dataset: matomo_export
+    table: events
+    conversions_table: connector_conversions
   looker:
-    dashboard_id: "matomo-marketing-overview"
-
+    dashboard_id: matomo-marketing-overview
 migration:
   gtm_draft_only: true
-  output_dir: "output/migration"
+  output_dir: output/migration

@@ -318,33 +318,40 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 pt-4">
         <div class="space-y-2">
           <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
-            <span>✓</span> Consent Gated by Default
+            <span>✓</span> Consent Gated
           </div>
           <p class="text-xs text-gray-400">Zero tracking requests fire until the visitor grants consent in CMP banner (Google Consent Mode v2 denied).</p>
         </div>
 
         <div class="space-y-2">
           <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
-            <span>✓</span> Automated PII Scrubbing
+            <span>✓</span> PII Stripping
           </div>
           <p class="text-xs text-gray-400">Phone numbers (+91 / standard) and emails are stripped from URLs and event parameters before logging.</p>
         </div>
 
         <div class="space-y-2">
           <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
-            <span>✓</span> Section 12 DSAR Erasure
+            <span>✓</span> Retention Limits
           </div>
-          <p class="text-xs text-gray-400">Verified CLI lookup and permanent deletion of database rows across raw visit logs and actions via PrivacyManager.</p>
+          <p class="text-xs text-gray-400">Configurable retention policies (default: 365d) purging raw logs automatically. Managed via <code class="text-emerald-300">oydk retention</code>.</p>
         </div>
 
         <div class="space-y-2">
           <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
-            <span>✓</span> Immutable Audit Logging
+            <span>✓</span> DSAR Rights Flow
           </div>
-          <p class="text-xs text-gray-400">Every lookup, erasure, parity run, and migration execution is committed to an immutable audit database.</p>
+          <p class="text-xs text-gray-400">Verified CLI lookup and permanent deletion of database rows across raw visit logs via PrivacyManager.</p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+            <span>✓</span> Immutable Audit
+          </div>
+          <p class="text-xs text-gray-400">Every lookup, erasure, retention change, and backup is recorded to an immutable SQLite audit trail.</p>
         </div>
       </div>
     </section>

@@ -71,7 +71,7 @@
             closeIconLabel: 'Close',
             sections: [
               {
-                title: 'Data Collection & DPDP Compliance',
+                title: 'Data Collection & DPDP-Ready Privacy',
                 description: 'You have full autonomy over how your browsing and purchase journey data is processed. You can update or revoke your consent anytime.'
               },
               {

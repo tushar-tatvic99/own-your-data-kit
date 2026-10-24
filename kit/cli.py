@@ -295,6 +295,69 @@ def bq_sync(config: str, continuous: bool, interval: int):
 
 @main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--days", "-d", type=int, default=None, help="Set new data retention limit in days")
+def retention(config: str, days: int | None):
+    """DPDP: View or configure raw analytics data retention limits."""
+    from kit.config import load_config
+    from kit.adapters import get_stack_adapter
+    import yaml
+
+    cfg = load_config(config)
+    adapter = get_stack_adapter(cfg)
+
+    current_retention = cfg.get("dpdp", {}).get("data_retention_days", 365)
+
+    if days is not None:
+        console.print(f"[bold cyan]Updating DPDP Data Retention Policy to {days} days...[/bold cyan]")
+        res = adapter.set_data_retention(days)
+
+        # Update client.yaml
+        cfg.setdefault("dpdp", {})["data_retention_days"] = days
+        with open(config, "w", encoding="utf-8") as f:
+            yaml.safe_dump(cfg, f, default_flow_style=False, sort_keys=False)
+
+        console.print(f"[bold green]✓ Retention Policy Applied:[/bold green] Purging raw logs older than {days} days.")
+        console.print(f"  • Engine Status : {res.get('status')}")
+        console.print(f"  • Config File   : {config}")
+        console.print(f"  • Audit Action  : Recorded in DPDP audit log.")
+    else:
+        console.print(f"\n[bold cyan]DPDP Data Retention Policy Status[/bold cyan]")
+        console.print(f"  • Configured Retention : [bold green]{current_retention} days[/bold green]")
+        console.print(f"  • Engine Target        : {cfg.get('stack', {}).get('type', 'matomo').upper()}")
+        console.print(f"  • Enforced Scope       : Raw visitor logs, IP sessions, and geo records")
+        console.print(f"  • To update limit      : [dim].venv/bin/python3 -m kit.cli retention --days <number>[/dim]\n")
+
+
+@main.command()
+@click.option("--url", help="URL to scrub PII from")
+@click.option("--text", help="Plain text string to scrub PII from")
+def scrub(url: str | None, text: str | None):
+    """DPDP: Test real-time PII stripping from URLs and text strings."""
+    from dpdp.pii_scrubber import scrub_url, scrub_string
+
+    if not url and not text:
+        # Default interactive test examples
+        sample_url = "https://auraandblush.run.app/checkout?email=rajesh.patel@tatvic.com&phone=+91-98765-43210&utm_source=newsletter"
+        sample_text = "Customer Aarav Patel (+91 98765 43210, aarav@tatvic.com) ordered Parisian Perfume."
+
+        console.print(f"\n[bold cyan]DPDP PII Scrubber Demonstration[/bold cyan]\n")
+        console.print(f"[bold yellow]Sample URL Input :[/bold yellow] {sample_url}")
+        console.print(f"[bold green]Scrubbed Output  :[/bold green] {scrub_url(sample_url)}\n")
+        console.print(f"[bold yellow]Sample Text Input:[/bold yellow] {sample_text}")
+        console.print(f"[bold green]Scrubbed Output  :[/bold green] {scrub_string(sample_text)}\n")
+        return
+
+    if url:
+        console.print(f"\n[bold yellow]Original URL :[/bold yellow] {url}")
+        console.print(f"[bold green]Scrubbed URL :[/bold green] {scrub_url(url)}\n")
+
+    if text:
+        console.print(f"\n[bold yellow]Original Text :[/bold yellow] {text}")
+        console.print(f"[bold green]Scrubbed Text :[/bold green] {scrub_string(text)}\n")
+
+
+@main.command()
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 def connectors_test(config: str):
     """Test all connector integrations."""
     from connectors.runner import test_all_connectors

@@ -204,7 +204,7 @@ export async function revokeAnalytics(): Promise<ConsentRecord> {
 
 /**
  * Dispatches statutory consent payload to POST /api/consent
- * DPDP Compliance: Consent logs stored in regulated backend database, NEVER in third-party trackers.
+ * DPDP-Ready: Consent logs stored in regulated backend database, NEVER in third-party trackers.
  */
 async function sendConsentToBackend(record: ConsentRecord): Promise<void> {
   try {

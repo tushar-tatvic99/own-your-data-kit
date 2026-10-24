@@ -21,7 +21,8 @@
 
 // Initialize global queues
 window._paq = window._paq || [];
-window._paq.push(['requireConsent']); // DPDP Compliance: Disables tracking until affirmative consent
+window._paq.push(['requireConsent']); // DPDP-Ready: Disables tracking until affirmative consent
+window._paq.push(['setExcludedQueryParams', ['email', 'mail', 'phone', 'tel', 'mobile', 'contact', 'user_email', 'user_phone', 'name', 'fname', 'lname']]);
 window._mtm = window._mtm || [];
 window.dataLayer = window.dataLayer || [];
 
