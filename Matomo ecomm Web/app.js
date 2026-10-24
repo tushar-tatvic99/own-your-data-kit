@@ -1547,22 +1547,355 @@ function initDpdpCenter() {
       form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
   }
+}
 
-  // 5. Print Audit Summary Button
-  if (btnPrintReceipt) {
-    btnPrintReceipt.addEventListener('click', () => {
-      window.print();
+// ============================================================================
+// INFINITE BANK - EXPLORE BFSI INTERACTIVE ENGINE & GA4 CD EVENT DISPATCHER
+// ============================================================================
+function initBfsiEngine() {
+  // Helper to determine income/amount tiers for GA4 Custom Dimensions
+  function getAmountTier(num) {
+    if (num < 50000) return 'under_50k';
+    if (num <= 100000) return '50k_to_100k';
+    if (num <= 250000) return '100k_to_250k';
+    if (num <= 500000) return '250k_to_500k';
+    if (num <= 1000000) return '500k_to_1M';
+    return '1M_plus';
+  }
+
+  // Helper to dispatch GA4 events with parameters mapped for Custom Dimensions
+  function pushBfsiGA4(eventName, params = {}) {
+    window.dataLayer = window.dataLayer || [];
+    const eventPayload = {
+      event: eventName,
+      institution: 'Infinite BANK',
+      timestamp: new Date().toISOString(),
+      ...params
+    };
+    window.dataLayer.push(eventPayload);
+
+    // Also push to Matomo for dual-tracking
+    if (window._paq && Array.isArray(window._paq)) {
+      window._paq.push(['trackEvent', 'BFSI', eventName, params.financial_product_name || params.financial_category || '', params.financial_amount || 0]);
+    }
+  }
+
+  // 1. Tab Navigation between BFSI Categories
+  const bfsiTabs = document.querySelectorAll('#bfsiCategoryTabs .bfsi-tab');
+  const bfsiPanels = {
+    wealth: document.getElementById('bfsiPanelWealth'),
+    lending: document.getElementById('bfsiPanelLending'),
+    cards: document.getElementById('bfsiPanelCards'),
+    insurance: document.getElementById('bfsiPanelInsurance')
+  };
+
+  bfsiTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-bfsi-target');
+      bfsiTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      Object.keys(bfsiPanels).forEach(key => {
+        if (bfsiPanels[key]) {
+          bfsiPanels[key].classList.toggle('active', key === target);
+        }
+      });
+
+      pushBfsiGA4('select_financial_category', {
+        financial_category: target,
+        action_type: 'tab_navigation'
+      });
+    });
+  });
+
+  // 2. High-Yield Fixed Deposit & Wealth Yield Calculator
+  const fdAmountRange = document.getElementById('fdAmountRange');
+  const fdAmountVal = document.getElementById('fdAmountVal');
+  const fdTenurePills = document.querySelectorAll('#fdTenurePills .tenure-btn');
+  const fdApyDisplay = document.getElementById('fdApyDisplay');
+  const fdMaturityTotal = document.getElementById('fdMaturityTotal');
+  const fdInterestGain = document.getElementById('fdInterestGain');
+  const fdMonthlyEquivalent = document.getElementById('fdMonthlyEquivalent');
+  const fdPayoutRadios = document.querySelectorAll('input[name="fdPayout"]');
+
+  let activeFdMonths = 36;
+  let activeFdRate = 8.45;
+
+  function calculateFd() {
+    if (!fdAmountRange) return;
+    const principal = parseFloat(fdAmountRange.value) || 100000;
+    if (fdAmountVal) fdAmountVal.textContent = `$${principal.toLocaleString()}`;
+
+    const payoutMode = document.querySelector('input[name="fdPayout"]:checked')?.value || 'compounded';
+    const years = activeFdMonths / 12;
+    let maturity = principal;
+    let interest = 0;
+
+    if (payoutMode === 'compounded') {
+      // Monthly compounding
+      const r = activeFdRate / 100;
+      maturity = principal * Math.pow(1 + r / 12, 12 * years);
+      interest = maturity - principal;
+    } else {
+      // Simple annual interest paid monthly
+      interest = principal * (activeFdRate / 100) * years;
+      maturity = principal + interest;
+    }
+
+    const monthlyEq = interest / activeFdMonths;
+
+    if (fdMaturityTotal) fdMaturityTotal.textContent = `$${Math.round(maturity).toLocaleString()}`;
+    if (fdInterestGain) fdInterestGain.textContent = `+$${Math.round(interest).toLocaleString()}`;
+    if (fdMonthlyEquivalent) fdMonthlyEquivalent.textContent = `$${Math.round(monthlyEq).toLocaleString()} / mo`;
+  }
+
+  if (fdAmountRange) {
+    let fdDebounce = null;
+    fdAmountRange.addEventListener('input', () => {
+      calculateFd();
+      clearTimeout(fdDebounce);
+      fdDebounce = setTimeout(() => {
+        const principal = parseFloat(fdAmountRange.value);
+        pushBfsiGA4('calculate_fd_yield', {
+          financial_product_name: 'Infinite High-Yield Multiplier Deposit',
+          financial_category: 'wealth_management',
+          calculation_type: 'fd_yield',
+          tenure_range: `${activeFdMonths}_months`,
+          financial_amount: principal,
+          financial_amount_tier: getAmountTier(principal),
+          interest_rate_apy: activeFdRate
+        });
+      }, 500);
+    });
+  }
+
+  fdTenurePills.forEach(btn => {
+    btn.addEventListener('click', () => {
+      fdTenurePills.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFdMonths = parseInt(btn.getAttribute('data-months'), 10);
+      activeFdRate = parseFloat(btn.getAttribute('data-rate'));
+      if (fdApyDisplay) fdApyDisplay.textContent = `${activeFdRate.toFixed(2)}% APY`;
+      calculateFd();
+
+      pushBfsiGA4('select_tenure_option', {
+        financial_product_name: 'Infinite High-Yield Multiplier Deposit',
+        financial_category: 'wealth_management',
+        tenure_range: `${activeFdMonths}_months`,
+        interest_rate_apy: activeFdRate
+      });
+    });
+  });
+
+  fdPayoutRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('#fdPayoutOptions .radio-chip').forEach(c => c.classList.remove('active'));
+      radio.closest('.radio-chip')?.classList.add('active');
+      calculateFd();
+    });
+  });
+
+  calculateFd();
+
+  // 3. Smart Lending & Loan EMI Estimator
+  const loanTypePills = document.querySelectorAll('#loanTypePills .tenure-btn');
+  const loanAmountRange = document.getElementById('loanAmountRange');
+  const loanAmountVal = document.getElementById('loanAmountVal');
+  const loanYearsRange = document.getElementById('loanYearsRange');
+  const loanYearsVal = document.getElementById('loanYearsVal');
+  const loanRateDisplay = document.getElementById('loanRateDisplay');
+  const loanMonthlyEmi = document.getElementById('loanMonthlyEmi');
+  const loanTotalInterest = document.getElementById('loanTotalInterest');
+  const loanTotalPayable = document.getElementById('loanTotalPayable');
+
+  let activeLoanRate = 7.65;
+  let activeLoanType = 'Prime Home Mortgage';
+
+  function calculateLoanEmi() {
+    if (!loanAmountRange || !loanYearsRange) return;
+    const principal = parseFloat(loanAmountRange.value) || 350000;
+    const years = parseInt(loanYearsRange.value, 10) || 15;
+
+    if (loanAmountVal) loanAmountVal.textContent = `$${principal.toLocaleString()}`;
+    if (loanYearsVal) loanYearsVal.textContent = `${years} Year${years > 1 ? 's' : ''}`;
+
+    const monthlyRate = (activeLoanRate / 100) / 12;
+    const totalMonths = years * 12;
+
+    const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
+    const totalPayment = emi * totalMonths;
+    const totalInt = totalPayment - principal;
+
+    if (loanMonthlyEmi) loanMonthlyEmi.textContent = `$${Math.round(emi).toLocaleString()}`;
+    if (loanTotalInterest) loanTotalInterest.textContent = `$${Math.round(totalInt).toLocaleString()}`;
+    if (loanTotalPayable) loanTotalPayable.textContent = `$${Math.round(totalPayment).toLocaleString()}`;
+  }
+
+  loanTypePills.forEach(btn => {
+    btn.addEventListener('click', () => {
+      loanTypePills.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeLoanRate = parseFloat(btn.getAttribute('data-rate'));
+      activeLoanType = btn.textContent.trim();
+      if (loanRateDisplay) loanRateDisplay.textContent = `${activeLoanRate.toFixed(2)}% Fixed APR`;
+      calculateLoanEmi();
+
+      pushBfsiGA4('select_loan_structure', {
+        financial_product_name: activeLoanType,
+        financial_category: 'retail_lending',
+        interest_rate_apr: activeLoanRate
+      });
+    });
+  });
+
+  if (loanAmountRange && loanYearsRange) {
+    let loanDebounce = null;
+    const handleLoanChange = () => {
+      calculateLoanEmi();
+      clearTimeout(loanDebounce);
+      loanDebounce = setTimeout(() => {
+        const principal = parseFloat(loanAmountRange.value);
+        const years = parseInt(loanYearsRange.value, 10);
+        pushBfsiGA4('calculate_loan_emi', {
+          financial_product_name: activeLoanType,
+          financial_category: 'retail_lending',
+          calculation_type: 'loan_emi',
+          financial_amount: principal,
+          financial_amount_tier: getAmountTier(principal),
+          tenure_range: `${years}_years`,
+          interest_rate_apr: activeLoanRate
+        });
+      }, 500);
+    };
+
+    loanAmountRange.addEventListener('input', handleLoanChange);
+    loanYearsRange.addEventListener('input', handleLoanChange);
+  }
+
+  calculateLoanEmi();
+
+  // 4. Insurance Tiers Selection
+  const insuranceBoxes = document.querySelectorAll('.insurance-tier-box');
+  const insSelectedCoverage = document.getElementById('insSelectedCoverage');
+  const insSelectedPremium = document.getElementById('insSelectedPremium');
+
+  insuranceBoxes.forEach(box => {
+    box.addEventListener('click', () => {
+      insuranceBoxes.forEach(b => b.classList.remove('active'));
+      box.classList.add('active');
+      const coverage = parseFloat(box.getAttribute('data-coverage'));
+      const premium = parseFloat(box.getAttribute('data-premium'));
+
+      if (insSelectedCoverage) insSelectedCoverage.textContent = `$${coverage.toLocaleString()}`;
+      if (insSelectedPremium) insSelectedPremium.textContent = `$${premium.toLocaleString()} / mo`;
+
+      pushBfsiGA4('select_insurance_tier', {
+        financial_product_name: 'Executive Sovereign Asset Shield',
+        financial_category: 'insurance',
+        coverage_amount: coverage,
+        monthly_premium: premium
+      });
+    });
+  });
+
+  // 5. Digital Onboarding Application Modal
+  const bfsiApplyModal = document.getElementById('bfsiApplyModal');
+  const closeBfsiModalBtn = document.getElementById('closeBfsiModalBtn');
+  const btnDoneBfsiModal = document.getElementById('btnDoneBfsiModal');
+  const bfsiApplicationForm = document.getElementById('bfsiApplicationForm');
+  const bfsiSuccessBox = document.getElementById('bfsiSuccessBox');
+  const bfsiModalProductTitle = document.getElementById('bfsiModalProductTitle');
+  const bfsiSelectedProduct = document.getElementById('bfsiSelectedProduct');
+  const bfsiRefCode = document.getElementById('bfsiRefCode');
+
+  function openBfsiModal(productName) {
+    if (!bfsiApplyModal) return;
+    if (bfsiModalProductTitle) bfsiModalProductTitle.textContent = productName;
+    if (bfsiSelectedProduct) bfsiSelectedProduct.value = productName;
+    if (bfsiApplicationForm) {
+      bfsiApplicationForm.style.display = 'block';
+      bfsiApplicationForm.reset();
+    }
+    if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'none';
+
+    bfsiApplyModal.classList.add('active');
+
+    pushBfsiGA4('financial_lead_start', {
+      financial_product_name: productName,
+      financial_category: productName.toLowerCase().includes('card') ? 'credit_cards' : (productName.toLowerCase().includes('deposit') ? 'wealth_management' : 'retail_lending'),
+      application_status: 'initiated'
+    });
+  }
+
+  function closeBfsiModal() {
+    if (bfsiApplyModal) bfsiApplyModal.classList.remove('active');
+  }
+
+  // Trigger buttons
+  document.getElementById('btnLockDeposit')?.addEventListener('click', function () {
+    openBfsiModal(this.getAttribute('data-bfsi-product') || 'Infinite High-Yield Multiplier Deposit');
+  });
+
+  document.getElementById('btnCheckLoanOffer')?.addEventListener('click', function () {
+    openBfsiModal(this.getAttribute('data-bfsi-product') || 'Prime Wealth Lending Facility');
+  });
+
+  document.querySelectorAll('.btn-apply-card').forEach(btn => {
+    btn.addEventListener('click', function () {
+      openBfsiModal(this.getAttribute('data-bfsi-product') || 'Infinite Black Titanium Card');
+    });
+  });
+
+  document.getElementById('btnApplyInsurance')?.addEventListener('click', function () {
+    openBfsiModal(this.getAttribute('data-bfsi-product') || 'Executive Sovereign Asset Shield');
+  });
+
+  closeBfsiModalBtn?.addEventListener('click', closeBfsiModal);
+  btnDoneBfsiModal?.addEventListener('click', closeBfsiModal);
+  bfsiApplyModal?.addEventListener('click', (e) => {
+    if (e.target === bfsiApplyModal) closeBfsiModal();
+  });
+
+  // Form Submission
+  if (bfsiApplicationForm) {
+    bfsiApplicationForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const clientName = document.getElementById('bfsiClientName')?.value.trim() || 'Valued Client';
+      const clientEmail = document.getElementById('bfsiClientEmail')?.value.trim() || '';
+      const incomeBracket = document.getElementById('bfsiIncomeBracket')?.value || '250k-500k';
+      const purpose = document.getElementById('bfsiAccountPurpose')?.value || 'yield_maximization';
+      const productName = bfsiSelectedProduct ? bfsiSelectedProduct.value : 'Infinite Wealth Solution';
+
+      const refId = `INF-BFSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+      if (bfsiRefCode) bfsiRefCode.textContent = refId;
+
+      bfsiApplicationForm.style.display = 'none';
+      if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'block';
+
+      // Push official GA4 custom dimensions & parameters
+      pushBfsiGA4('financial_lead_submitted', {
+        financial_product_name: productName,
+        financial_category: productName.toLowerCase().includes('card') ? 'credit_cards' : (productName.toLowerCase().includes('deposit') ? 'wealth_management' : 'retail_lending'),
+        customer_income_bracket: incomeBracket,
+        primary_financial_objective: purpose,
+        application_reference_id: refId,
+        application_status: 'pre_approved_instant',
+        client_name_masked: clientName.split(' ')[0]
+      });
+
+      showToast('🏛️', 'Application Dispatched', `Dossier ${refId} submitted to Private Underwriting.`);
     });
   }
 }
 
 // ================= INITIALIZATION =================
 function initApp() {
+  try { initBfsiEngine(); } catch (e) { console.error('Error initializing BFSI:', e); }
   try { renderProducts(); } catch (e) { console.error('Error rendering products:', e); }
   try { renderCart(); } catch (e) { console.error('Error rendering cart:', e); }
   try { renderWishlist(); } catch (e) { console.error('Error rendering wishlist:', e); }
   try { initDpdpCenter(); } catch (e) { console.error('Error initializing DPDP:', e); }
-  console.log('AURA & BLUSH Luxury Boutique Initialized Successfully.');
+  console.log('INFINITE BANK - Private Wealth & BFSI Platform Initialized Successfully.');
 }
 
 if (document.readyState === 'loading') {

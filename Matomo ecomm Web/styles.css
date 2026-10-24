@@ -3705,5 +3705,860 @@ button {
   font-size: 0.82rem;
 }
 
+/* ==========================================================================
+   INFINITE BANK - BFSI ARCHITECTURE & 1/3RD DEEP OBSIDIAN THEME
+   ========================================================================== */
+
+/* Brand Crest */
+.brand-crest {
+  color: #D4AF37;
+  font-size: 1.15em;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.nav-highlight {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  padding: 6px 14px !important;
+  border-radius: var(--radius-full) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+}
+
+.nav-highlight:hover {
+  background: #1E293B !important;
+  transform: translateY(-1px);
+}
+
+/* 1/3rd Dark Obsidian Black Hero Section */
+.bfsi-hero-dark {
+  background: linear-gradient(135deg, #07090C 0%, #0F131A 45%, #181E29 100%) !important;
+  color: #FFFFFF !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.bfsi-hero-dark::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0) 70%);
+  pointer-events: none;
+}
+
+.bfsi-hero-dark .hero-title {
+  color: #FFFFFF !important;
+}
+
+.bfsi-hero-dark .hero-title .highlight-serif {
+  background: linear-gradient(135deg, #FFFFFF 0%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Cinzel', serif;
+}
+
+.bfsi-hero-dark .hero-subtitle {
+  color: #94A3B8 !important;
+}
+
+.bfsi-hero-dark .hero-badge {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #E2E8F0;
+}
+
+.badge-dot-emerald {
+  background: #10B981 !important;
+  box-shadow: 0 0 10px #10B981 !important;
+}
+
+.bfsi-hero-dark .hero-stats .stat-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
+}
+
+.bfsi-hero-dark .hero-stats .stat-pill strong {
+  color: #FFFFFF;
+}
+
+.bfsi-hero-dark .hero-stats .stat-pill small {
+  color: #94A3B8;
+}
+
+/* Metallic Credit Card Mockup */
+.banking-card-mockup {
+  width: 100%;
+  max-width: 380px;
+  height: 220px;
+  background: linear-gradient(135deg, #181B22 0%, #0D0F13 60%, #050608 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.banking-card-mockup::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.06) 50%, transparent 60%);
+  transform: rotate(25deg);
+  pointer-events: none;
+}
+
+.card-chip {
+  width: 44px;
+  height: 32px;
+  background: linear-gradient(135deg, #E2C275 0%, #A37C2D 100%);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+.card-logo {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #FFFFFF;
+  text-align: right;
+}
+
+.card-number {
+  font-family: 'Consolas', monospace;
+  font-size: 1.15rem;
+  letter-spacing: 0.18em;
+  color: #CBD5E1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin-top: 10px;
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.card-holder-label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: #64748B;
+}
+
+.card-holder-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #FFFFFF;
+}
+
+.card-tier-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #D4AF37;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.bfsi-visual-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  display: flex;
+  justify-content: center;
+}
+
+.bfsi-tag {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #FFFFFF !important;
+}
+
+.bfsi-tag .fl-title {
+  color: #FFFFFF !important;
+}
+
+.bfsi-tag .fl-desc {
+  color: #10B981 !important;
+  font-weight: 700;
+}
+
+/* Institutional BFSI Metrics Ribbon */
+.bfsi-ribbon {
+  background: #090C11 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+}
+
+.bfsi-ribbon .feature-info h4 {
+  color: #FFFFFF !important;
+}
+
+.bfsi-ribbon .feature-info p {
+  color: #94A3B8 !important;
+}
+
+/* ==========================================================================
+   FLAGSHIP BFSI SECTION: EXPLORE BFSI
+   ========================================================================== */
+.bfsi-section {
+  padding: 90px 0;
+  background: #F8FAFC;
+  position: relative;
+}
+
+.bfsi-tabs-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.bfsi-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: var(--transition);
+}
+
+.bfsi-tab:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.bfsi-tab.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.bfsi-tab-icon {
+  font-size: 1.1rem;
+}
+
+/* BFSI Panels */
+.bfsi-panel {
+  display: none;
+}
+
+.bfsi-panel.active {
+  display: block;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* Interactive Calculator Layout */
+.bfsi-calculator-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .bfsi-calculator-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+.calc-main-content {
+  padding: 40px;
+}
+
+.calc-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.calc-pill {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.calc-rate-badge {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+.calc-title {
+  font-family: var(--font-sans);
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.calc-sub {
+  color: #64748B;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+/* Slider Component */
+.slider-group {
+  margin-bottom: 28px;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.slider-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.slider-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0F172A;
+  font-family: var(--font-sans);
+}
+
+.bfsi-range-slider {
+  width: 100%;
+  height: 8px;
+  background: #E2E8F0;
+  border-radius: 4px;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.bfsi-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0F172A;
+  border: 3px solid #10B981;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+  cursor: grab;
+  transition: transform 0.15s ease;
+}
+
+.bfsi-range-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.slider-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #94A3B8;
+  margin-top: 6px;
+}
+
+/* Tenure Pills */
+.tenure-group {
+  margin-bottom: 28px;
+}
+
+.tenure-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tenure-btn {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tenure-btn:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.tenure-btn.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+}
+
+/* Payout Options */
+.payout-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.radio-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.radio-chip.active {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: #10B981;
+  color: #065F46;
+  font-weight: 700;
+}
+
+/* Calculated Results Sidebar */
+.calc-results-sidebar {
+  background: linear-gradient(145deg, #0F141C 0%, #171E2B 100%);
+  color: #FFFFFF;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.results-heading {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94A3B8;
+  margin-bottom: 24px;
+}
+
+.result-metric-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.result-metric-card.primary-metric {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.result-metric-card .metric-label {
+  display: block;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94A3B8;
+  margin-bottom: 4px;
+}
+
+.result-metric-card .metric-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  line-height: 1.1;
+}
+
+.result-metric-card .metric-sub {
+  display: block;
+  font-size: 0.76rem;
+  color: #CBD5E1;
+  margin-top: 4px;
+}
+
+.text-emerald {
+  color: #10B981 !important;
+}
+
+.text-accent {
+  color: #38BDF8 !important;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.calc-guarantee-note {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin: 16px 0 24px;
+}
+
+.btn-block {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* BFSI Metal Cards Grid */
+.bfsi-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 28px;
+}
+
+.bfsi-card-item {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 36px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  transition: var(--transition);
+}
+
+.bfsi-card-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+  border-color: #CBD5E1;
+}
+
+.bfsi-card-item.metal-card-dark {
+  background: linear-gradient(145deg, #10141C 0%, #1A2230 100%);
+  color: #FFFFFF;
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.bfsi-card-item.metal-card-dark .card-item-title {
+  color: #FFFFFF;
+}
+
+.bfsi-card-item.metal-card-dark .card-item-desc {
+  color: #94A3B8;
+}
+
+.bfsi-card-item.metal-card-dark .card-perks-list li {
+  color: #E2E8F0;
+}
+
+.card-item-chip {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #D4AF37;
+  margin-bottom: 14px;
+}
+
+.card-item-title {
+  font-family: var(--font-sans);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 12px;
+}
+
+.card-item-desc {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.55;
+  margin-bottom: 24px;
+}
+
+.card-perks-list {
+  list-style: none;
+  margin-bottom: 24px;
+}
+
+.card-perks-list li {
+  font-size: 0.84rem;
+  color: #334155;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.bfsi-card-item.metal-card-dark .card-perks-list li {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.card-fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 14px 0;
+  margin-bottom: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.bfsi-card-item.metal-card-dark .card-fee-row {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fee-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+.fee-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #10B981;
+}
+
+/* Insurance Tiers */
+.insurance-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.insurance-tier-box {
+  background: #F8FAFC;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.insurance-tier-box:hover {
+  border-color: #CBD5E1;
+  background: #F1F5F9;
+}
+
+.insurance-tier-box.active {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: #10B981;
+}
+
+.ins-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.ins-coverage {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.ins-rate {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #10B981;
+}
+
+/* BFSI Modal */
+.bfsi-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.bfsi-modal-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.bfsi-modal-window {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+.bfsi-modal-header {
+  padding: 24px 30px;
+  background: #0F172A;
+  color: #FFFFFF;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-pretitle {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #D4AF37;
+  margin-bottom: 4px;
+}
+
+.modal-title {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.btn-modal-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #FFFFFF;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.btn-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.bfsi-modal-body {
+  padding: 30px;
+}
+
+.modal-notice {
+  font-size: 0.74rem;
+  color: #64748B;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  line-height: 1.45;
+}
+
+.bfsi-success-box {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.success-icon-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #10B981;
+  color: #FFFFFF;
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.success-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.success-text {
+  font-size: 0.88rem;
+  color: #64748B;
+  margin-bottom: 20px;
+}
+
+.success-ref-card {
+  background: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+.ref-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.ref-code {
+  font-family: 'Consolas', monospace;
+  font-size: 1.25rem;
+  color: #0F172A;
+  font-weight: 800;
+}
+
+.success-contact {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin-bottom: 24px;
+}
+
 
 
