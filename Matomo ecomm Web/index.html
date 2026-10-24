@@ -265,28 +265,68 @@
         <p class="section-desc">Interactive financial modeling, private wealth engineering, smart loan eligibility calculators, and bespoke cards.</p>
       </div>
 
-      <!-- BFSI Category Switcher Tabs -->
+      <!-- BFSI Category Switcher Tabs & Instant Engine -->
+      <script>
+        function switchBfsiTab(target) {
+          try {
+            var tabs = document.querySelectorAll('#bfsiCategoryTabs .bfsi-tab');
+            var panels = {
+              wealth: document.getElementById('bfsiPanelWealth'),
+              lending: document.getElementById('bfsiPanelLending'),
+              cards: document.getElementById('bfsiPanelCards'),
+              insurance: document.getElementById('bfsiPanelInsurance')
+            };
+
+            tabs.forEach(function(t) {
+              var isTarget = t.getAttribute('data-bfsi-target') === target;
+              t.classList.toggle('active', isTarget);
+            });
+
+            Object.keys(panels).forEach(function(key) {
+              if (panels[key]) {
+                panels[key].classList.toggle('active', key === target);
+                panels[key].style.display = (key === target) ? 'block' : 'none';
+              }
+            });
+
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: 'select_financial_category',
+              institution: 'Infinite BANK',
+              financial_category: target,
+              action_type: 'tab_navigation',
+              timestamp: new Date().toISOString()
+            });
+
+            if (window._paq && Array.isArray(window._paq)) {
+              window._paq.push(['trackEvent', 'BFSI', 'select_financial_category', target]);
+            }
+          } catch (err) {
+            console.error('Error switching BFSI tab:', err);
+          }
+        }
+      </script>
       <div class="bfsi-tabs-nav" id="bfsiCategoryTabs">
-        <button class="bfsi-tab active" data-bfsi-target="wealth" id="tabBfsiWealth">
+        <button type="button" class="bfsi-tab active" data-bfsi-target="wealth" id="tabBfsiWealth" onclick="switchBfsiTab('wealth')">
           <span class="bfsi-tab-icon">📈</span>
           <span>High-Yield Wealth &amp; FDs</span>
         </button>
-        <button class="bfsi-tab" data-bfsi-target="lending" id="tabBfsiLending">
+        <button type="button" class="bfsi-tab" data-bfsi-target="lending" id="tabBfsiLending" onclick="switchBfsiTab('lending')">
           <span class="bfsi-tab-icon">🏛️</span>
           <span>Smart Lending &amp; Mortgages</span>
         </button>
-        <button class="bfsi-tab" data-bfsi-target="cards" id="tabBfsiCards">
+        <button type="button" class="bfsi-tab" data-bfsi-target="cards" id="tabBfsiCards" onclick="switchBfsiTab('cards')">
           <span class="bfsi-tab-icon">💳</span>
           <span>Infinite Metal Cards</span>
         </button>
-        <button class="bfsi-tab" data-bfsi-target="insurance" id="tabBfsiInsurance">
+        <button type="button" class="bfsi-tab" data-bfsi-target="insurance" id="tabBfsiInsurance" onclick="switchBfsiTab('insurance')">
           <span class="bfsi-tab-icon">🛡️</span>
           <span>Executive Assurance</span>
         </button>
       </div>
 
       <!-- BFSI Module 1: High-Yield Fixed Deposit & Wealth Yield Simulator -->
-      <div class="bfsi-panel active" id="bfsiPanelWealth">
+      <div class="bfsi-panel active" id="bfsiPanelWealth" style="display: block;">
         <div class="bfsi-calculator-card">
           <div class="calc-main-content">
             <div class="calc-badge-row">
@@ -372,7 +412,7 @@
       </div>
 
       <!-- BFSI Module 2: Smart Lending & Loan EMI Estimator -->
-      <div class="bfsi-panel" id="bfsiPanelLending">
+      <div class="bfsi-panel" id="bfsiPanelLending" style="display: none;">
         <div class="bfsi-calculator-card">
           <div class="calc-main-content">
             <div class="calc-badge-row">
@@ -457,7 +497,7 @@
       </div>
 
       <!-- BFSI Module 3: Infinite Cards Showcase -->
-      <div class="bfsi-panel" id="bfsiPanelCards">
+      <div class="bfsi-panel" id="bfsiPanelCards" style="display: none;">
         <div class="bfsi-cards-grid">
           <!-- Card 1 -->
           <div class="bfsi-card-item metal-card-dark">
@@ -522,7 +562,7 @@
       </div>
 
       <!-- BFSI Module 4: Executive Assurance -->
-      <div class="bfsi-panel" id="bfsiPanelInsurance">
+      <div class="bfsi-panel" id="bfsiPanelInsurance" style="display: none;">
         <div class="bfsi-calculator-card">
           <div class="calc-main-content">
             <div class="calc-badge-row">

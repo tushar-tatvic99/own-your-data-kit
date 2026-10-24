@@ -1,3 +1,46 @@
+
+// ================= GLOBAL BFSI TAB SWITCHER =================
+window.switchBfsiTab = function(target) {
+  const bfsiTabs = document.querySelectorAll('#bfsiCategoryTabs .bfsi-tab');
+  const bfsiPanels = {
+    wealth: document.getElementById('bfsiPanelWealth'),
+    lending: document.getElementById('bfsiPanelLending'),
+    cards: document.getElementById('bfsiPanelCards'),
+    insurance: document.getElementById('bfsiPanelInsurance')
+  };
+
+  bfsiTabs.forEach(t => {
+    const isTarget = t.getAttribute('data-bfsi-target') === target;
+    t.classList.toggle('active', isTarget);
+  });
+
+  Object.keys(bfsiPanels).forEach(key => {
+    if (bfsiPanels[key]) {
+      bfsiPanels[key].classList.toggle('active', key === target);
+      if (key === target) {
+        bfsiPanels[key].style.display = 'block';
+      } else {
+        bfsiPanels[key].style.display = 'none';
+      }
+    }
+  });
+
+  // Track in GA4 dataLayer
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'select_financial_category',
+    institution: 'Infinite BANK',
+    financial_category: target,
+    action_type: 'tab_navigation',
+    timestamp: new Date().toISOString()
+  });
+
+  // Dual-track in Matomo if available
+  if (window._paq && Array.isArray(window._paq)) {
+    window._paq.push(['trackEvent', 'BFSI', 'select_financial_category', target]);
+  }
+};
+
 /**
  * INFINITE BANK - Institutional Private Wealth & Executive Concierge
  * Comprehensive Product Showcase, Bag Drawer & 4-Step Checkout Engine
@@ -976,7 +1019,7 @@ function processPayment() {
 }
 
 // Express Checkout triggers
-document.getElementById('expressApplePayBtn').addEventListener('click', () => {
+document.getElementById('expressApplePayBtn')?.addEventListener('click', () => {
   if (typeof MatomoTracker !== 'undefined') {
     const totals = calculateCartTotals();
     MatomoTracker.trackAddPaymentInfo(state.cart, PRODUCTS, totals, 'Apple Pay', state.couponCode);
@@ -985,7 +1028,7 @@ document.getElementById('expressApplePayBtn').addEventListener('click', () => {
   processPayment();
 });
 
-document.getElementById('expressGPayBtn').addEventListener('click', () => {
+document.getElementById('expressGPayBtn')?.addEventListener('click', () => {
   if (typeof MatomoTracker !== 'undefined') {
     const totals = calculateCartTotals();
     MatomoTracker.trackAddPaymentInfo(state.cart, PRODUCTS, totals, 'Google Pay', state.couponCode);
@@ -994,7 +1037,7 @@ document.getElementById('expressGPayBtn').addEventListener('click', () => {
   processPayment();
 });
 
-document.getElementById('expressPayPalBtn').addEventListener('click', () => {
+document.getElementById('expressPayPalBtn')?.addEventListener('click', () => {
   if (typeof MatomoTracker !== 'undefined') {
     const totals = calculateCartTotals();
     MatomoTracker.trackAddPaymentInfo(state.cart, PRODUCTS, totals, 'PayPal', state.couponCode);
@@ -1068,7 +1111,7 @@ applyCouponBtn.addEventListener('click', () => {
 });
 
 // Copy promo code pill in announcement bar
-document.getElementById('copyPromoBtn').addEventListener('click', () => {
+document.getElementById('copyPromoBtn')?.addEventListener('click', () => {
   navigator.clipboard.writeText('PRIME15');
   couponInput.value = 'PRIME15';
   if (typeof MatomoTracker !== 'undefined') {
