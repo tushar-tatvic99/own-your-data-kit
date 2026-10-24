@@ -29,7 +29,7 @@ window.switchBfsiTab = function(target) {
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
     event: 'select_financial_category',
-    institution: 'Infinite BANK',
+    institution: 'Infinity Bank',
     financial_category: target,
     action_type: 'tab_navigation',
     timestamp: new Date().toISOString()
@@ -42,7 +42,7 @@ window.switchBfsiTab = function(target) {
 };
 
 /**
- * INFINITE BANK - Institutional Private Wealth & Executive Concierge
+ * INFINITY BANK - Institutional Private Wealth & Executive Concierge
  * Comprehensive Product Showcase, Bag Drawer & 4-Step Checkout Engine
  */
 
@@ -50,7 +50,7 @@ window.switchBfsiTab = function(target) {
 const PRODUCTS = [
   {
     id: 'p1',
-    name: 'Infinite Sovereign Chronometer',
+    name: 'Infinity Sovereign Chronometer',
     category: 'horology',
     categoryLabel: 'SWISS HOROLOGY',
     price: 450.00,
@@ -112,10 +112,10 @@ const PRODUCTS = [
     reviews: 84,
     badge: 'Private Edition',
     image: 'assets/images/pearl.jpg',
-    description: 'Hand-engraved 18k solid gold signet ring engraved with the Infinite Bank hexagonal crest, forged in Zurich from conflict-free recycled bullion.',
+    description: 'Hand-engraved 18k solid gold signet ring engraved with the Infinity Bank hexagonal crest, forged in Zurich from conflict-free recycled bullion.',
     highlights: [
       'Solid 18k yellow gold forged with satin brushed finish',
-      'Hand-engraved archival heritage crest of Infinite Bank',
+      'Hand-engraved archival heritage crest of Infinity Bank',
       'Custom laser-engraved personal monogram included'
     ],
     details: '18k Solid Gold • 14.2g Net Weight'
@@ -1593,7 +1593,7 @@ function initDpdpCenter() {
 }
 
 // ============================================================================
-// INFINITE BANK - EXPLORE BFSI INTERACTIVE ENGINE & GA4 CD EVENT DISPATCHER
+// INFINITY BANK - EXPLORE BFSI INTERACTIVE ENGINE & GA4 CD EVENT DISPATCHER
 // ============================================================================
 function initBfsiEngine() {
   // Helper to determine income/amount tiers for GA4 Custom Dimensions
@@ -1611,7 +1611,7 @@ function initBfsiEngine() {
     window.dataLayer = window.dataLayer || [];
     const eventPayload = {
       event: eventName,
-      institution: 'Infinite BANK',
+      institution: 'Infinity Bank',
       timestamp: new Date().toISOString(),
       ...params
     };
@@ -1885,7 +1885,7 @@ function initBfsiEngine() {
 
   document.querySelectorAll('.btn-apply-card').forEach(btn => {
     btn.addEventListener('click', function () {
-      openBfsiModal(this.getAttribute('data-bfsi-product') || 'Infinite Black Titanium Card');
+      openBfsiModal(this.getAttribute('data-bfsi-product') || 'Infinity Black Titanium Card');
     });
   });
 
@@ -1938,7 +1938,7 @@ function initApp() {
   try { renderCart(); } catch (e) { console.error('Error rendering cart:', e); }
   try { renderWishlist(); } catch (e) { console.error('Error rendering wishlist:', e); }
   try { initDpdpCenter(); } catch (e) { console.error('Error initializing DPDP:', e); }
-  console.log('INFINITE BANK - Private Wealth & BFSI Platform Initialized Successfully.');
+  console.log('INFINITY BANK - Private Wealth & BFSI Platform Initialized Successfully.');
 }
 
 if (document.readyState === 'loading') {
