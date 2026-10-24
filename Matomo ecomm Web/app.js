@@ -1,5 +1,5 @@
 /**
- * AURA & BLUSH - High-End Feminine E-Commerce Web Application
+ * INFINITE BANK - Institutional Private Wealth & Executive Concierge
  * Comprehensive Product Showcase, Bag Drawer & 4-Step Checkout Engine
  */
 
@@ -7,111 +7,111 @@
 const PRODUCTS = [
   {
     id: 'p1',
-    name: 'Maison de Rose Eau de Parfum',
-    category: 'fragrance',
-    categoryLabel: 'PARFUMERIE',
-    price: 128.00,
-    rating: 4.95,
+    name: 'Infinite Sovereign Chronometer',
+    category: 'horology',
+    categoryLabel: 'SWISS HOROLOGY',
+    price: 450.00,
+    rating: 4.98,
     reviews: 142,
-    badge: 'Bestseller',
+    badge: 'Sovereign Tier',
     image: 'assets/images/perfume.jpg',
-    description: 'An ethereal Parisian floriental fragrance crafted from rare May roses of Grasse, blushing pink peppercorn, and warm creamy cashmere woods.',
+    description: 'Precision automatic movement with sapphire crystal face, dual-timezone complication, and brushed titanium case engineered in Geneva.',
     highlights: [
-      'Handcrafted in Grasse, France in small numbered batches',
-      'Long-wearing 18-hour extrait concentration',
-      'Fluted crystal bottle with brushed gold atomiser'
+      'Chronometer-grade precision with 72-hour power reserve',
+      'Scratch-resistant anti-reflective sapphire crystal',
+      'Brushed titanium grade-5 case with alligator leather strap'
     ],
-    details: '50ml / 1.7 fl oz • Eau de Parfum'
+    details: '41mm Titanium Case • Automatic Calibre'
   },
   {
     id: 'p2',
-    name: 'Aura Glow Rose Quartz & Face Elixir',
-    category: 'skincare',
-    categoryLabel: 'LUMINOUS SKINCARE',
-    price: 74.00,
-    rating: 4.98,
+    name: 'Certified 24K Mint Gold Bullion (100g)',
+    category: 'bullion',
+    categoryLabel: 'PRECIOUS METALS',
+    price: 680.00,
+    rating: 4.99,
     reviews: 218,
-    badge: 'Atelier Favorite',
+    badge: 'AAA Minted',
     image: 'assets/images/serum.jpg',
-    description: 'Cold-pressed botanical squalane infused with organic rosehip, Damascus rose oil, and a certified Brazilian Grade-A pink rose quartz sculpting gua sha.',
+    description: '99.99% pure investment-grade physical gold bullion bar, individually numbered with an official London Bullion Market (LBMA) assay certificate.',
     highlights: [
-      '100% natural, certified organic floral botanicals',
-      'Hand-carved authentic rose quartz facial stone',
-      'Instantly hydrates, sculpts, and promotes glass skin'
+      'Guaranteed 999.9 fine investment-grade bullion purity',
+      'Tamper-evident serial numbered security blister seal',
+      'Allocated physical depository storage eligibility'
     ],
-    details: '30ml / 1.0 fl oz + Grade-A Gua Sha'
+    details: '100 Grams • 99.99% Pure Gold • LBMA Certified'
   },
   {
     id: 'p3',
-    name: 'Silk Petal Mulberry Silk Sleep Set',
-    category: 'silk',
-    categoryLabel: 'SILK & SLUMBER',
-    price: 86.00,
-    rating: 4.92,
+    name: 'Titanium Cryptographic Vault Key',
+    category: 'security',
+    categoryLabel: 'SECURITY & VAULT',
+    price: 185.00,
+    rating: 4.95,
     reviews: 96,
-    badge: 'Award Winner',
+    badge: 'EAL6+ Security',
     image: 'assets/images/silk.jpg',
-    description: '22-Momme Grade-6A pure organic Mulberry silk pillowcase in French blush pink, paired with a matching cloud-cushioned sleep eye mask and silk scrunchie.',
+    description: 'Sovereign hardware cryptographic security key with biometric touch verification, zero-leakage memory, and titanium shell.',
     highlights: [
-      'Prevents sleep creases, bedhead, and facial moisture loss',
-      'Naturally hypoallergenic and temperature-regulating',
-      'Hidden zipper design with embroidered golden monogram'
+      'Military-grade EAL6+ certified secure execution enclave',
+      'Biometric fingerprint match in sub-100 milliseconds',
+      'Universal FIDO2, WebAuthn & multi-chain ledger standard'
     ],
-    details: 'Standard/Queen Pillowcase + Contoured Eye Mask'
+    details: 'Titanium Shell • USB-C / NFC • Biometric Key'
   },
   {
     id: 'p4',
-    name: 'Gilded Pearl 18k Baroque Pearl Choker',
+    name: '18k Solid Gold Sovereign Signet',
     category: 'jewelry',
-    categoryLabel: 'FINE JEWELRY',
-    price: 115.00,
-    rating: 4.88,
+    categoryLabel: 'BESPOKE JEWELRY',
+    price: 320.00,
+    rating: 4.91,
     reviews: 84,
-    badge: 'Limited Edit',
+    badge: 'Private Edition',
     image: 'assets/images/pearl.jpg',
-    description: 'Hand-selected luminous baroque freshwater pearl with natural iridescent pink overtone, suspended from a delicate 18k gold vermeil sparkle link chain.',
+    description: 'Hand-engraved 18k solid gold signet ring engraved with the Infinite Bank hexagonal crest, forged in Zurich from conflict-free recycled bullion.',
     highlights: [
-      '18k thick gold vermeil over 925 sterling silver',
-      'One-of-a-kind organic baroque pearl luster',
-      'Adjustable 14" to 17" length for versatile layering'
+      'Solid 18k yellow gold forged with satin brushed finish',
+      'Hand-engraved archival heritage crest of Infinite Bank',
+      'Custom laser-engraved personal monogram included'
     ],
-    details: '18k Gold Vermeil • 12-14mm Baroque Pearl'
+    details: '18k Solid Gold • 14.2g Net Weight'
   },
   {
     id: 'p5',
-    name: 'Rose & Peony Luminous Body Soufflé',
-    category: 'skincare',
-    categoryLabel: 'LUMINOUS SKINCARE',
-    price: 48.00,
+    name: 'Executive Cashmere Travel Collection',
+    category: 'lifestyle',
+    categoryLabel: 'EXECUTIVE LIVING',
+    price: 160.00,
     rating: 4.89,
     reviews: 130,
-    badge: 'New Bloom',
+    badge: 'First Class Edit',
     image: 'assets/images/souffle.jpg',
-    description: 'Triple-whipped Parisian peony, fair-trade shea butter, and delicate rose gold mica pearls that melt onto the body leaving silky hydration and a delicate sunlit sheen.',
+    description: 'Pure 100% Mongolian combed cashmere travel wrap and contoured silk blackout eye mask, engineered for seamless transatlantic journeys.',
     highlights: [
-      'Absorbs instantly without greasy residue',
-      'Infused with delicate, light-reflecting micro-mica',
-      'Subtle scent of morning blooming peonies & lychee'
+      'Ethically sourced Grade-A Mongolian cashmere fiber',
+      'Ultra-lightweight yet delivers superior thermal insulation',
+      'Includes water-repellent ballistic nylon travel pouch'
     ],
-    details: '150ml / 5.1 fl oz Frosted Glass Jar'
+    details: '200cm x 70cm Wrap + Mulberry Silk Eye Mask'
   },
   {
     id: 'p6',
-    name: 'Celestial Bloom Botanical Soy Candle',
-    category: 'candle',
-    categoryLabel: 'ARTISANAL LIVING',
-    price: 52.00,
-    rating: 4.91,
+    name: 'Obsidian & Cedar Executive Desk Vessel',
+    category: 'lifestyle',
+    categoryLabel: 'EXECUTIVE LIVING',
+    price: 95.00,
+    rating: 4.94,
     reviews: 77,
-    badge: 'Hand-Poured',
+    badge: 'Hand-Carved',
     image: 'assets/images/candle.jpg',
-    description: 'Natural coconut-soy wax hand-poured into a fluted blush vessel, adorned with dried French rosebuds and a crackling wooden wick that casts a soft romantic flicker.',
+    description: 'Solid obsidian stone desk vessel with natural Atlantic cedarwood and dark amber accords, handcrafted for modern executive suites.',
     highlights: [
-      'Clean burning 55+ hour natural wooden wick',
-      'Fragrance notes of rose water, white sandalwood & amber',
-      'Reusable keepsake ribbed glass vessel'
+      'Monolithic block of polished natural obsidian stone',
+      'Subtle woody aromatics of Atlas cedar and smoky vetiver',
+      'Substantial weighted desk presence and timeless silhouette'
     ],
-    details: '280g / 9.8 oz • 55-Hour Burn Time'
+    details: 'Solid Obsidian Stone • 450g Net Weight'
   }
 ];
 
@@ -404,8 +404,8 @@ function calculateCartTotals() {
   // Calculate discount
   let discount = 0;
   if (state.couponCode) {
-    if (state.couponCode === 'GIRLGLOW15') discount = subtotal * 0.15;
-    if (state.couponCode === 'BLUSH20') discount = subtotal * 0.20;
+    if (state.couponCode === 'PRIME15') discount = subtotal * 0.15;
+    if (state.couponCode === 'INFINITE20') discount = subtotal * 0.20;
     if (state.couponCode === 'LUXE10') discount = Math.min(10, subtotal);
   }
 
@@ -963,7 +963,7 @@ function processPayment() {
         particleCount: 120,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#C06173', '#DFBA73', '#F8ECE8', '#E2958D', '#FFFFFF']
+        colors: ['#10B981', '#0F172A', '#D4AF37', '#94A3B8', '#FFFFFF']
       });
     }
 
@@ -1032,7 +1032,7 @@ applyCouponBtn.addEventListener('click', () => {
   const code = couponInput.value.trim().toUpperCase();
   const totals = calculateCartTotals();
 
-  if (code === 'GIRLGLOW15') {
+  if (code === 'PRIME15') {
     state.couponCode = code;
     couponFeedback.className = 'coupon-feedback success';
     couponFeedback.textContent = '✓ Code applied: 15% luxury discount activated!';
@@ -1040,7 +1040,7 @@ applyCouponBtn.addEventListener('click', () => {
       MatomoTracker.trackPromoCode('Applied - Success', code, totals.subtotal * 0.15);
     }
     showToast('🎀', 'Promo Applied', '15% discount has been applied to your order.');
-  } else if (code === 'BLUSH20') {
+  } else if (code === 'INFINITE20') {
     state.couponCode = code;
     couponFeedback.className = 'coupon-feedback success';
     couponFeedback.textContent = '✓ Code applied: 20% VIP Atelier discount activated!';
@@ -1058,7 +1058,7 @@ applyCouponBtn.addEventListener('click', () => {
     showToast('🎀', 'Promo Applied', '$10 gift credit has been applied.');
   } else {
     couponFeedback.className = 'coupon-feedback error';
-    couponFeedback.textContent = 'Invalid code. Try GIRLGLOW15 or BLUSH20.';
+    couponFeedback.textContent = 'Invalid code. Try PRIME15 or INFINITE20.';
     if (typeof MatomoTracker !== 'undefined') {
       MatomoTracker.trackPromoCode('Applied - Failed', code, 0);
     }
@@ -1069,12 +1069,12 @@ applyCouponBtn.addEventListener('click', () => {
 
 // Copy promo code pill in announcement bar
 document.getElementById('copyPromoBtn').addEventListener('click', () => {
-  navigator.clipboard.writeText('GIRLGLOW15');
-  couponInput.value = 'GIRLGLOW15';
+  navigator.clipboard.writeText('PRIME15');
+  couponInput.value = 'PRIME15';
   if (typeof MatomoTracker !== 'undefined') {
-    MatomoTracker.trackCustomEvent('Promotions', 'Copy Promo Pill Clicked', 'GIRLGLOW15');
+    MatomoTracker.trackCustomEvent('Promotions', 'Copy Promo Pill Clicked', 'PRIME15');
   }
-  showToast('📋', 'Code Copied', 'Promo code GIRLGLOW15 copied to clipboard!');
+  showToast('📋', 'Code Copied', 'Promo code PRIME15 copied to clipboard!');
 });
 
 // Gift Wrap checkbox toggle
@@ -1330,10 +1330,10 @@ document.getElementById('newsletterForm')?.addEventListener('submit', (e) => {
   const feedback = document.getElementById('newsletterFeedback');
 
   if (typeof MatomoTracker !== 'undefined') {
-    MatomoTracker.trackCustomEvent('Lead Generation', 'VIP Pink Society Signup', email);
+    MatomoTracker.trackCustomEvent('Lead Generation', 'Private Client Advisory Signup', email);
   }
 
-  feedback.innerHTML = `✨ Merci, ${email}! Use secret VIP code <strong>BLUSH20</strong> for 20% off your entire curation.`;
+  feedback.innerHTML = `✨ Merci, ${email}! Use secret VIP code <strong>INFINITE20</strong> for 20% off your entire curation.`;
   showToast('💌', 'Welcome to the Society', 'Check your inbox for your private 20% privilege code.');
 });
 

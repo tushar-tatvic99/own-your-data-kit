@@ -4,37 +4,37 @@
 
 :root {
   /* Refined Parisian Luxury Maison Palette (Understated, Timeless, Elegant) */
-  --bg-creme: #FAF8F5;
-  --bg-blush-light: #F4F0EB;
-  --bg-blush-warm: #ECE6DE;
+  --bg-creme: #FFFFFF;
+  --bg-blush-light: #F8FAFC;
+  --bg-blush-warm: #F1F5F9;
   --bg-card: #FFFFFF;
   --bg-card-glass: rgba(255, 255, 255, 0.94);
   
-  --primary-rose: #1E1B19;          /* Atelier Obsidian Noir for crisp luxury hierarchy */
-  --primary-rose-hover: #36312D;
-  --primary-dark: #141211;          /* Deepest Charcoal Noir */
-  --primary-charcoal: #23201E;
-  --text-muted: #6B6560;            /* Warm French Taupe */
-  --text-light: #9B948E;
+  --primary-rose: #0F172A; /* Deep Obsidian Slate */
+  --primary-rose-hover: #1E293B;
+  --primary-dark: #090D16;          /* Deepest Charcoal Noir */
+  --primary-charcoal: #0F172A;
+  --text-muted: #64748B;            /* Warm French Taupe */
+  --text-light: #94A3B8;
   
   --accent-gold: #B89658;           /* Refined Antique Champagne Gold */
   --accent-gold-light: #DFC89B;
   --accent-gold-pale: #F7F3EB;
   --accent-gold-dark: #8C6D35;
-  --accent-pink-soft: #F2ECE3;      /* Cashmere Parchment */
+  --accent-pink-soft: #F1F5F9;      /* Cashmere Parchment */
   
-  --border-subtle: #E8E3DB;         /* Hairline Warm Neutral */
+  --border-subtle: #E2E8F0;         /* Hairline Warm Neutral */
   --border-focus: #B89658;
-  --border-gold: #D2BA85;
+  --border-gold: #CBD5E1;
   
   --shadow-sm: 0 4px 16px rgba(24, 21, 19, 0.04);
   --shadow-md: 0 10px 28px rgba(24, 21, 19, 0.07);
   --shadow-lg: 0 20px 48px rgba(24, 21, 19, 0.10);
   --shadow-glow: 0 0 30px rgba(184, 150, 88, 0.10);
   
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
   --radius-full: 9999px;
   
   --font-serif: 'Cormorant Garamond', Georgia, serif;
@@ -90,14 +90,7 @@ button {
 }
 
 /* ================= AMBIENT GLOWS (Warm Alabaster Candlelight) ================= */
-.ambient-glow {
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(140px);
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.35;
-}
+.ambient-glow { display: none !important; }
 
 .glow-1 {
   width: 450px;
@@ -157,7 +150,7 @@ button {
   font-weight: 700;
   font-size: 0.78rem;
   letter-spacing: 0.06em;
-  box-shadow: 0 2px 6px rgba(192, 97, 115, 0.15);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
   border: 1px dashed var(--primary-rose);
   transition: var(--transition);
 }
@@ -349,7 +342,7 @@ button {
 
 .btn-primary {
   background: #1E1B19;
-  color: #FAF8F5;
+  color: #FFFFFF;
   border: 1px solid #1E1B19;
   box-shadow: 0 4px 16px rgba(30, 27, 25, 0.16);
 }
@@ -725,7 +718,7 @@ button {
 
 .cat-pill.active {
   background: #1E1B19;
-  color: #FAF8F5;
+  color: #FFFFFF;
   border-color: #1E1B19;
   box-shadow: 0 4px 14px rgba(30, 27, 25, 0.18);
 }
@@ -783,7 +776,7 @@ button {
 .product-card:hover {
   transform: translateY(-6px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(192, 97, 115, 0.3);
+  border-color: rgba(15, 23, 42, 0.15);
 }
 
 .product-media {
@@ -860,8 +853,7 @@ button {
 }
 
 .icon-btn-circle.wishlisted {
-  background: #FFE8EC;
-  color: var(--primary-rose);
+  background: #0F172A; color: #FFFFFF;
 }
 
 /* Product Info */
@@ -954,7 +946,7 @@ button {
 
 .btn-add-card:hover {
   background: #1E1B19;
-  color: #FAF8F5;
+  color: #FFFFFF;
   border-color: #1E1B19;
   box-shadow: 0 4px 14px rgba(30, 27, 25, 0.18);
   transform: translateY(-2px);
@@ -1149,7 +1141,7 @@ button {
 .review-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(192, 97, 115, 0.25);
+  border-color: rgba(15, 23, 42, 0.12);
 }
 
 .review-stars {
@@ -1493,7 +1485,7 @@ button {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #DFBA73 0%, #C06173 100%);
+  background: linear-gradient(90deg, #0F172A 0%, #0284C7 100%);
   border-radius: var(--radius-full);
   transition: width 0.5s ease;
 }
@@ -1924,7 +1916,7 @@ button {
   background: var(--primary-rose);
   color: #FFFFFF;
   border-color: var(--primary-rose);
-  box-shadow: 0 2px 8px rgba(192, 97, 115, 0.3);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
 }
 
 .step-node.completed {
@@ -2068,7 +2060,7 @@ button {
 .form-group input:focus,
 .form-group select:focus {
   border-color: var(--primary-rose);
-  box-shadow: 0 0 0 3px rgba(192, 97, 115, 0.12);
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
 
 .form-row {
@@ -2146,14 +2138,14 @@ button {
 }
 
 .shipping-option:hover {
-  border-color: rgba(192, 97, 115, 0.4);
+  border-color: rgba(15, 23, 42, 0.18);
   background: var(--bg-blush-light);
 }
 
 .shipping-option.selected {
   border-color: var(--primary-rose);
   background: #FFF9F9;
-  box-shadow: 0 4px 12px rgba(192, 97, 115, 0.1);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .shipping-option input {
@@ -2279,10 +2271,10 @@ button {
   height: 190px;
   margin: 0 auto;
   border-radius: 16px;
-  background: linear-gradient(135deg, #2B1D20 0%, #68303C 50%, #C06173 100%);
+  background: linear-gradient(135deg, #090D16 0%, #0F172A 50%, #1E293B 100%);
   color: #FFFFFF;
   padding: 22px;
-  box-shadow: 0 14px 28px rgba(43, 29, 32, 0.35);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.25);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -2396,7 +2388,7 @@ button {
   justify-content: center;
   font-size: 2.2rem;
   margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(192, 97, 115, 0.2);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
   animation: bounceCelebrate 1s ease;
 }
 
@@ -2518,7 +2510,7 @@ button {
   background: var(--primary-rose);
   color: #FFFFFF;
   border-color: var(--primary-rose);
-  box-shadow: 0 0 14px rgba(192, 97, 115, 0.4);
+  box-shadow: 0 0 14px rgba(15, 23, 42, 0.18);
 }
 
 .t-info strong {
@@ -3091,7 +3083,7 @@ button {
 
 .btn-cookie-preferences:hover {
   background: #1E1B19;
-  color: #FAF8F5;
+  color: #FFFFFF;
   border-color: #1E1B19;
   transform: translateY(-1px);
 }
@@ -3101,7 +3093,7 @@ button {
   --cc-bg: #FFFFFF;
   --cc-text: #23201E;
   --cc-btn-primary-bg: #1E1B19;
-  --cc-btn-primary-text: #FAF8F5;
+  --cc-btn-primary-text: #FFFFFF;
   --cc-btn-primary-hover-bg: #8C6D35;
   --cc-btn-secondary-bg: #F4F0EB;
   --cc-btn-secondary-text: #23201E;
@@ -3383,7 +3375,7 @@ button {
 
 /* Receipt / Confirmation Box */
 .dpdp-receipt-box {
-  background: #FAF8F5;
+  background: #FFFFFF;
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-md);
   padding: 24px;
@@ -3587,7 +3579,7 @@ button {
 
 .header-dpdp-pill:hover {
   background: #1E1B19;
-  color: #FAF8F5;
+  color: #FFFFFF;
   border-color: #1E1B19;
   transform: translateY(-1px);
 }
