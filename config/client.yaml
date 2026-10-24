@@ -44,8 +44,10 @@ parity:
 
 connectors:
   google_ads:
-    customer_id: ""
-    conversion_action_id: ""
+    customer_id: "1112110147"
+    conversion_action_id: "7868766365"
+    conversion_name: "tvc_synminds_ecom_web (web) purchase"
+    credentials_file: "credentials/google-ads.yaml"
   bigquery:
     project_id: "tvc-int-matomo"
     dataset: "matomo_export"

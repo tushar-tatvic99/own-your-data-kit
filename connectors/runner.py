@@ -62,16 +62,17 @@ def test_all_connectors(config_path: str) -> None:
 
     # Looker Studio
     if "looker" in connectors:
-        console.print("[4/4] Looker Studio dashboard config...")
+        console.print("[4/4] Looker Studio dashboard...")
         try:
             from connectors.looker import generate_dashboard_config
             bq = connectors.get("bigquery", {})
             config = generate_dashboard_config(
                 bq.get("project_id", "tvc-int-matomo"),
                 bq.get("dataset", "matomo_export"),
-                bq.get("table", "events"),
+                "v_marketing_overview",
             )
-            console.print(f"  [green]OK[/green]: Dashboard '{config['name']}' with {len(config['pages'])} pages")
+            console.print(f"  [green]OK[/green]: Dashboard '{config['name']}' ready.")
+            console.print(f"  [bold blue]Direct Looker Studio URL:[/bold blue] {config['direct_looker_studio_url']}")
         except Exception as e:
             console.print(f"  [yellow]SKIP[/yellow]: {e}")
 
