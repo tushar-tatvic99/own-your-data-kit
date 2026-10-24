@@ -1699,14 +1699,30 @@ function initBfsiEngine() {
       clearTimeout(fdDebounce);
       fdDebounce = setTimeout(() => {
         const principal = parseFloat(fdAmountRange.value);
-        pushBfsiGA4('calculate_fd_yield', {
-          financial_product_name: 'Infinite High-Yield Multiplier Deposit',
-          financial_category: 'wealth_management',
-          calculation_type: 'fd_yield',
-          tenure_range: `${activeFdMonths}_months`,
-          financial_amount: principal,
-          financial_amount_tier: getAmountTier(principal),
-          interest_rate_apy: activeFdRate
+        const payout = document.querySelector('input[name="fdPayout"]:checked')?.value || 'compounded';
+        // Call backend API for server-verified dataLayer
+        fetch('/api/bfsi/calculate-yield', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ principal, months: activeFdMonths, rate: activeFdRate, payout })
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (d.dataLayer) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(d.dataLayer);
+          }
+        })
+        .catch(() => {
+          pushBfsiGA4('calculate_fd_yield', {
+            financial_product_name: 'Infinite High-Yield Multiplier Deposit',
+            financial_category: 'wealth_management',
+            calculation_type: 'fd_yield',
+            tenure_range: `${activeFdMonths}_months`,
+            financial_amount: principal,
+            financial_amount_tier: getAmountTier(principal),
+            interest_rate_apy: activeFdRate
+          });
         });
       }, 500);
     });
@@ -1799,14 +1815,29 @@ function initBfsiEngine() {
       loanDebounce = setTimeout(() => {
         const principal = parseFloat(loanAmountRange.value);
         const years = parseInt(loanYearsRange.value, 10);
-        pushBfsiGA4('calculate_loan_emi', {
-          financial_product_name: activeLoanType,
-          financial_category: 'retail_lending',
-          calculation_type: 'loan_emi',
-          financial_amount: principal,
-          financial_amount_tier: getAmountTier(principal),
-          tenure_range: `${years}_years`,
-          interest_rate_apr: activeLoanRate
+        // Call backend API for server-verified dataLayer
+        fetch('/api/bfsi/calculate-emi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ principal, years, rate: activeLoanRate, loanType: activeLoanType })
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (d.dataLayer) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(d.dataLayer);
+          }
+        })
+        .catch(() => {
+          pushBfsiGA4('calculate_loan_emi', {
+            financial_product_name: activeLoanType,
+            financial_category: 'retail_lending',
+            calculation_type: 'loan_emi',
+            financial_amount: principal,
+            financial_amount_tier: getAmountTier(principal),
+            tenure_range: `${years}_years`,
+            interest_rate_apr: activeLoanRate
+          });
         });
       }, 500);
     };
@@ -1909,24 +1940,42 @@ function initBfsiEngine() {
       const purpose = document.getElementById('bfsiAccountPurpose')?.value || 'yield_maximization';
       const productName = bfsiSelectedProduct ? bfsiSelectedProduct.value : 'Infinite Wealth Solution';
 
-      const refId = `INF-BFSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-      if (bfsiRefCode) bfsiRefCode.textContent = refId;
+      const clientPhone = document.getElementById('bfsiClientPhone')?.value.trim() || '';
 
-      bfsiApplicationForm.style.display = 'none';
-      if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'block';
-
-      // Push official GA4 custom dimensions & parameters
-      pushBfsiGA4('financial_lead_submitted', {
-        financial_product_name: productName,
-        financial_category: productName.toLowerCase().includes('card') ? 'credit_cards' : (productName.toLowerCase().includes('deposit') ? 'wealth_management' : 'retail_lending'),
-        customer_income_bracket: incomeBracket,
-        primary_financial_objective: purpose,
-        application_reference_id: refId,
-        application_status: 'pre_approved_instant',
-        client_name_masked: clientName.split(' ')[0]
+      // Call Backend API for Lead Processing and Server DataLayer
+      fetch('/api/bfsi/submit-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientName, clientEmail, clientPhone, incomeBracket, purpose, productName })
+      })
+      .then(r => r.json())
+      .then(d => {
+        const refId = d.referenceId || `INF-BFSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        if (bfsiRefCode) bfsiRefCode.textContent = refId;
+        bfsiApplicationForm.style.display = 'none';
+        if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'block';
+        if (d.dataLayer) {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push(d.dataLayer);
+        }
+        showToast('🏛️', 'Application Dispatched', `Dossier ${refId} submitted to Private Underwriting.`);
+      })
+      .catch(() => {
+        const refId = `INF-BFSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        if (bfsiRefCode) bfsiRefCode.textContent = refId;
+        bfsiApplicationForm.style.display = 'none';
+        if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'block';
+        pushBfsiGA4('financial_lead_submitted', {
+          financial_product_name: productName,
+          financial_category: productName.toLowerCase().includes('card') ? 'credit_cards' : (productName.toLowerCase().includes('deposit') ? 'wealth_management' : 'retail_lending'),
+          customer_income_bracket: incomeBracket,
+          primary_financial_objective: purpose,
+          application_reference_id: refId,
+          application_status: 'pre_approved_instant',
+          client_name_masked: clientName.split(' ')[0]
+        });
+        showToast('🏛️', 'Application Dispatched', `Dossier ${refId} submitted to Private Underwriting.`);
       });
-
-      showToast('🏛️', 'Application Dispatched', `Dossier ${refId} submitted to Private Underwriting.`);
     });
   }
 }
