@@ -65,6 +65,16 @@ connectors:
   looker:
     dashboard_id: "matomo-marketing-overview"
 
+history:
+  import_limit: 5000
+  throttle_ms: 0
+  mirror_to_warehouse: false
+  warehouse_table: ga4_history_import
+  ga4_bigquery:
+    project_id: "client-gcp-project"
+    dataset: "analytics_123456789"  # GA4 BQ export: analytics_<property_id>
+  fixture_file: agents/history/fixtures/sample_ga4_bq_rows.json
+
 migration:
   gtm_draft_only: true  # NEVER auto-publish GTM changes
   output_dir: "output/migration"

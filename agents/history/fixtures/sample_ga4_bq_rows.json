@@ -1,0 +1,40 @@
+{
+  "description": "Sample GA4 BigQuery export rows for demo import (no BQ required)",
+  "rows": [
+    {
+      "event_timestamp": 1729699200000000,
+      "event_name": "page_view",
+      "user_pseudo_id": "demo.user.001",
+      "page_location": "https://auraandblush.example.com/",
+      "page_title": "Home"
+    },
+    {
+      "event_timestamp": 1729699260000000,
+      "event_name": "view_item",
+      "user_pseudo_id": "demo.user.001",
+      "page_location": "https://auraandblush.example.com/products/serum",
+      "page_title": "Vitamin C Serum"
+    },
+    {
+      "event_timestamp": 1729699320000000,
+      "event_name": "add_to_cart",
+      "user_pseudo_id": "demo.user.001",
+      "page_location": "https://auraandblush.example.com/cart",
+      "page_title": "Cart"
+    },
+    {
+      "event_timestamp": 1729785600000000,
+      "event_name": "page_view",
+      "user_pseudo_id": "demo.user.002",
+      "page_location": "https://auraandblush.example.com/blog",
+      "page_title": "Blog"
+    },
+    {
+      "event_timestamp": 1729785700000000,
+      "event_name": "purchase",
+      "user_pseudo_id": "demo.user.002",
+      "page_location": "https://auraandblush.example.com/checkout/success",
+      "page_title": "Order confirmed"
+    }
+  ]
+}

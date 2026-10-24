@@ -89,6 +89,14 @@ python -m kit.cli verify-parts
 
 See **[docs/five-parts-complete.md](docs/five-parts-complete.md)** for the full rubric mapping.
 
+### Stretch: GA4 history import (BigQuery → Matomo)
+
+```powershell
+py -3 -m kit.cli import-ga4-history -c config/client.yaml --fixture --dry-run
+```
+
+See **[docs/ga4-history-import.md](docs/ga4-history-import.md)**.
+
 ## Project structure
 
 ```

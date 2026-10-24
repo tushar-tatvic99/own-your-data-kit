@@ -139,6 +139,37 @@ def dsar_export(config: str, user_id: str):
     console.print(export_user(config, user_id))
 
 
+@main.command("import-ga4-history")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--start", default=None, help="Start date YYYY-MM-DD")
+@click.option("--end", default=None, help="End date YYYY-MM-DD")
+@click.option("--limit", type=int, default=None, help="Max rows to import")
+@click.option("--fixture", is_flag=True, help="Use sample JSON instead of BigQuery")
+@click.option("--dry-run", is_flag=True, help="Count only; do not send tracker hits")
+@click.option("--mirror-bq", is_flag=True, help="Also write rows to kit BigQuery warehouse")
+def import_ga4_history(
+    config: str,
+    start: str | None,
+    end: str | None,
+    limit: int | None,
+    fixture: bool,
+    dry_run: bool,
+    mirror_bq: bool,
+):
+    """Stretch: import GA4 BigQuery export history into Matomo (backdated cdt)."""
+    from agents.history.run import run_ga4_history_import
+
+    run_ga4_history_import(
+        config,
+        start_date=start,
+        end_date=end,
+        limit=limit,
+        fixture=fixture,
+        dry_run=dry_run,
+        mirror_bq=mirror_bq,
+    )
+
+
 @main.command("retention-run")
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 def retention_run(config: str):
