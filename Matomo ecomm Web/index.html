@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google Consent Mode v2 Default (DPDP Compliance: Denied by default) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      'analytics_storage': 'denied',
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'functionality_storage': 'granted',
+      'security_storage': 'granted'
+    });
+  </script>
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MMXM5L53');</script>
+  <!-- End Google Tag Manager -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA & BLUSH | Parisian Feminine Luxuries & Atelier</title>
+  <meta name="description" content="Discover exquisite feminine self-care, artisanal Grasse fragrances, 22-momme pure mulberry silk, and handcrafted fine jewelry. Delivered in our signature blush satin gift box.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Vanilla CookieConsent v3 Stylesheet -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.css">
+  <!-- Canvas Confetti for Celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MMXM5L53"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <!-- Background Ambient Glows -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Announcement Bar (Refined Minimal Luxury with Direct DPDP Link) -->
+  <div class="announcement-bar" id="announcementBar">
+    <div class="announcement-content">
+      <span>Complimentary White-Glove Courier Delivery &amp; Atelier Gift Packaging on Orders Over <strong id="freeShipThresholdText">$75</strong></span>
+      <span class="announcement-sep">•</span>
+      <a href="#dpdp-erasure" class="announcement-dpdp-link">🛡️ Data Privacy &amp; Deletion Center →</a>
+    </div>
+  </div>
+
+  <!-- Main Navigation Header -->
+  <header class="site-header" id="siteHeader">
+    <div class="header-container">
+      
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Nav Links Left -->
+      <nav class="nav-links desktop-only" id="mainNav">
+        <a href="#curations" class="nav-item">Collections</a>
+        <a href="#atelier" class="nav-item">The Atelier</a>
+        <a href="#dpdp-erasure" class="nav-item">Data Privacy</a>
+      </nav>
+
+      <!-- Brand Logo Center -->
+      <div class="brand-identity">
+        <a href="#" class="brand-link">
+          <span class="brand-sub">PARIS • NEW YORK</span>
+          <span class="brand-name">Aura &amp; Blush</span>
+          <span class="brand-tag">ATELIER DE BEAUTÉ</span>
+        </a>
+      </div>
+
+      <!-- Header Actions Right -->
+      <div class="header-actions">
+        <!-- Direct Quick Jump to DPDP Section -->
+        <a href="#dpdp-erasure" class="header-dpdp-pill" title="Jump to DPDP Data Erasure Center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Privacy &amp; Deletion</span>
+        </a>
+
+        <!-- Currency Selector -->
+        <div class="currency-selector">
+          <select id="currencySelect" aria-label="Select Currency">
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="CAD">CAD ($)</option>
+          </select>
+        </div>
+
+        <!-- Wishlist Button -->
+        <button class="action-btn" id="wishlistTrigger" aria-label="View Wishlist">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <span class="badge-count" id="wishlistCount">0</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button class="action-btn cart-btn" id="cartTrigger" aria-label="Open Shopping Bag">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span class="badge-count" id="cartCount">0</span>
+          <span class="cart-subtotal desktop-only" id="headerCartTotal">$0.00</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span>Spring Atelier Curation 2026</span>
+        </div>
+        <h1 class="hero-title">
+          Indulge in Your Daily Ritual of <span class="highlight-serif">Feminine Elegance</span>
+        </h1>
+        <p class="hero-subtitle">
+          Bespoke fragrances, celestial silk sleepwear, cold-pressed botanical elixirs, and 18k gold baroque pearls. Each masterpiece is hand-wrapped in delicate French tissue and sealed with our golden wax crest.
+        </p>
+        <div class="hero-actions">
+          <a href="#curations" class="btn btn-primary" id="heroExploreBtn">
+            <span>Explore The Curation</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+          <button class="btn btn-secondary" id="heroGiftConciergeBtn">
+            <span>Complimentary Gift Box</span>
+            <span class="gift-icon">🎁</span>
+          </button>
+        </div>
+
+        <!-- Trust Badges Under Hero -->
+        <div class="hero-stats">
+          <div class="stat-pill">
+            <span class="stat-icon">🌸</span>
+            <div>
+              <strong>100% Cruelty Free</strong>
+              <small>Organic Botanicals</small>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-icon">✨</span>
+            <div>
+              <strong>Grade 6A Mulberry Silk</strong>
+              <small>22-Momme Purity</small>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-icon">🎀</span>
+            <div>
+              <strong>Parisian Gift Wrap</strong>
+              <small>Complimentary on all orders</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="visual-card">
+          <img src="assets/images/hero_banner.jpg" alt="Aura & Blush Luxury Dressing Vanity in Paris" class="hero-banner-img" id="heroImg">
+          <div class="visual-floating-tag tag-top">
+            <span class="fl-icon">💎</span>
+            <div class="fl-text">
+              <span class="fl-title">Handcrafted in Paris</span>
+              <span class="fl-desc">Artisanal Small Batches</span>
+            </div>
+          </div>
+          <div class="visual-floating-tag tag-bottom">
+            <span class="rating-stars">★★★★★</span>
+            <span class="fl-title">4.98 / 5 Customer Rating</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Luxury Features Ribbon -->
+  <section class="features-ribbon" id="why-us">
+    <div class="ribbon-container">
+      <div class="feature-item">
+        <div class="feature-icon">🌿</div>
+        <div class="feature-info">
+          <h4>Clean &amp; Non-Toxic</h4>
+          <p>Hand-harvested botanicals with no phthalates or parabens</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🕊️</div>
+        <div class="feature-info">
+          <h4>Artisanal Craftsmanship</h4>
+          <p>Created by master perfumers and Parisian goldsmiths</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📦</div>
+        <div class="feature-info">
+          <h4>Signature Atelier Presentation</h4>
+          <p>Arrives wrapped in silk tissue with hand-embossed satin ribbon</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">✨</div>
+        <div class="feature-info">
+          <h4>30-Day White-Glove Return</h4>
+          <p>Complimentary concierge returns and exchanges</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Product Showcase Section -->
+  <section class="products-section" id="curations">
+    <div class="section-container">
+      
+      <div class="section-header">
+        <span class="section-pretitle">The Exclusive Edit</span>
+        <h2 class="section-title">Curated Treasures for Her</h2>
+        <p class="section-desc">Six iconic creations designed to elevate everyday rituals into sensorial moments of self-love.</p>
+      </div>
+
+      <!-- Filter Tabs & Sort Controls -->
+      <div class="controls-bar">
+        <div class="category-tabs" id="categoryTabs">
+          <button class="cat-pill active" data-category="all">All Treasures (6)</button>
+          <button class="cat-pill" data-category="fragrance">Parfumerie</button>
+          <button class="cat-pill" data-category="skincare">Luminous Skincare</button>
+          <button class="cat-pill" data-category="silk">Silk &amp; Slumber</button>
+          <button class="cat-pill" data-category="jewelry">Fine Jewelry</button>
+          <button class="cat-pill" data-category="candle">Artisanal Living</button>
+        </div>
+
+        <div class="sort-wrapper">
+          <label for="sortSelect" class="sort-label">Sort by:</label>
+          <select id="sortSelect" class="sort-select">
+            <option value="featured">Featured Atelier Edit</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Highest Customer Rating</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Product Grid -->
+      <div class="products-grid" id="productsGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Gift Set Builder / Highlight Banner -->
+  <section class="gift-banner-section">
+    <div class="gift-banner-container">
+      <div class="gift-banner-card">
+        <div class="gift-content">
+          <span class="gift-tag">Atelier Concierge Service</span>
+          <h2 class="gift-title">Sending an Exquisite Gift?</h2>
+          <p class="gift-text">
+            Every treasure is presented in our <strong>Signature Atelier Gift Packaging</strong>. Include a heartfelt note, penned in gold calligraphy on archival deckle-edge cardstock.
+          </p>
+          <div class="gift-perks">
+            <span>✨ Custom Gold-Foiled Card</span>
+            <span>🕊️ Silk Dustbag Included</span>
+            <span>🎀 Hand-Tied Satin Ribbon</span>
+          </div>
+          <button class="btn btn-primary" id="giftBannerAddBtn">
+            <span>Curate Your Gift Box</span>
+          </button>
+        </div>
+        <div class="gift-preview-visual">
+          <img src="assets/images/perfume.jpg" alt="Gift Presentation" class="gift-img-preview">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The Atelier Story Section -->
+  <section class="atelier-section" id="atelier">
+    <div class="atelier-container">
+      <div class="atelier-visual">
+        <img src="assets/images/serum.jpg" alt="Botanical Elixirs & Rose Quartz" class="atelier-img">
+        <div class="atelier-badge">
+          <span class="atelier-established">DEPUIS 2024</span>
+          <span class="atelier-quote">“Beauty is a quiet reverence for yourself.”</span>
+        </div>
+      </div>
+      <div class="atelier-story">
+        <span class="section-pretitle">Behind The Radiance</span>
+        <h2 class="section-title">The Atelier Philosophy</h2>
+        <p class="atelier-paragraph">
+          Born between the floral hills of Grasse and the haute couture avenues of Paris, <strong>Aura &amp; Blush</strong> was founded on the belief that everyday objects should radiate delicate poetry and profound luxury.
+        </p>
+        <p class="atelier-paragraph">
+          We blend rare organic botanicals, cold-pressed floral essences, hand-picked freshwater pearls, and genuine 22-momme Mulberry silk into timeless essentials that nourish your skin, soothe your senses, and inspire unapologetic femininity.
+        </p>
+        <div class="atelier-signature">
+          <span class="signature-text">Dhruvi &amp; Co.</span>
+          <span class="signature-role">Founders &amp; Creative Directors</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Customer Reviews / Love Notes -->
+  <section class="reviews-section" id="reviews">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-pretitle">Real Praise</span>
+        <h2 class="section-title">Love Notes from Our Society</h2>
+        <p class="section-desc">Over 25,000 women across the globe cherish their Aura &amp; Blush keepsakes.</p>
+      </div>
+
+      <div class="reviews-grid">
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-quote">“The Maison de Rose perfume is otherworldly. I receive compliments every single day. The packaging made me gasp when opening it—felt like unboxing a fairytale!”</p>
+          <div class="reviewer-meta">
+            <span class="reviewer-avatar">🌸</span>
+            <div>
+              <strong>Camille V.</strong>
+              <small>Verified Buyer • Paris, FR</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-quote">“The Mulberry silk pillowcase transformed my skin and hair overnight. Waking up with zero sleep creases is priceless. Will be gifting this to all my best friends!”</p>
+          <div class="reviewer-meta">
+            <span class="reviewer-avatar">🕊️</span>
+            <div>
+              <strong>Genevieve M.</strong>
+              <small>Verified Buyer • London, UK</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-quote">“The baroque pearl choker is so delicate yet eye-catching! The gold has not tarnished at all and the pearl has the most luminous pastel sheen. 10/10 checkout journey.”</p>
+          <div class="reviewer-meta">
+            <span class="reviewer-avatar">💎</span>
+            <div>
+              <strong>Serena K.</strong>
+              <small>Verified Buyer • New York, USA</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIP Society Newsletter -->
+  <section class="newsletter-section">
+    <div class="newsletter-container">
+      <div class="newsletter-card">
+        <span class="newsletter-tag">Exclusive Atelier Society</span>
+        <h2 class="newsletter-title">Join The Collector&rsquo;s Circle</h2>
+        <p class="newsletter-desc">Receive private access to seasonal extraits, private salon invitations, and bespoke artisan releases.</p>
+        <form class="newsletter-form" id="newsletterForm">
+          <input type="email" placeholder="Enter your email address..." required id="newsletterEmail" class="newsletter-input" aria-label="Email Address">
+          <button type="submit" class="btn btn-primary">
+            <span>Request Access</span>
+          </button>
+        </form>
+        <div class="newsletter-note" id="newsletterFeedback"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- DPDP ACT COMPLIANCE & DATA ERASURE CENTER -->
+  <!-- ============================================== -->
+  <section class="dpdp-section" id="dpdp-erasure">
+    <div class="dpdp-container">
+      
+      <!-- Section Header -->
+      <div class="dpdp-header">
+        <div class="dpdp-badge">
+          <span class="dpdp-badge-dot"></span>
+          <span>Digital Personal Data Protection Act, 2023 / 2026 Compliance</span>
+        </div>
+        <h2 class="dpdp-title">Data Privacy &amp; Statutory Erasure Center</h2>
+        <p class="dpdp-subtitle">
+          In strict accordance with Section 12 of the DPDP Act, you have full sovereignty over your personal data. You may petition for immediate data erasure, review legal retention categories, or consult our Data Protection Officer.
+        </p>
+      </div>
+
+      <div class="dpdp-grid">
+        
+        <!-- Left: Interactive Data Deletion Request Form -->
+        <div class="dpdp-card dpdp-form-card">
+          <div class="card-head">
+            <div class="card-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="card-title">Petition for Data Erasure</h3>
+              <p class="card-desc">Exercise your statutory right to erasure under Section 12(1).</p>
+            </div>
+          </div>
+
+          <!-- Dynamic Disclosure Matrix -->
+          <div class="dpdp-matrix-box">
+            <div class="matrix-column will-delete">
+              <span class="matrix-heading">
+                <span class="dot-status green"></span> Personal Data We Will Delete
+              </span>
+              <ul class="matrix-list">
+                <li>Account profile, name, email &amp; saved shipping addresses</li>
+                <li>Browsing telemetry, tracking cookies &amp; device fingerprints</li>
+                <li>Marketing consent, personalization logs &amp; newsletter leads</li>
+                <li>Shopping bag sessions, saved wishlists &amp; atelier preferences</li>
+                <li>Notification of erasure issued to all downstream third-party processors</li>
+              </ul>
+            </div>
+            
+            <div class="matrix-column will-retain">
+              <span class="matrix-heading">
+                <span class="dot-status amber"></span> Statutory Exceptions (Legally Retained)
+              </span>
+              <ul class="matrix-list">
+                <li><strong>Tax Invoices &amp; Accounts:</strong> Retained for 6 years (72 months) as mandated by Section 36 of the Central Goods &amp; Services Tax (CGST) Act</li>
+                <li><strong>Active In-Transit Orders:</strong> Retained until delivery, consumer inspection &amp; warranty windows conclude</li>
+                <li><strong>Payment Transaction Records:</strong> Retained per RBI banking guidelines &amp; fraud prevention mandates</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- The Form -->
+          <form class="dpdp-request-form" id="dpdpRequestForm">
+            <div class="form-row-2">
+              <div class="dpdp-field">
+                <label for="dpdpName">Full Legal Name *</label>
+                <input type="text" id="dpdpName" required placeholder="e.g. Camille Laurent" autocomplete="name">
+              </div>
+              <div class="dpdp-field">
+                <label for="dpdpEmail">Registered Email Address *</label>
+                <input type="email" id="dpdpEmail" required placeholder="e.g. camille@atelier.com" autocomplete="email">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="dpdp-field">
+                <label for="dpdpScope">Request Scope *</label>
+                <select id="dpdpScope" required>
+                  <option value="full_erasure">Complete Account &amp; Analytics Erasure</option>
+                  <option value="tracking_only">Analytics &amp; Marketing Tracking Erasure Only</option>
+                  <option value="access_inquiry">Request Detailed Summary of Stored Data</option>
+                </select>
+              </div>
+              <div class="dpdp-field">
+                <label for="dpdpOrderNum">Order Reference Number <small>(If applicable)</small></label>
+                <input type="text" id="dpdpOrderNum" placeholder="e.g. AB-2026-891">
+              </div>
+            </div>
+
+            <div class="dpdp-field">
+              <label for="dpdpNotes">Specific Instructions or Exclusions <small>(Optional)</small></label>
+              <textarea id="dpdpNotes" rows="2" placeholder="Specify any specific third-party processors, accounts, or details..."></textarea>
+            </div>
+
+            <div class="dpdp-consent-ack">
+              <label class="dpdp-checkbox-label">
+                <input type="checkbox" id="dpdpConsentCheck" required>
+                <span>I confirm that I am the authorized Data Principal. I acknowledge that tax invoices and active in-transit fulfillment records must be retained pursuant to applicable Indian statutory laws.</span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-dpdp-submit" id="dpdpSubmitBtn">
+              <span>Submit Statutory Deletion Request</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </form>
+
+          <!-- Form Receipt / Comprehensive Statutory Audit Decision State -->
+          <div class="dpdp-receipt-box" id="dpdpReceiptBox" style="display: none;">
+            <div class="receipt-header">
+              <span class="receipt-badge" id="receiptStatusBadge">AUDIT COMPLETE • PARTIALLY APPROVED</span>
+              <span class="receipt-time" id="dpdpTimestamp"></span>
+            </div>
+            
+            <h4 class="receipt-title" id="receiptDecisionTitle">Statutory Erasure Decision &amp; Audit Breakdown</h4>
+            <p class="receipt-msg" id="receiptDecisionMsg">
+              Your petition under Section 12(1) of the DPDP Act has been registered. Below is the statutory breakdown of which personal data categories are approved for deletion, and which must be retained by law.
+            </p>
+
+            <!-- Statutory Decision Audit Table -->
+            <div class="audit-decision-table-wrap">
+              <table class="audit-decision-table">
+                <thead>
+                  <tr>
+                    <th>Data Category</th>
+                    <th>Audit Status</th>
+                    <th>Reason / Statutory Basis</th>
+                  </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                  <tr>
+                    <td><strong>Account Profile &amp; Identifiers</strong></td>
+                    <td><span class="status-chip chip-approved">✓ APPROVED</span></td>
+                    <td>Full name, email &amp; saved shipping addresses queued for permanent destruction.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Marketing &amp; Ad Telemetry</strong></td>
+                    <td><span class="status-chip chip-approved">✓ APPROVED</span></td>
+                    <td>Advertising consent revoked; tracking tokens invalidated across processors.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Analytics Identifiers (Matomo / GA4)</strong></td>
+                    <td><span class="status-chip chip-approved">✓ APPROVED</span></td>
+                    <td>Pseudonymous user tracking purged; local session cookies cleared immediately.</td>
+                  </tr>
+                  <tr class="row-warning" id="auditInvoiceRow">
+                    <td><strong>Tax Invoices &amp; Accounts</strong></td>
+                    <td><span class="status-chip chip-held">⚖️ NOT APPROVED (LEGAL HOLD)</span></td>
+                    <td><strong>Section 36, CGST Act 2017:</strong> Sales invoices &amp; GST accounts must be preserved for <strong>6 years (72 months)</strong>. Statutory exemption under DPDP Sec 12(3).</td>
+                  </tr>
+                  <tr class="row-conditional" id="auditPendingOrderRow" style="display: none;">
+                    <td><strong>Active In-Transit Orders</strong></td>
+                    <td><span class="status-chip chip-conditional">⏳ CONDITIONAL HOLD</span></td>
+                    <td><strong>Contractual Fulfillment:</strong> Data held until courier delivery and 30-day consumer return/dispute window conclude, after which it is auto-erased.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Live Browser Action Notice -->
+            <div class="browser-purged-box">
+              <div class="purge-icon">✨</div>
+              <div class="purge-text">
+                <strong>Immediate Action Executed On This Device:</strong>
+                <span>Tracking cookies purged, <code>localStorage</code> wiped, and Matomo consent token revoked right now.</span>
+              </div>
+            </div>
+
+            <div class="receipt-ticket-pill">
+              <span class="ticket-label">Statutory Reference ID:</span>
+              <code class="ticket-code" id="dpdpTicketCode">DPDP-2026-XXXXX</code>
+              <button type="button" class="btn-copy-ticket" id="copyTicketBtn">Copy ID</button>
+            </div>
+
+            <div class="receipt-actions-row">
+              <button type="button" class="btn btn-outline btn-sm" id="btnSubmitAnotherDpdp">
+                <span>Submit Another Request</span>
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="btnPrintReceiptBtn">
+                <span>Print Audit Summary</span>
+              </button>
+            </div>
+
+            <div class="receipt-footer">
+              <span>Data Protection Officer: <code>dpo@auraandblush.com</code></span>
+              <span>Statutory Fulfillment Deadline: <code>30 Calendar Days</code></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Executive FAQ Accordion -->
+        <div class="dpdp-card dpdp-faq-card">
+          <div class="card-head">
+            <div class="card-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div>
+              <h3 class="card-title">Statutory Compliance FAQs</h3>
+              <p class="card-desc">Authoritative guidance on your legal rights, exemptions, and timelines.</p>
+            </div>
+          </div>
+
+          <div class="dpdp-accordion" id="dpdpAccordion">
+            
+            <div class="faq-item active">
+              <button type="button" class="faq-trigger" aria-expanded="true">
+                <span class="faq-q">What is my Right to Erasure under Section 12 of the DPDP Act?</span>
+                <span class="faq-chevron">▾</span>
+              </button>
+              <div class="faq-body">
+                <p>As a Data Principal, Section 12(1)(d) empowers you to demand the complete erasure of your personal data when consent is withdrawn or when the purpose for which it was collected is satisfied. Upon submission, the Data Fiduciary and all downstream third-party processors are mandated to delete your records.</p>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-trigger" aria-expanded="false">
+                <span class="faq-q">Which personal data is permanently wiped?</span>
+                <span class="faq-chevron">▾</span>
+              </button>
+              <div class="faq-body">
+                <p>All direct identifiers (customer name, email address, password hash, saved delivery addresses, wishlist items) and pseudonymous telemetry (Matomo tracking profiles, Google Analytics identifiers, advertising preferences, and cookie tokens) are permanently destroyed.</p>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-trigger" aria-expanded="false">
+                <span class="faq-q">What if I have pending transactions, shipments, or returns?</span>
+                <span class="faq-arrow faq-chevron">▾</span>
+              </button>
+              <div class="faq-body">
+                <p>Under Section 12(3) of the Act, erasure does <strong>not</strong> apply where retention is necessary for the performance of a contract or statutory compliance. If an order is currently in transit or within its return/warranty window, data essential to fulfill the shipment and protect consumer dispute rights is retained until completed, after which erasure is automatically finalized.</p>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-trigger" aria-expanded="false">
+                <span class="faq-q">Why must invoice and tax records be retained for 6 years?</span>
+                <span class="faq-chevron">▾</span>
+              </button>
+              <div class="faq-body">
+                <p>Section 36 of the Central Goods and Services Tax (CGST) Act, 2017 and Section 44AA of the Indian Income Tax Act mandate that businesses preserve sales accounts and tax invoices for up to <strong>72 months (6 years)</strong>. These records are strictly archived in an isolated, encrypted accounting vault and are never utilized for marketing or analytics.</p>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-trigger" aria-expanded="false">
+                <span class="faq-q">What is the mandatory statutory timeframe to process my request?</span>
+                <span class="faq-chevron">▾</span>
+              </button>
+              <div class="faq-body">
+                <p>In accordance with DPDP implementing rules, the Data Fiduciary must verify identity and complete erasure within a statutory window of <strong>30 calendar days</strong>. You will receive an official audit summary confirming the action.</p>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-trigger" aria-expanded="false">
+                <span class="faq-q">How do I contact your Data Protection Officer (DPO)?</span>
+                <span class="faq-chevron">▾</span>
+              </button>
+              <div class="faq-body">
+                <p>You may directly address formal statutory notices to our Data Protection Officer at <strong>dpo@auraandblush.com</strong>. Under Section 13, if a grievance is unresolved within 30 days, you retain the legal right to escalate the complaint to the <strong>Data Protection Board of India</strong>.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-col brand-col">
+        <span class="brand-name footer-logo">Aura &amp; Blush</span>
+        <p class="footer-bio">Curated feminine luxuries, clean botanicals, and handcrafted keepsakes. Designed to enchant your daily rituals.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram">Instagram</a>
+          <a href="#" aria-label="Pinterest">Pinterest</a>
+          <a href="#" aria-label="TikTok">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Boutique Collections</h4>
+        <ul class="footer-list">
+          <li><a href="#curations" data-filter="fragrance">Grasse Fragrances</a></li>
+          <li><a href="#curations" data-filter="skincare">Rose Quartz &amp; Elixirs</a></li>
+          <li><a href="#curations" data-filter="silk">Organic Mulberry Silk</a></li>
+          <li><a href="#curations" data-filter="jewelry">18k Gold Pearls</a></li>
+          <li><a href="#curations" data-filter="candle">Botanical Soy Candles</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Client Concierge</h4>
+        <ul class="footer-list">
+          <li><a href="#" id="footerTrackOrderBtn">Track Your Order</a></li>
+          <li><a href="#" id="footerGiftWrapBtn">Signature Gift Wrapping</a></li>
+          <li><a href="#" id="footerShippingBtn">White-Glove Shipping</a></li>
+          <li><a href="#" id="footerReturnsBtn">30-Day Returns Policy</a></li>
+          <li><a href="#dpdp-erasure" id="footerDataErasureBtn">Data Deletion &amp; DPDP Rights</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Payment &amp; Security</h4>
+        <p class="security-text">256-Bit Bank-Grade SSL Encryption. We protect your privacy with utmost care.</p>
+        <div class="payment-badges">
+          <span class="pay-chip">VISA</span>
+          <span class="pay-chip">Mastercard</span>
+          <span class="pay-chip">Apple Pay</span>
+          <span class="pay-chip">Google Pay</span>
+          <span class="pay-chip">Amex</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Aura &amp; Blush Atelier. Handcrafted with love for feminine grace. All rights reserved.</p>
+      <div class="footer-privacy-links">
+        <button type="button" class="btn-cookie-preferences" data-cc="show-preferencesModal">
+          <span>🛡️ Privacy &amp; Cookie Choices</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================== -->
+  <!-- CART SLIDEOVER DRAWER -->
+  <!-- ============================================== -->
+  <div class="drawer-overlay" id="cartOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping Bag">
+    <div class="drawer-header">
+      <div class="drawer-title-wrap">
+        <h3 class="drawer-title">Your Shopping Bag</h3>
+        <span class="item-count-badge" id="cartBadgeCount">(0 items)</span>
+      </div>
+      <button class="drawer-close-btn" id="closeCartBtn" aria-label="Close Shopping Bag">✕</button>
+    </div>
+
+    <!-- Free Shipping Progress Bar -->
+    <div class="shipping-progress-box">
+      <div class="progress-message" id="shippingProgressMsg">
+        Add <strong>$75.00</strong> more to unlock <strong>Complimentary Luxury Shipping &amp; Gift Box</strong>!
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="shippingProgressBar" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart Items Scroll Area -->
+    <div class="cart-items-container" id="cartItemsList">
+      <!-- Items dynamically populated -->
+      <div class="cart-empty-state" id="cartEmptyState">
+        <span class="empty-icon">🛍️</span>
+        <h4>Your Bag is Whispering for Beauty</h4>
+        <p>Explore our curated treasures and treat yourself or someone cherished.</p>
+        <button class="btn btn-primary" id="emptyCartShopBtn">Explore Collection</button>
+      </div>
+    </div>
+
+    <!-- Cart Footer with Totals and Gift Message -->
+    <div class="drawer-footer" id="cartDrawerFooter">
+      <!-- Gift Wrap & Message Toggle -->
+      <div class="gift-option-card">
+        <label class="gift-toggle-label">
+          <input type="checkbox" id="giftWrapToggle">
+          <span class="custom-checkbox"></span>
+          <span class="gift-toggle-text">
+            <strong>Complimentary Parisian Pink Gift Box</strong>
+            <small>Includes satin bow &amp; gold handwritten card</small>
+          </span>
+        </label>
+        <div class="gift-message-field" id="giftMessageField" style="display: none;">
+          <textarea id="giftMessageInput" placeholder="Write your heartfelt note for the calligraphy card..." maxlength="200" rows="2"></textarea>
+          <small class="char-limit"><span id="giftCharCount">0</span>/200 characters</small>
+        </div>
+      </div>
+
+      <!-- Coupon Code Form -->
+      <div class="coupon-box">
+        <div class="coupon-input-group">
+          <input type="text" id="couponInput" placeholder="Promo code (e.g. GIRLGLOW15)" class="coupon-input" uppercase>
+          <button class="btn-coupon" id="applyCouponBtn">Apply</button>
+        </div>
+        <div class="coupon-feedback" id="couponFeedback"></div>
+      </div>
+
+      <!-- Price Breakdown -->
+      <div class="price-breakdown">
+        <div class="price-row">
+          <span>Subtotal</span>
+          <span id="cartSubtotal">$0.00</span>
+        </div>
+        <div class="price-row discount-row" id="cartDiscountRow" style="display: none;">
+          <span id="cartDiscountLabel">Promo Discount</span>
+          <span id="cartDiscountAmount">-$0.00</span>
+        </div>
+        <div class="price-row">
+          <span>White-Glove Shipping</span>
+          <span id="cartShippingCost">Calculated at checkout</span>
+        </div>
+        <div class="price-row grand-total-row">
+          <strong>Estimated Total</strong>
+          <strong class="total-amount" id="cartGrandTotal">$0.00</strong>
+        </div>
+      </div>
+
+      <!-- Direct Checkout Trigger -->
+      <button class="btn btn-primary btn-checkout" id="proceedCheckoutBtn">
+        <span>Proceed to Checkout</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+
+      <div class="secure-guarantee">
+        <span>🔒 256-Bit SSL Encrypted • 30-Day Bliss Returns</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================== -->
+  <!-- FULL MULTI-STEP CHECKOUT JOURNEY MODAL -->
+  <!-- ============================================== -->
+  <div class="checkout-modal-backdrop" id="checkoutModal">
+    <div class="checkout-modal-window">
+      
+      <!-- Checkout Header -->
+      <div class="checkout-header">
+        <div class="checkout-brand">
+          <span class="checkout-brand-sub">ATELIER CHECKOUT</span>
+          <span class="checkout-brand-title">Aura &amp; Blush</span>
+        </div>
+        
+        <!-- Multi-Step Indicator -->
+        <div class="checkout-stepper">
+          <div class="step-node active" id="stepNode1">
+            <span class="step-num">1</span>
+            <span class="step-text">Details</span>
+          </div>
+          <div class="step-line" id="stepLine1"></div>
+          <div class="step-node" id="stepNode2">
+            <span class="step-num">2</span>
+            <span class="step-text">Shipping</span>
+          </div>
+          <div class="step-line" id="stepLine2"></div>
+          <div class="step-node" id="stepNode3">
+            <span class="step-num">3</span>
+            <span class="step-text">Payment</span>
+          </div>
+          <div class="step-line" id="stepLine3"></div>
+          <div class="step-node" id="stepNode4">
+            <span class="step-num">4</span>
+            <span class="step-text">Confirmation</span>
+          </div>
+        </div>
+
+        <button class="checkout-close-btn" id="closeCheckoutBtn" aria-label="Close Checkout">✕</button>
+      </div>
+
+      <!-- Checkout Body (Split Grid: Left Form, Right Order Summary) -->
+      <div class="checkout-body">
+        
+        <!-- Left: Dynamic Steps Form -->
+        <div class="checkout-form-container">
+
+          <!-- ================= STEP 1: CONTACT & DELIVERY ================= -->
+          <div class="checkout-step-panel active" id="checkoutStep1">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Customer &amp; Shipping Details</h3>
+                <p>Where shall our courier deliver your luxury parcel?</p>
+              </div>
+              <!-- Test helper button for instant easy demonstration -->
+              <button type="button" class="btn-demo-fill" id="fillDemoAddressBtn" title="Fill with demo test address">
+                ✨ Fill Demo Details
+              </button>
+            </div>
+
+            <form id="step1Form" class="step-form">
+              <div class="form-group">
+                <label for="custEmail">Email Address *</label>
+                <input type="email" id="custEmail" required placeholder="claire.dupont@vogue.com">
+                <small class="field-hint">We'll send your tracking updates and digital receipt here.</small>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="custFirstName">First Name *</label>
+                  <input type="text" id="custFirstName" required placeholder="Claire">
+                </div>
+                <div class="form-group">
+                  <label for="custLastName">Last Name *</label>
+                  <input type="text" id="custLastName" required placeholder="Dupont">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="custStreet">Street Address *</label>
+                <input type="text" id="custStreet" required placeholder="24 Rue de Rivoli, Apt 4B">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="custCity">City *</label>
+                  <input type="text" id="custCity" required placeholder="Paris / New York">
+                </div>
+                <div class="form-group">
+                  <label for="custState">State / Region *</label>
+                  <input type="text" id="custState" required placeholder="Île-de-France / NY">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="custZip">Postal / ZIP Code *</label>
+                  <input type="text" id="custZip" required placeholder="75001">
+                </div>
+                <div class="form-group">
+                  <label for="custCountry">Country *</label>
+                  <select id="custCountry" required>
+                    <option value="United States">United States</option>
+                    <option value="France">France</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Germany">Germany</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="custPhone">Mobile Phone (for courier notifications)</label>
+                <input type="tel" id="custPhone" placeholder="+1 (555) 234-5678">
+              </div>
+
+              <div class="step-navigation">
+                <button type="button" class="btn btn-outline" id="backToBagBtn">Return to Bag</button>
+                <button type="submit" class="btn btn-primary">
+                  <span>Continue to Shipping</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ================= STEP 2: SHIPPING METHODS ================= -->
+          <div class="checkout-step-panel" id="checkoutStep2">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Select Delivery Method</h3>
+                <p>Choose your preferred white-glove courier experience</p>
+              </div>
+            </div>
+
+            <!-- Recipient Summary Card -->
+            <div class="summary-pill-card">
+              <div class="summary-pill-line">
+                <span class="sp-label">Ship to:</span>
+                <span class="sp-value" id="shipToPreview">24 Rue de Rivoli, Paris, 75001</span>
+                <button type="button" class="sp-edit" id="editStep1Btn">Change</button>
+              </div>
+            </div>
+
+            <form id="step2Form" class="step-form">
+              <div class="shipping-methods-list">
+                
+                <label class="shipping-option selected" id="shipOptStandard">
+                  <input type="radio" name="shippingMethod" value="standard" checked>
+                  <div class="ship-details">
+                    <div class="ship-title-row">
+                      <strong class="ship-name">Atelier Standard Delivery</strong>
+                      <span class="ship-price" id="rateStandard">$0.00 (Free)</span>
+                    </div>
+                    <p class="ship-desc">3–5 Business Days • Delivered in our signature sealed pink postal box.</p>
+                  </div>
+                </label>
+
+                <label class="shipping-option" id="shipOptExpress">
+                  <input type="radio" name="shippingMethod" value="express">
+                  <div class="ship-details">
+                    <div class="ship-title-row">
+                      <strong class="ship-name">Priority Royal Courier 👑</strong>
+                      <span class="ship-price" id="rateExpress">$12.00</span>
+                    </div>
+                    <p class="ship-desc">1–2 Business Days • Thermal cushioned silk packing + Priority handling.</p>
+                  </div>
+                </label>
+
+                <label class="shipping-option" id="shipOptParisian">
+                  <input type="radio" name="shippingMethod" value="parisian">
+                  <div class="ship-details">
+                    <div class="ship-title-row">
+                      <strong class="ship-name">Parisian Rose Express 🌹</strong>
+                      <span class="ship-price" id="rateParisian">$24.00</span>
+                    </div>
+                    <p class="ship-desc">Next Morning White-Glove • Hand-delivered with a fresh real Ecuadorian rose.</p>
+                  </div>
+                </label>
+
+              </div>
+
+              <div class="step-navigation">
+                <button type="button" class="btn btn-outline" id="backToStep1Btn">Back to Details</button>
+                <button type="submit" class="btn btn-primary">
+                  <span>Continue to Payment</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ================= STEP 3: LUXURY PAYMENT ================= -->
+          <div class="checkout-step-panel" id="checkoutStep3">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Payment &amp; Security</h3>
+                <p>All transactions are 256-bit encrypted and bank-grade secure.</p>
+              </div>
+            </div>
+
+            <!-- Express Checkout Buttons -->
+            <div class="express-checkout-block">
+              <span class="express-label">Express Instant Checkout:</span>
+              <div class="express-btn-group">
+                <button type="button" class="btn-express apple-pay" id="expressApplePayBtn">
+                  <span>Pay</span>
+                </button>
+                <button type="button" class="btn-express gpay" id="expressGPayBtn">
+                  <span>G Pay</span>
+                </button>
+                <button type="button" class="btn-express paypal" id="expressPayPalBtn">
+                  <span>PayPal</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="divider-text">
+              <span>OR PAY WITH CREDIT / DEBIT CARD</span>
+            </div>
+
+            <!-- Interactive 3D Card Preview -->
+            <div class="credit-card-preview-container">
+              <div class="card-visual" id="cardVisual">
+                <div class="card-front">
+                  <div class="card-top-row">
+                    <span class="card-chip"></span>
+                    <span class="card-brand-logo" id="cardBrandLogo">VISA</span>
+                  </div>
+                  <div class="card-number-display" id="cardDisplayNumber">•••• •••• •••• ••••</div>
+                  <div class="card-bottom-row">
+                    <div class="card-holder-col">
+                      <span class="card-label">CARD HOLDER</span>
+                      <span class="card-val" id="cardDisplayName">CLAIRE DUPONT</span>
+                    </div>
+                    <div class="card-expiry-col">
+                      <span class="card-label">EXPIRES</span>
+                      <span class="card-val" id="cardDisplayExpiry">MM/YY</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Inputs Form -->
+            <form id="step3Form" class="step-form">
+              <div class="form-group">
+                <label for="cardNumber">Card Number *</label>
+                <input type="text" id="cardNumber" required placeholder="4242 •••• •••• 4242" maxlength="19">
+              </div>
+
+              <div class="form-group">
+                <label for="cardName">Name on Card *</label>
+                <input type="text" id="cardName" required placeholder="Claire Dupont">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cardExpiry">Expiration Date (MM/YY) *</label>
+                  <input type="text" id="cardExpiry" required placeholder="08/28" maxlength="5">
+                </div>
+                <div class="form-group">
+                  <label for="cardCvv">CVV / CVC *</label>
+                  <input type="password" id="cardCvv" required placeholder="•••" maxlength="4">
+                </div>
+              </div>
+
+              <div class="security-lock-note">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Encrypted with bank-level SSL 256-bit protocol. You will not be charged in demo mode.</span>
+              </div>
+
+              <div class="step-navigation">
+                <button type="button" class="btn btn-outline" id="backToStep2Btn">Back to Shipping</button>
+                <button type="submit" class="btn btn-primary btn-pay-now" id="payNowBtn">
+                  <span id="payBtnText">Authorize &amp; Complete Order</span>
+                  <div class="spinner" id="paySpinner" style="display: none;"></div>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ================= STEP 4: ORDER CONFIRMATION & CELEBRATION ================= -->
+          <div class="checkout-step-panel" id="checkoutStep4">
+            <div class="confirmation-container">
+              <div class="celebration-badge">
+                <span class="sparkle-circle">🌸</span>
+              </div>
+              <h2 class="confirm-title">Merci Beaucoup! Your Order is Confirmed</h2>
+              <p class="confirm-subtitle">
+                We are preparing your exquisite keepsakes with utmost delicacy. A confirmation email has been dispatched to <strong id="confirmEmail">claire.dupont@vogue.com</strong>.
+              </p>
+
+              <!-- Order Reference Box -->
+              <div class="order-ref-box">
+                <div class="ref-col">
+                  <small>ORDER NUMBER</small>
+                  <strong class="order-id-highlight" id="confirmedOrderId">#AB-84920</strong>
+                </div>
+                <div class="ref-col">
+                  <small>ESTIMATED ARRIVAL</small>
+                  <strong id="confirmedDeliveryDate">Friday, Oct 27</strong>
+                </div>
+                <div class="ref-col">
+                  <small>DELIVERY STATUS</small>
+                  <strong class="status-badge">Preparing In Atelier 🎀</strong>
+                </div>
+              </div>
+
+              <!-- Live Order Tracking Timeline -->
+              <div class="tracking-timeline-card">
+                <h4>Order Journey Tracker</h4>
+                <div class="timeline-steps">
+                  <div class="t-step active done">
+                    <div class="t-dot">✓</div>
+                    <div class="t-info">
+                      <strong>Order Placed</strong>
+                      <small>Payment authorized &amp; confirmed</small>
+                    </div>
+                  </div>
+                  <div class="t-step active current">
+                    <div class="t-dot">🎀</div>
+                    <div class="t-info">
+                      <strong>Atelier Packaging</strong>
+                      <small>Scented French tissue &amp; gold seal</small>
+                    </div>
+                  </div>
+                  <div class="t-step">
+                    <div class="t-dot">🕊️</div>
+                    <div class="t-info">
+                      <strong>Dispatched with Courier</strong>
+                      <small>Real-time GPS tracking enabled</small>
+                    </div>
+                  </div>
+                  <div class="t-step">
+                    <div class="t-dot">✨</div>
+                    <div class="t-info">
+                      <strong>Delivered to You</strong>
+                      <small>White-glove doorstep delivery</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gift Note Preview if present -->
+              <div class="confirmed-gift-card" id="confirmedGiftSection" style="display: none;">
+                <div class="gift-card-inner">
+                  <span class="gift-calligraphy-title">Your Handwritten Gold Card Message:</span>
+                  <p class="gift-calligraphy-text" id="confirmedGiftMessageText">"To my darling, with all my love."</p>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="confirmation-actions">
+                <button class="btn btn-outline" id="printReceiptBtn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                  </svg>
+                  <span>Print Receipt / Invoice</span>
+                </button>
+                <button class="btn btn-primary" id="finishShoppingBtn">
+                  <span>Continue Shopping</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Fixed Order Summary Column -->
+        <div class="checkout-summary-column">
+          <div class="summary-card">
+            <h4 class="summary-title">Order Summary</h4>
+            
+            <div class="summary-items-list" id="checkoutItemsList">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <div class="summary-breakdown">
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="checkoutSubtotal">$0.00</span>
+              </div>
+              <div class="summary-row discount-row" id="checkoutDiscountRow" style="display: none;">
+                <span id="checkoutDiscountLabel">Promo Discount</span>
+                <span id="checkoutDiscountAmount">-$0.00</span>
+              </div>
+              <div class="summary-row">
+                <span>Courier Delivery</span>
+                <span id="checkoutShippingCost">$0.00</span>
+              </div>
+              <div class="summary-row" id="checkoutGiftRow" style="display: none;">
+                <span>Gift Packaging</span>
+                <span class="free-tag">Complimentary</span>
+              </div>
+              <div class="summary-row grand-total">
+                <strong>Total Amount</strong>
+                <strong class="summary-total-val" id="checkoutGrandTotal">$0.00</strong>
+              </div>
+            </div>
+
+            <!-- Customer Service note -->
+            <div class="concierge-badge">
+              <span class="concierge-icon">📞</span>
+              <div>
+                <strong>Concierge Helpline</strong>
+                <small>24/7 Priority Support for your order</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PRODUCT QUICK VIEW MODAL -->
+  <!-- ============================================== -->
+  <div class="quickview-backdrop" id="quickViewModal">
+    <div class="quickview-modal">
+      <button class="quickview-close-btn" id="closeQuickViewBtn" aria-label="Close product preview">✕</button>
+      <div class="quickview-grid">
+        <div class="quickview-image-container">
+          <img src="assets/images/perfume.jpg" alt="Product Image" id="qvProductImg" class="quickview-main-img">
+          <span class="quickview-badge" id="qvProductBadge">Bestseller</span>
+        </div>
+        <div class="quickview-details">
+          <div class="qv-category" id="qvCategory">PARFUMERIE</div>
+          <h2 class="qv-title" id="qvTitle">Maison de Rose Eau de Parfum</h2>
+          <div class="qv-rating">
+            <span class="qv-stars" id="qvStars">★★★★★</span>
+            <span class="qv-reviews" id="qvReviews">4.9 (128 reviews)</span>
+          </div>
+          <div class="qv-price" id="qvPrice">$128.00</div>
+          <p class="qv-description" id="qvDescription">
+            Crafted with hand-picked May roses from Grasse, pink peppercorns, and French cashmere wood. An intoxicating, sophisticated scent that blooms softly throughout the day.
+          </p>
+
+          <div class="qv-highlights" id="qvHighlights">
+            <!-- Highlights bullets -->
+          </div>
+
+          <div class="qv-controls">
+            <div class="quantity-selector">
+              <button class="qty-btn" id="qvQtyMinus">-</button>
+              <input type="number" id="qvQtyInput" value="1" min="1" max="10" readonly>
+              <button class="qty-btn" id="qvQtyPlus">+</button>
+            </div>
+            <button class="btn btn-primary btn-qv-add" id="qvAddToCartBtn">
+              <span>Add to Shopping Bag</span>
+            </button>
+            <button class="btn-wishlist-qv" id="qvWishlistBtn" aria-label="Save to Wishlist">
+              ♡
+            </button>
+          </div>
+
+          <div class="qv-perks">
+            <span>✨ Pure organic formulation</span>
+            <span>🎀 Complimentary gift packaging</span>
+            <span>🕊️ Express insured delivery</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- WISHLIST DRAWER -->
+  <!-- ============================================== -->
+  <div class="drawer-overlay" id="wishlistOverlay"></div>
+  <aside class="wishlist-drawer" id="wishlistDrawer" aria-label="Saved Wishlist">
+    <div class="drawer-header">
+      <div class="drawer-title-wrap">
+        <h3 class="drawer-title">Your Saved Loves</h3>
+        <span class="item-count-badge" id="wishlistBadgeCount">(0 items)</span>
+      </div>
+      <button class="drawer-close-btn" id="closeWishlistBtn" aria-label="Close Wishlist">✕</button>
+    </div>
+
+    <div class="wishlist-items-container" id="wishlistItemsList">
+      <!-- Items dynamically populated -->
+    </div>
+  </aside>
+
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Matomo Live Event Inspector Floating Trigger -->
+  <button class="matomo-hud-btn" id="matomoHudBtn" title="Inspect Matomo Ecommerce & Custom Events in Real-Time">
+    <span class="hud-icon">📊</span>
+    <span class="hud-label">Matomo Events</span>
+    <span class="hud-counter" id="matomoEventCounter">0</span>
+  </button>
+
+  <!-- Matomo Live Event Inspector Modal / Drawer -->
+  <div class="matomo-inspector-backdrop" id="matomoInspectorBackdrop">
+    <div class="matomo-inspector-window">
+      <div class="inspector-header">
+        <div class="inspector-title-group">
+          <div class="inspector-badge-row">
+            <span class="status-indicator"></span>
+            <span class="inspector-title">Matomo Analytics &amp; Ecommerce Inspector</span>
+          </div>
+          <span class="inspector-sub">Monitoring live <code>_paq.push()</code> queues, ecommerce transactions, and custom events.</span>
+        </div>
+        <div class="inspector-actions">
+          <button class="btn-inspector-action" id="matomoClearLogBtn">Clear Log</button>
+          <button class="btn-inspector-close" id="matomoCloseBtn">✕</button>
+        </div>
+      </div>
+
+      <div class="inspector-filter-bar">
+        <button class="inspector-filter-pill active" data-matomo-filter="all">All Events</button>
+        <button class="inspector-filter-pill" data-matomo-filter="ecommerce">Ecommerce Spec</button>
+        <button class="inspector-filter-pill" data-matomo-filter="checkout">Checkout Funnel</button>
+        <button class="inspector-filter-pill" data-matomo-filter="custom">Custom Events</button>
+      </div>
+
+      <div class="inspector-log-container" id="matomoLogContainer">
+        <!-- Live event cards will populate here -->
+      </div>
+
+      <div class="inspector-footer">
+        <span>Matomo Endpoint: <code>https://analytics.auraandblush.com/matomo.php</code></span>
+        <span>Site ID: <code>1</code> • Heartbeat: <code>15s</code></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vanilla CookieConsent v3 & DPDP Configuration -->
+  <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js"></script>
+  <script src="consent-init.js"></script>
+
+  <!-- Main JavaScript & Matomo Modules -->
+  <script src="matomo-tracker.js"></script>
+  <script src="matomo.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
