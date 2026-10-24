@@ -44,11 +44,24 @@ def migrate(config: str):
 @main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--date", "-d", default=None, help="Date to check (YYYY-MM-DD, default yesterday)")
-def parity(config: str, date: str | None):
+@click.option("--simulate-break", default=None, help="Simulate a broken tag for this event name (e.g. purchase)")
+def parity(config: str, date: str | None, simulate_break: str | None):
     """Run parity check between GA4 and target analytics stack."""
     from agents.parity.run import run_parity
 
-    run_parity(config, date)
+    run_parity(config, date, simulate_break_event=simulate_break)
+
+
+@main.command("simulate-tag-break")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--event", "-e", default="purchase", help="Event name to simulate broken tag for (default: purchase)")
+@click.option("--date", "-d", default=None, help="Date to check (YYYY-MM-DD, default yesterday)")
+def simulate_tag_break(config: str, event: str, date: str | None):
+    """Simulate a broken tag in GTM to test autonomous diagnosis & alert."""
+    from agents.parity.run import run_parity
+
+    console.print(f"[bold red]Initiating Tag-Break Simulator for event:[/bold red] [yellow]{event}[/yellow]")
+    run_parity(config, date, simulate_break_event=event)
 
 
 @main.command()

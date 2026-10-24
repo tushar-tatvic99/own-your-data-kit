@@ -14,7 +14,7 @@ class Diagnosis:
 DIAGNOSIS_RULES = [
     {
         "condition": lambda gaps: any(
-            g["metric"] == "key_events" and g["gap_percent"] > 20 for g in gaps
+            (g["metric"] == "key_events" or g["metric"].startswith("key_event:")) and g["gap_percent"] > 20 for g in gaps
         ),
         "cause": "A key event tag is likely missing or broken on one or more pages",
         "confidence": "high",
@@ -56,13 +56,28 @@ DIAGNOSIS_RULES = [
 def diagnose(gaps: list[dict]) -> list[Diagnosis]:
     """Run diagnosis rules against parity gaps and return likely causes + fixes."""
     results = []
+    
+    # Granular diagnosis for broken key events (e.g. tag-break simulation)
+    broken_events = [g for g in gaps if g["metric"].startswith("key_event:") and g["gap_percent"] > 20]
+    for b in broken_events:
+        ev_name = b["metric"].split(":", 1)[1]
+        results.append(Diagnosis(
+            likely_cause=f"Key event tag for '{ev_name}' is likely missing, muted, or failing trigger condition in GTM",
+            confidence="high",
+            proposed_fix=f"1. Open GTM preview mode and trigger '{ev_name}'. 2. Inspect if tag 'OYDK - Matomo Event: {ev_name}' fired. 3. Verify dataLayer push payload and DOM element IDs.",
+            affected_metric=b["metric"],
+        ))
+
     for rule in DIAGNOSIS_RULES:
         if rule["condition"](gaps):
             affected = [g["metric"] for g in gaps if g["gap_percent"] > 5]
+            # Avoid generic key_events message if we already generated a specific one above
+            if rule["cause"].startswith("A key event tag") and broken_events:
+                continue
             results.append(Diagnosis(
                 likely_cause=rule["cause"],
                 confidence=rule["confidence"],
                 proposed_fix=rule["fix"],
-                affected_metric=", ".join(affected),
+                affected_metric=", ".join(set(affected)),
             ))
     return results

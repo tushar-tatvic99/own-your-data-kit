@@ -14,6 +14,12 @@ COPY dpdp/ dpdp/
 COPY connectors/ connectors/
 COPY config/ config/
 
+# Ensure output directories exist in the image
+RUN mkdir -p output/parity output/migration output/bq_sync
+
 EXPOSE 8090
 
+# Default: DPDP API server
+# Override via docker-compose `command:` for the scheduler daemon:
+#   command: ["python", "-m", "agents.parity.scheduler"]
 CMD ["python", "-m", "dpdp.api"]

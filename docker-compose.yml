@@ -1,0 +1,55 @@
+# Own-Your-Data Kit — Docker Compose
+#
+# Services:
+#   kit-scheduler   Background daemon: BQ sync (every 15 min) + parity check (daily 06:00 IST)
+#
+# Usage:
+#   docker compose up -d              # Start daemon in background
+#   docker compose logs -f            # Tail live logs
+#   docker compose down               # Stop all services
+#
+# Environment overrides (pass via .env file or -e flag):
+#   CLIENT_CONFIG      Path inside container to client.yaml  (default: config/client.yaml)
+#   BQ_SYNC_SCHEDULE   Cron for BigQuery sync                (default: */15 * * * *)
+#   PARITY_SCHEDULE    Cron for parity check                 (default: 0 1 * * *  = 06:30 IST)
+
+version: "3.9"
+
+services:
+  kit-scheduler:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.kit
+    container_name: oydk-scheduler
+    restart: unless-stopped
+
+    command: ["python", "-m", "agents.parity.scheduler"]
+
+    environment:
+      - CLIENT_CONFIG=config/client.yaml
+      - BQ_SYNC_SCHEDULE=*/15 * * * *
+      # 01:00 UTC = 06:30 IST
+      - PARITY_SCHEDULE=0 1 * * *
+      # Propagate GCP ADC credentials (needed for BigQuery writes)
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/adc.json
+
+    volumes:
+      # Config & credentials (read-only inside container)
+      - ./config:/app/config:ro
+      - ./credentials:/app/credentials:ro
+      # Output persisted on host for inspection
+      - ./output:/app/output
+      # GCP ADC from host (gcloud auth application-default login)
+      - ${HOME}/.config/gcloud:/root/.config/gcloud:ro
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import agents.parity.scheduler; print('ok')"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -11,8 +11,8 @@ from rich.table import Table
 from agents.parity.diagnosis import diagnose
 from agents.parity.ga4_metrics import GA4Metrics
 from dpdp.audit_log import log_action
+from kit.adapters import get_stack_adapter
 from kit.config import load_config
-from kit.matomo_client import MatomoClient
 
 console = Console()
 
@@ -24,94 +24,111 @@ def _gap_percent(ga4_val: int, matomo_val: int) -> float:
     return abs(ga4_val - matomo_val) / baseline * 100
 
 
-def run_parity(config_path: str, date: str | None = None) -> dict:
-    """Run parity check for a given date."""
+def run_parity(
+    config_path: str = "config/client.yaml",
+    date: str | None = None,
+    simulate_break_event: str | None = None,
+) -> dict:
+    """Run parity check between GA4 and open-source analytics engine."""
     cfg = load_config(config_path)
     parity_cfg = cfg["parity"]
     target_gap = parity_cfg["target_gap_percent"]
+    stack_type = cfg.get("stack", {}).get("type", "matomo").upper()
 
     if date is None:
         date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-    console.print(f"\n[bold]Parity Check — {date}[/bold] (target: ±{target_gap}%)\n")
+    sim_badge = f" [bold red][TAG-BREAK SIMULATION: {simulate_break_event}][/bold red]" if simulate_break_event else ""
+    console.print(f"\n[bold]Parity Check — {date}[/bold] (target: ±{target_gap}%){sim_badge}\n")
 
     # Fetch GA4 metrics
-    ga4 = GA4Metrics(cfg["ga4"]["property_id"], cfg["ga4"]["credentials_file"])
+    ga4 = GA4Metrics(cfg["ga4"]["property_id"], cfg["ga4"].get("credentials_file"))
     ga4_users_sessions = ga4.get_users_sessions(date)
     ga4_events = ga4.get_key_events(date, parity_cfg["key_events"])
     ga4_sources = ga4.get_traffic_sources(date)
 
-    # Fetch Matomo metrics
-    matomo = MatomoClient(cfg["stack"]["url"], cfg["stack"]["site_id"],
-                           cfg["stack"]["api_token"])
-    matomo_summary = matomo.get_visits_summary(period="day", date=date)
-    matomo_events_raw = matomo.get_events(period="day", date=date)
-    matomo_referrers = matomo.get_referrers(period="day", date=date)
+    # Fetch Target Engine metrics via Stack Adapter
+    adapter = get_stack_adapter(cfg)
+    summary = adapter.get_daily_summary(date)
+    engine_events_raw = adapter.get_daily_events(date)
+    engine_referrers = adapter.get_daily_referrers(date)
 
-    matomo_users = int(matomo_summary.get("nb_uniq_visitors", 0))
-    matomo_sessions = int(matomo_summary.get("nb_visits", 0))
+    engine_users = int(summary.get("users", 0))
+    engine_sessions = int(summary.get("sessions", 0))
 
     # Compare
     gaps = []
 
-    users_gap = _gap_percent(ga4_users_sessions["users"], matomo_users)
+    users_gap = _gap_percent(ga4_users_sessions["users"], engine_users)
     gaps.append({
         "metric": "users",
         "ga4": ga4_users_sessions["users"],
-        "matomo": matomo_users,
+        "matomo": engine_users,
+        "target_engine": engine_users,
         "gap_percent": round(users_gap, 2),
         "within_target": users_gap <= target_gap,
     })
 
-    sessions_gap = _gap_percent(ga4_users_sessions["sessions"], matomo_sessions)
+    sessions_gap = _gap_percent(ga4_users_sessions["sessions"], engine_sessions)
     gaps.append({
         "metric": "sessions",
         "ga4": ga4_users_sessions["sessions"],
-        "matomo": matomo_sessions,
+        "matomo": engine_sessions,
+        "target_engine": engine_sessions,
         "gap_percent": round(sessions_gap, 2),
         "within_target": sessions_gap <= target_gap,
     })
 
     for event_name in parity_cfg["key_events"]:
         ga4_count = ga4_events.get(event_name, 0)
-        matomo_count = sum(
-            int(e.get("nb_events", 0))
-            for e in matomo_events_raw
-            if e.get("label", "").lower() == event_name.lower()
-        )
-        event_gap = _gap_percent(ga4_count, matomo_count)
+        
+        # Check if this event tag is simulated broken
+        if simulate_break_event and simulate_break_event.lower() == event_name.lower():
+            # Broken tag simulation: telemetry drops to 0
+            engine_count = 0
+            console.print(f"  [red]⚡ [SIMULATOR] Muting '{event_name}' telemetry from {stack_type} to simulate broken tag[/red]")
+        else:
+            engine_count = sum(
+                int(e.get("nb_events", 0))
+                for e in engine_events_raw
+                if str(e.get("label", "")).lower() == event_name.lower()
+            )
+
+        event_gap = _gap_percent(ga4_count, engine_count)
         gaps.append({
             "metric": f"key_event:{event_name}",
             "ga4": ga4_count,
-            "matomo": matomo_count,
+            "matomo": engine_count,
+            "target_engine": engine_count,
             "gap_percent": round(event_gap, 2),
             "within_target": event_gap <= target_gap,
         })
 
     # Traffic sources — compare top channels
     ga4_total_sessions = sum(ga4_sources.values()) or 1
-    matomo_total = sum(int(r.get("nb_visits", 0)) for r in matomo_referrers) or 1
-    sources_gap = _gap_percent(ga4_total_sessions, matomo_total)
+    engine_total = sum(int(r.get("nb_visits", 0)) for r in engine_referrers) or 1
+    sources_gap = _gap_percent(ga4_total_sessions, engine_total)
     gaps.append({
         "metric": "traffic_sources",
         "ga4": ga4_total_sessions,
-        "matomo": matomo_total,
+        "matomo": engine_total,
+        "target_engine": engine_total,
         "gap_percent": round(sources_gap, 2),
         "within_target": sources_gap <= target_gap,
     })
 
     # Display results
-    table = Table(title=f"Parity Report — {date}")
+    table = Table(title=f"Parity Report — {date} (Engine: {stack_type})")
     table.add_column("Metric", style="cyan")
     table.add_column("GA4", justify="right")
-    table.add_column("Matomo", justify="right")
+    table.add_column(f"{stack_type}", justify="right")
     table.add_column("Gap %", justify="right")
     table.add_column("Status")
 
     missed = []
     for g in gaps:
         status = "[green]OK[/green]" if g["within_target"] else "[red]MISS[/red]"
-        table.add_row(g["metric"], str(g["ga4"]), str(g["matomo"]),
+        table.add_row(g["metric"], str(g["ga4"]), str(g["target_engine"]),
                       f"{g['gap_percent']}%", status)
         if not g["within_target"]:
             missed.append(g)
@@ -121,7 +138,9 @@ def run_parity(config_path: str, date: str | None = None) -> dict:
     # Diagnose if target missed
     report = {
         "date": date,
+        "target_engine": stack_type,
         "target_gap_percent": target_gap,
+        "simulated_break": simulate_break_event,
         "gaps": gaps,
         "all_within_target": len(missed) == 0,
         "diagnosis": [],
@@ -155,7 +174,7 @@ def run_parity(config_path: str, date: str | None = None) -> dict:
         json.dump(report, f, indent=2)
 
     log_action("parity-agent", "check", f"date:{date}",
-               details={"missed": len(missed), "alert": report["alert_sent"]})
+               details={"missed": len(missed), "alert": report["alert_sent"], "simulated_break": simulate_break_event})
 
     console.print(f"Report saved: {report_path}")
     return report

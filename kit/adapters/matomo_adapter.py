@@ -75,8 +75,14 @@ class MatomoAdapter(AnalyticsStackAdapter):
         return {"users": 0, "sessions": 0}
 
     def get_daily_events(self, date: str) -> list[dict[str, Any]]:
-        events = self._api("Events.getCategory", period="day", date=date)
-        return events if isinstance(events, list) else []
+        actions = self._api("Events.getAction", period="day", date=date)
+        categories = self._api("Events.getCategory", period="day", date=date)
+        events: list[dict[str, Any]] = []
+        if isinstance(actions, list):
+            events.extend(actions)
+        if isinstance(categories, list):
+            events.extend(categories)
+        return events
 
     def get_daily_referrers(self, date: str) -> list[dict[str, Any]]:
         refs = self._api("Referrers.getReferrerType", period="day", date=date)
@@ -158,13 +164,22 @@ class MatomoAdapter(AnalyticsStackAdapter):
         return extracted, max_ts
 
     def search_subject_records(self, user_id: str) -> list[dict[str, Any]]:
-        # Search by visitorId or customVariableValue1
+        # Search by visitorId segment (Matomo segment API)
         visits = self._api(
             "Live.getLastVisitsDetails",
             filterLimit=100,
-            segment=f"visitorId=={user_id},customVariableValue1=={user_id}",
+            segment=f"visitorId=={user_id}",
         )
-        return visits if isinstance(visits, list) else []
+        if isinstance(visits, list) and visits:
+            return visits
+
+        # Fallback: search by userId
+        visits_by_uid = self._api(
+            "Live.getLastVisitsDetails",
+            filterLimit=100,
+            segment=f"userId=={user_id}",
+        )
+        return visits_by_uid if isinstance(visits_by_uid, list) else []
 
     def delete_subject_records(self, user_id: str) -> dict[str, Any]:
         visits = self.search_subject_records(user_id)

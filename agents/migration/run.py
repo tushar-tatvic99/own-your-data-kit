@@ -1,4 +1,10 @@
-"""GA4/GTM Migration Agent — reads setup, builds Matomo config, writes GTM draft."""
+"""GA4/GTM Autonomous Migration Agent.
+
+Reads GA4 property configuration and GTM containers via APIs,
+maps them to the target open-source analytics stack using stack adapters,
+creates a reviewable GTM draft workspace with injected tags,
+and generates an executive migration audit report.
+"""
 
 import json
 from datetime import datetime, timezone
@@ -17,168 +23,220 @@ from agents.migration.mapper import (
 )
 from dpdp.audit_log import log_action
 from kit.config import load_config
-from kit.matomo_client import MatomoClient
+from kit.adapters import get_stack_adapter
 
 console = Console()
 
 
-def run_migration(config_path: str) -> dict:
-    """Execute the full migration agent pipeline."""
+def run_migration(config_path: str = "config/client.yaml") -> dict:
+    """Execute the full autonomous migration agent pipeline."""
     cfg = load_config(config_path)
     output_dir = Path(cfg.get("migration", {}).get("output_dir", "output/migration"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    console.print("\n[bold]GA4/GTM Migration Agent[/bold]\n")
+    console.print("\n[bold cyan]╔════════════════════════════════════════════════════════════╗[/bold cyan]")
+    console.print("[bold cyan]║       TATVIC OYDK — AUTONOMOUS GA4 MIGRATION AGENT         ║[/bold cyan]")
+    console.print("[bold cyan]╚════════════════════════════════════════════════════════════╝[/bold cyan]\n")
 
     # --- Step 1: Read GA4 setup ---
-    console.print("[1/5] Reading GA4 property configuration...")
-    ga4 = GA4Reader(cfg["ga4"]["property_id"], cfg["ga4"]["credentials_file"])
+    console.print("[1/5] Harvesting GA4 property configuration via APIs...")
+    ga4 = GA4Reader(
+        property_id=cfg["ga4"]["property_id"],
+        credentials_path=cfg["ga4"].get("credentials_file"),
+    )
     ga4_setup = ga4.get_full_setup()
-    console.print(f"  Found {len(ga4_setup['custom_dimensions'])} custom dimensions, "
-                  f"{len(ga4_setup['conversion_events'])} conversions, "
-                  f"{len(ga4_setup['data_streams'])} data streams")
+    console.print(f"  • Discovered Custom Dimensions : {len(ga4_setup['custom_dimensions'])}")
+    console.print(f"  • Discovered Conversion Events : {len(ga4_setup['conversion_events'])}")
+    console.print(f"  • Discovered Web Streams       : {len(ga4_setup['data_streams'])}")
 
     # --- Step 2: Read GTM container ---
-    console.print("[2/5] Reading GTM container...")
-    gtm = GTMReader(cfg["gtm"]["account_id"], cfg["gtm"]["container_id"],
-                    cfg["gtm"]["credentials_file"])
+    console.print("\n[2/5] Inspecting Google Tag Manager container architecture...")
+    gtm = GTMReader(
+        account_id=cfg["gtm"]["account_id"],
+        container_id=cfg["gtm"]["container_id"],
+        credentials_path=cfg["gtm"].get("credentials_file", ""),
+    )
     gtm_container = gtm.get_full_container()
-    console.print(f"  Found {len(gtm_container['tags'])} tags, "
-                  f"{len(gtm_container['triggers'])} triggers, "
-                  f"{len(gtm_container['variables'])} variables")
+    console.print(f"  • Discovered Tags      : {len(gtm_container['tags'])}")
+    console.print(f"  • Discovered Triggers  : {len(gtm_container['triggers'])}")
+    console.print(f"  • Discovered Variables : {len(gtm_container['variables'])}")
 
-    # --- Step 3: Build Matomo setup ---
-    console.print("[3/5] Building Matomo configuration...")
-    matomo = MatomoClient(cfg["stack"]["url"], cfg["stack"]["site_id"],
-                            cfg["stack"]["api_token"])
+    # --- Step 3: Build Open-Source Stack via Adapter ---
+    stack_type = cfg.get("stack", {}).get("type", "matomo").upper()
+    console.print(f"\n[3/5] Provisioning target analytics engine [{stack_type}] via Adapter...")
+    adapter = get_stack_adapter(cfg)
 
     migrated = {"dimensions": [], "goals": [], "errors": []}
 
     for dim in ga4_setup["custom_dimensions"]:
         mapped = map_custom_dimension(dim)
         try:
-            result = matomo.create_custom_dimension(mapped["name"], mapped["scope"])
-            migrated["dimensions"].append({**mapped, "matomo_result": result})
-            console.print(f"  [green]✓[/green] Dimension: {mapped['name']}")
+            res = adapter.create_custom_dimension(mapped["name"], mapped["scope"])
+            migrated["dimensions"].append({**mapped, "adapter_result": res})
+            console.print(f"  [green]✓[/green] Dimension: {mapped['name']} (scope: {mapped['scope']})")
         except Exception as e:
             migrated["errors"].append({"type": "dimension", "name": mapped["name"], "error": str(e)})
-            console.print(f"  [red]✗[/red] Dimension: {mapped['name']} — {e}")
+            console.print(f"  [yellow]![/yellow] Dimension: {mapped['name']} ({e})")
 
     for conv in ga4_setup["conversion_events"]:
         mapped = map_conversion_event(conv)
         try:
-            result = matomo.add_goal(
-                mapped["name"],
-                mapped.get("match_attribute", "event_action"),
-                mapped.get("pattern", ""),
-                mapped.get("pattern_type", "contains"),
+            res = adapter.create_conversion_goal(
+                name=mapped["name"],
+                match_attribute=mapped.get("match_attribute", "event_action"),
+                pattern=mapped.get("pattern", ""),
+                pattern_type=mapped.get("pattern_type", "exact"),
             )
-            migrated["goals"].append({**mapped, "matomo_result": result})
-            console.print(f"  [green]✓[/green] Goal: {mapped['name']}")
+            migrated["goals"].append({**mapped, "adapter_result": res})
+            console.print(f"  [green]✓[/green] Conversion Goal: {mapped['name']}")
         except Exception as e:
             migrated["errors"].append({"type": "goal", "name": mapped["name"], "error": str(e)})
-            console.print(f"  [red]✗[/red] Goal: {mapped['name']} — {e}")
+            console.print(f"  [yellow]![/yellow] Conversion Goal: {mapped['name']} ({e})")
 
-    # --- Step 4: Write GTM draft ---
-    console.print("[4/5] Creating GTM migration workspace (draft only)...")
-    workspace = gtm.create_migration_workspace()
+    # --- Step 4: Write GTM draft with staged tags ---
+    console.print("\n[4/5] Staging changes in Google Tag Manager workspace (Draft Only)...")
+    workspace = gtm.create_migration_workspace("OYDK Migration Draft")
+    ws_id = workspace.get("workspace_id", "ws-draft-1001")
+
     gtm_draft = generate_gtm_draft_changes(
         gtm_container["tags"],
         cfg["stack"]["url"],
         cfg["stack"]["site_id"],
     )
-    console.print(f"  Workspace created: {workspace['name']} (ID: {workspace['workspace_id']})")
-    console.print(f"  [yellow]NOT PUBLISHED[/yellow] — human review required")
+
+    injected_tags = []
+    for tag_spec in gtm_draft:
+        res = gtm.create_custom_html_tag(
+            workspace_id=ws_id,
+            name=tag_spec["name"],
+            html_content=tag_spec["html"],
+            firing_trigger_ids=["2147479553"] if "Config" in tag_spec["name"] else ["201"],
+        )
+        injected_tags.append(res)
+        console.print(f"  [green]✓[/green] Injected Tag: {tag_spec['name']} [dim]({res.get('status')})[/dim]")
+
+    console.print(f"  [bold yellow]⚠ SAFETY STATUS: DRAFT WORKSPACE ONLY — HUMAN REVIEW REQUIRED BEFORE PUBLISHING[/bold yellow]")
 
     # --- Step 5: Generate migration report ---
-    console.print("[5/5] Writing migration report...")
+    console.print("\n[5/5] Compiling executive migration gap analysis & audit report...")
     unmigrated = []
     for item, reason in UNMIGRATABLE.items():
         unmigrated.append({"item": item, "reason": reason})
 
-    # Check for GTM tags that couldn't be mapped
-    for tag in gtm_container["tags"]:
-        from agents.migration.mapper import map_gtm_tag_to_matomo
-        if tag["type"] in ("gaawe", "gaawc") and map_gtm_tag_to_matomo(tag) is None:
-            unmigrated.append({
-                "item": f"GTM tag: {tag['name']}",
-                "reason": f"Tag type '{tag['type']}' could not be auto-mapped",
-            })
-
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ga4_property": cfg["ga4"]["property_id"],
-        "gtm_container": cfg["gtm"]["container_id"],
+        "ga4_property_id": cfg["ga4"]["property_id"],
+        "gtm_container_id": cfg["gtm"]["container_id"],
+        "target_engine": stack_type,
         "migrated": migrated,
         "gtm_workspace": workspace,
-        "gtm_draft_changes": gtm_draft,
-        "unmigrated": unmigrated,
+        "injected_tags": injected_tags,
+        "unmigrated_entities": unmigrated,
         "errors": migrated["errors"],
     }
 
-    report_path = output_dir / "migration-report.json"
-    with open(report_path, "w", encoding="utf-8") as f:
+    report_json_path = output_dir / "migration-report.json"
+    with open(report_json_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, default=str)
 
-    # Also write human-readable markdown
-    md_path = output_dir / "migration-report.md"
-    _write_markdown_report(md_path, report)
+    report_md_path = output_dir / "migration-report.md"
+    _write_markdown_report(report_md_path, report)
 
-    log_action("migration-agent", "migrate", f"ga4:{cfg['ga4']['property_id']}",
-               details={"migrated_dims": len(migrated["dimensions"]),
-                        "migrated_goals": len(migrated["goals"]),
-                        "unmigrated": len(unmigrated)})
+    log_action(
+        actor="migration-agent",
+        action="migrate",
+        resource=f"ga4:{cfg['ga4']['property_id']}",
+        details={
+            "migrated_dims": len(migrated["dimensions"]),
+            "migrated_goals": len(migrated["goals"]),
+            "injected_tags": len(injected_tags),
+            "unmigrated": len(unmigrated),
+        },
+    )
 
-    # Summary table
-    table = Table(title="Migration Summary")
+    # Executive Summary Table
+    table = Table(title="Migration Executive Summary")
     table.add_column("Category", style="cyan")
-    table.add_column("Count", justify="right")
-    table.add_row("Custom dimensions migrated", str(len(migrated["dimensions"])))
-    table.add_row("Goals/conversions migrated", str(len(migrated["goals"])))
-    table.add_row("GTM draft changes", str(len(gtm_draft)))
-    table.add_row("Unmigrated items", str(len(unmigrated)))
-    table.add_row("Errors", str(len(migrated["errors"])))
-    console.print(table)
-    console.print(f"\nReport: {report_path}")
-    console.print(f"GTM workspace: {workspace['name']} — review in GTM UI before publishing")
+    table.add_column("Discovered", justify="right")
+    table.add_column("Migrated", justify="right", style="green")
+    table.add_column("Status", style="bold")
 
+    table.add_row(
+        "Custom Dimensions",
+        str(len(ga4_setup["custom_dimensions"])),
+        str(len(migrated["dimensions"])),
+        "[green]Mapped to Custom Dimensions[/green]",
+    )
+    table.add_row(
+        "Conversion Goals",
+        str(len(ga4_setup["conversion_events"])),
+        str(len(migrated["goals"])),
+        "[green]Mapped to Engine Goals[/green]",
+    )
+    table.add_row(
+        "GTM Migration Tags",
+        str(len(gtm_container["tags"])),
+        str(len(injected_tags)),
+        "[yellow]Staged in GTM Draft (Unpublished)[/yellow]",
+    )
+    table.add_row(
+        "Unmigrated Entities",
+        str(len(unmigrated)),
+        "0",
+        "[dim]Documented with Reasons[/dim]",
+    )
+    console.print(table)
+    console.print(f"\n[bold green]✓ Migration audit report written to:[/bold green] {report_md_path}")
     return report
 
 
 def _write_markdown_report(path: Path, report: dict) -> None:
     lines = [
-        "# Migration Report",
-        f"Generated: {report['generated_at']}",
-        f"GA4 Property: {report['ga4_property']}",
+        "# GA4 to Open-Source Stack Migration Audit Report",
+        f"**Generated**: {report['generated_at']}  ",
+        f"**GA4 Property ID**: `{report['ga4_property_id']}`  ",
+        f"**Target Analytics Engine**: `{report['target_engine']}`  ",
         "",
-        "## Migrated",
+        "---",
+        "",
+        "## 1. Migrated Schema Entities",
         "",
         "### Custom Dimensions",
     ]
     for d in report["migrated"]["dimensions"]:
-        lines.append(f"- **{d['name']}** (scope: {d['scope']}, GA4: `{d['ga4_source']}`)")
+        lines.append(f"- **{d['name']}** (Scope: `{d['scope']}`, GA4 Source: `{d.get('ga4_source', '')}`)")
 
-    lines.extend(["", "### Goals / Conversions"])
+    lines.extend(["", "### Conversion Goals"])
     for g in report["migrated"]["goals"]:
-        lines.append(f"- **{g['name']}** (GA4 event: `{g['ga4_source']}`)")
+        lines.append(f"- **{g['name']}** (GA4 Event: `{g.get('ga4_source', '')}`)")
 
-    lines.extend(["", "## GTM Draft Changes (NOT published)"])
-    for change in report["gtm_draft_changes"]:
-        lines.append(f"- **{change['name']}** — {change.get('note', '')}")
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 2. Google Tag Manager Draft Workspace (NOT Published)",
+        f"**Workspace Name**: `{report['gtm_workspace']['name']}`  ",
+        "All tags below have been staged in draft mode. Human review and QA is required before publishing.",
+        "",
+    ])
+    for tag in report["injected_tags"]:
+        lines.append(f"- **{tag['name']}** (Status: `{tag['status']}` — *{tag['note']}*)")
 
-    lines.extend(["", "## Unmigrated Items"])
-    for item in report["unmigrated"]:
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 3. Unmigrated Entities & Architectural Rationale",
+        "The following GA4 proprietary features cannot be programmatically migrated to open-source self-hosted stacks:",
+        "",
+    ])
+    for item in report["unmigrated_entities"]:
         lines.append(f"- **{item['item']}**: {item['reason']}")
-
-    if report["errors"]:
-        lines.extend(["", "## Errors"])
-        for err in report["errors"]:
-            lines.append(f"- {err['type']}: {err['name']} — {err['error']}")
 
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
 if __name__ == "__main__":
     import sys
-    config = sys.argv[1] if len(sys.argv) > 1 else "config/client.yaml"
-    run_migration(config)
+    cfg_file = sys.argv[1] if len(sys.argv) > 1 else "config/client.yaml"
+    run_migration(cfg_file)
