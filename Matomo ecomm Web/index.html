@@ -1338,47 +1338,6 @@
   <!-- Toast Notifications Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Matomo Live Event Inspector Floating Trigger -->
-  <button class="matomo-hud-btn" id="matomoHudBtn" title="Inspect Matomo Ecommerce & Custom Events in Real-Time">
-    <span class="hud-icon">📊</span>
-    <span class="hud-label">Matomo Events</span>
-    <span class="hud-counter" id="matomoEventCounter">0</span>
-  </button>
-
-  <!-- Matomo Live Event Inspector Modal / Drawer -->
-  <div class="matomo-inspector-backdrop" id="matomoInspectorBackdrop">
-    <div class="matomo-inspector-window">
-      <div class="inspector-header">
-        <div class="inspector-title-group">
-          <div class="inspector-badge-row">
-            <span class="status-indicator"></span>
-            <span class="inspector-title">Matomo Analytics &amp; Ecommerce Inspector</span>
-          </div>
-          <span class="inspector-sub">Monitoring live <code>_paq.push()</code> queues, ecommerce transactions, and custom events.</span>
-        </div>
-        <div class="inspector-actions">
-          <button class="btn-inspector-action" id="matomoClearLogBtn">Clear Log</button>
-          <button class="btn-inspector-close" id="matomoCloseBtn">✕</button>
-        </div>
-      </div>
-
-      <div class="inspector-filter-bar">
-        <button class="inspector-filter-pill active" data-matomo-filter="all">All Events</button>
-        <button class="inspector-filter-pill" data-matomo-filter="ecommerce">Ecommerce Spec</button>
-        <button class="inspector-filter-pill" data-matomo-filter="checkout">Checkout Funnel</button>
-        <button class="inspector-filter-pill" data-matomo-filter="custom">Custom Events</button>
-      </div>
-
-      <div class="inspector-log-container" id="matomoLogContainer">
-        <!-- Live event cards will populate here -->
-      </div>
-
-      <div class="inspector-footer">
-        <span>Matomo Endpoint: <code>https://analytics.auraandblush.com/matomo.php</code></span>
-        <span>Site ID: <code>1</code> • Heartbeat: <code>15s</code></span>
-      </div>
-    </div>
-  </div>
 
   <!-- Vanilla CookieConsent v3 & DPDP Configuration -->
   <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js"></script>
