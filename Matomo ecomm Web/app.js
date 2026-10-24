@@ -1557,11 +1557,17 @@ function initDpdpCenter() {
 }
 
 // ================= INITIALIZATION =================
-document.addEventListener('DOMContentLoaded', () => {
-  renderProducts();
-  renderCart();
-  renderWishlist();
-  initDpdpCenter();
-  console.log('AURA & BLUSH Luxury Boutique Initialized Successfully with Matomo Analytics & DPDP Center.');
-});
+function initApp() {
+  try { renderProducts(); } catch (e) { console.error('Error rendering products:', e); }
+  try { renderCart(); } catch (e) { console.error('Error rendering cart:', e); }
+  try { renderWishlist(); } catch (e) { console.error('Error rendering wishlist:', e); }
+  try { initDpdpCenter(); } catch (e) { console.error('Error initializing DPDP:', e); }
+  console.log('AURA & BLUSH Luxury Boutique Initialized Successfully.');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
