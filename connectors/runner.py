@@ -14,7 +14,7 @@ def test_all_connectors(config_path: str) -> None:
     console.print("\n[bold]Testing Connectors[/bold]\n")
 
     # Google Ads
-    if "google_ads" in connectors:
+    if "google_ads" in connectors and connectors["google_ads"].get("customer_id"):
         console.print("[1/4] Google Ads conversion upload...")
         try:
             from connectors.google_ads import send_conversion
@@ -24,13 +24,15 @@ def test_all_connectors(config_path: str) -> None:
                 email="test@example.com",
                 conversion_value=99.99,
             )
-            status = "[green]OK[/green]" if result["status"] == "success" else "[red]FAIL[/red]"
+            status = "[green]OK[/green]" if result.get("status") == "success" else "[red]FAIL[/red]"
             console.print(f"  {status}: {result}")
         except Exception as e:
             console.print(f"  [yellow]SKIP[/yellow]: {e} (credentials not configured)")
+    else:
+        console.print("[1/4] Google Ads conversion upload... [yellow]SKIP (customer_id empty)[/yellow]")
 
     # Meta CAPI
-    if "meta" in connectors:
+    if "meta" in connectors and connectors["meta"].get("pixel_id"):
         console.print("[2/4] Meta Conversions API...")
         try:
             from connectors.meta_capi import send_event
@@ -45,21 +47,18 @@ def test_all_connectors(config_path: str) -> None:
             console.print(f"  Result: {result}")
         except Exception as e:
             console.print(f"  [yellow]SKIP[/yellow]: {e}")
+    else:
+        console.print("[2/4] Meta Conversions API... [yellow]DEFERRED (as requested)[/yellow]")
 
     # BigQuery
     if "bigquery" in connectors:
-        console.print("[3/4] BigQuery export...")
+        console.print("[3/4] BigQuery live sync...")
         try:
-            from connectors.bigquery_export import create_export_schema, export_events
-            bq = connectors["bigquery"]
-            create_export_schema(bq["project_id"], bq["dataset"], bq["table"])
-            result = export_events(
-                bq["project_id"], bq["dataset"], bq["table"],
-                [{"event_name": "test", "category": "connector_test", "url": "/test"}],
-            )
+            from connectors.bigquery_export import run_bigquery_sync
+            result = run_bigquery_sync(config_path, continuous=False)
             console.print(f"  [green]OK[/green]: {result}")
         except Exception as e:
-            console.print(f"  [yellow]SKIP[/yellow]: {e}")
+            console.print(f"  [red]FAIL[/red]: {e}")
 
     # Looker Studio
     if "looker" in connectors:
@@ -68,7 +67,7 @@ def test_all_connectors(config_path: str) -> None:
             from connectors.looker import generate_dashboard_config
             bq = connectors.get("bigquery", {})
             config = generate_dashboard_config(
-                bq.get("project_id", "demo"),
+                bq.get("project_id", "tvc-int-matomo"),
                 bq.get("dataset", "matomo_export"),
                 bq.get("table", "events"),
             )

@@ -36,3 +36,5 @@ deploy/docker/.env
 
 # Local tooling (portable CLI downloads)
 .tools/
+
+.history
