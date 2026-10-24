@@ -2,7 +2,9 @@
 
 Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — deployed on the client's own cloud in India, with migration done mostly by an agent.
 
-**Built by Tatvic** | Stack: Matomo (self-hosted) | Region: India (`asia-south1`)
+**Built by Tatvic** | Stack: Matomo (self-hosted) | Region: India (`asia-south1`)  
+**Live Judge Portal**: [https://oydk-portal-61760469326.asia-south1.run.app](https://oydk-portal-61760469326.asia-south1.run.app)  
+**Live Test Store**: [https://auraandblush-61760469326.asia-south1.run.app](https://auraandblush-61760469326.asia-south1.run.app)  
 
 ---
 
@@ -25,25 +27,31 @@ Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — dep
 - `gcloud` CLI (for cloud deploy)
 - Terraform 1.5+
 
-### Local development
+### One-Command Deployment
+
+```bash
+# Interactive Master Installer (GCP India Region or On-Premise Docker)
+./deploy/install.sh
+
+# Unattended GCP Cloud Deploy
+./deploy/install.sh --target gcp --project <gcp-project-id> --client <client-name>
+
+# On-Premise Bare-Metal Deployment
+./deploy/install.sh --target on-premise --client <client-name>
+
+# Dry-Run Architecture & Config Simulation ($0 Billing Impact)
+./deploy/install.sh --dry-run --target gcp --client demo
+```
+
+### Local Development & Testing
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Start local stack (Matomo + kit services)
-$env:OYDK_LOCAL = "1"          # Windows
-export OYDK_LOCAL=1            # Linux/Mac
-.\deploy\deploy.ps1 -ProjectId local
-
-# Matomo:  http://localhost:8080
-# Kit API: http://localhost:8090
-```
-
-### Cloud deployment
-
-```bash
-./deploy/deploy.sh <gcp-project-id> <client-name>
+# Background Daemon (Parity checker & BigQuery incremental streaming)
+docker compose up -d
+docker compose logs -f
 ```
 
 ### Configure a client
@@ -74,11 +82,11 @@ python -m kit.cli connectors-test
 
 ```
 own-your-data-kit/
-├── deploy/              # One-command deploy (Terraform + Docker)
-│   ├── terraform/       # GCP infrastructure
-│   ├── docker/          # Matomo + kit services
-│   ├── deploy.sh        # Linux/Mac deploy script
-│   └── deploy.ps1       # Windows deploy script
+├── deploy/              # Master Enterprise Installer (GCP & On-Premise)
+│   ├── install.sh       # Unified CLI & unattended deployer
+│   ├── terraform/       # GCP infrastructure in asia-south1
+│   └── docker/          # Matomo, Postgres, MariaDB, Kit API & Scheduler
+├── Matomo ecomm Web/    # Test E-Commerce & Banking Web App (Cloud Run)
 ├── agents/
 │   ├── migration/       # GA4/GTM → Matomo migration agent
 │   └── parity/          # Scheduled parity checker + diagnosis

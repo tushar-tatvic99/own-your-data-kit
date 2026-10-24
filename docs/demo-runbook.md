@@ -18,12 +18,14 @@ Rehearse this twice before the event. Total demo time: ~25 minutes.
 ## Demo 1: One-command deploy (~10 min)
 
 ```bash
-# Fresh GCP project
-./deploy/deploy.sh <gcp-project-id> demo
+# Live deployment to fresh GCP project in India (asia-south1):
+./deploy/install.sh --target gcp --project <gcp-project-id> --client demo
 
-# Or locally for rehearsal:
-$env:OYDK_LOCAL = "1"
-.\deploy\deploy.ps1 -ProjectId local
+# Or bare-metal On-Premise Docker:
+./deploy/install.sh --target on-premise --client demo
+
+# Or instantaneous Dry-Run evaluation on judge's laptop ($0 cost):
+./deploy/install.sh --dry-run --target gcp --client demo
 ```
 
 **Show judges:**

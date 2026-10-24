@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tatvic OYDK — Own-Your-Data Analytics Kit | Enterprise GA4 Migration</title>
+  <meta name="description" content="Move enterprise analytics off GA4 to a DPDP-ready self-hosted stack in India (asia-south1) with automated migration, continuous parity checking, and ad connectors.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass-card {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #4ade80 0%, #38bdf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .terminal-glow {
+      box-shadow: 0 0 50px -10px rgba(34, 197, 94, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-gray-100 font-sans antialiased selection:bg-emerald-500 selection:text-black min-h-screen">
+
+  <!-- Background Orbs -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Navigation -->
+  <header class="relative z-20 border-b border-gray-800/80 bg-[#0b0f19]/80 backdrop-blur-md sticky top-0">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-black text-xl shadow-lg shadow-emerald-500/20">
+          O
+        </div>
+        <div>
+          <span class="text-xl font-extrabold tracking-tight">TATVIC <span class="gradient-text">OYDK</span></span>
+          <span class="block text-[10px] text-gray-400 font-mono uppercase tracking-widest">Own-Your-Data Analytics Kit</span>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+        <a href="#deployment" class="hover:text-emerald-400 transition-colors">One-Command Deploy</a>
+        <a href="#architecture" class="hover:text-emerald-400 transition-colors">Architecture</a>
+        <a href="#dpdp" class="hover:text-emerald-400 transition-colors">DPDP Defaults</a>
+        <a href="#parity" class="hover:text-emerald-400 transition-colors">Parity & Diagnostics</a>
+        <a href="#live-stack" class="hover:text-emerald-400 transition-colors">Live Endpoints</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          India (asia-south1)
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10 max-w-7xl mx-auto px-6 py-16 space-y-24">
+
+    <!-- Hero Section -->
+    <section class="text-center space-y-6 max-w-4xl mx-auto pt-6">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono bg-gray-800/60 border border-gray-700/60 text-gray-300">
+        <span class="text-emerald-400 font-bold">Problem Statement 3</span> • INR 2 Lakh Hackathon Submission
+      </div>
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight">
+        Migrate off GA4 to an Open-Source Stack on <span class="gradient-text">Your Own Cloud</span>
+      </h1>
+      <p class="text-lg sm:text-xl text-gray-400 font-normal leading-relaxed">
+        Autonomous schema migration, continuous parity checking with root-cause diagnostics, DPDP-ready legal defaults, and real-time BigQuery & Google Ads connectors.
+      </p>
+
+      <!-- Primary Action: Deploy Command Box -->
+      <div class="pt-6 max-w-2xl mx-auto">
+        <div class="glass-card rounded-2xl p-2 flex items-center justify-between border border-gray-700/60 terminal-glow">
+          <div class="flex items-center gap-3 px-4 font-mono text-sm sm:text-base text-gray-200 overflow-x-auto">
+            <span class="text-emerald-400 font-bold">$</span>
+            <span>./deploy/install.sh --target gcp --client client-demo</span>
+          </div>
+          <button onclick="navigator.clipboard.writeText('./deploy/install.sh --target gcp --client client-demo'); alert('Command copied to clipboard!');" 
+                  class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-all shadow-md shadow-emerald-500/20 shrink-0">
+            Copy
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-2 font-mono">
+          Dry-run mode available: <code class="text-emerald-300">./deploy/install.sh --dry-run --target gcp</code> ($0 billing impact)
+        </p>
+      </div>
+    </section>
+
+    <!-- Live Stack Status Cards -->
+    <section id="live-stack" class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight">Active Live Stack Endpoints</h2>
+          <p class="text-sm text-gray-400">Deployed and running during judge evaluation.</p>
+        </div>
+        <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-md border border-emerald-500/20">All Systems Operational</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1 -->
+        <a href="https://matomo.35-234-210-199.nip.io" target="_blank" rel="noopener noreferrer" 
+           class="glass-card p-6 rounded-2xl hover:border-emerald-500/50 transition-all group flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-gray-400 uppercase">Analytics Engine</span>
+              <span class="text-emerald-400 text-xs font-bold">HTTPS SSL</span>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">Matomo Enterprise Stack</h3>
+            <p class="text-xs text-gray-400 mt-2">Self-hosted on Compute Engine in Mumbai (asia-south1), Site ID 1.</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-gray-800 flex items-center justify-between text-xs text-emerald-400 font-semibold">
+            <span>matomo.35-234-210-199.nip.io</span>
+            <span>↗</span>
+          </div>
+        </a>
+
+        <!-- Card 2 -->
+        <a href="https://auraandblush-61760469326.asia-south1.run.app" target="_blank" rel="noopener noreferrer" 
+           class="glass-card p-6 rounded-2xl hover:border-cyan-500/50 transition-all group flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-gray-400 uppercase">Test Website</span>
+              <span class="text-cyan-400 text-xs font-bold">Cloud Run</span>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">Aura & Blush Store</h3>
+            <p class="text-xs text-gray-400 mt-2">Live e-commerce banking portal with Consent Mode v2 and Matomo tag manager.</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-gray-800 flex items-center justify-between text-xs text-cyan-400 font-semibold">
+            <span>auraandblush.asia-south1.run.app</span>
+            <span>↗</span>
+          </div>
+        </a>
+
+        <!-- Card 3 -->
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-gray-400 uppercase">Warehouse Connector</span>
+              <span class="text-purple-400 text-xs font-bold">Real-time Stream</span>
+            </div>
+            <h3 class="text-lg font-bold text-white">Google BigQuery</h3>
+            <p class="text-xs text-gray-400 mt-2">Incremental streaming to dataset <code class="text-purple-300">matomo_export.events</code> with watermark state.</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-gray-800 flex items-center justify-between text-xs text-purple-400 font-mono">
+            <span>tvc-int-matomo</span>
+            <span>Verified ✓</span>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <a href="https://lookerstudio.google.com/reporting/create?ds.connector=bigQuery&ds.type=TABLE&ds.projectId=tvc-int-matomo&ds.datasetId=matomo_export&ds.tableId=v_marketing_overview" target="_blank" rel="noopener noreferrer" 
+           class="glass-card p-6 rounded-2xl hover:border-amber-500/50 transition-all group flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-gray-400 uppercase">BI Reporting</span>
+              <span class="text-amber-400 text-xs font-bold">1-Click Launch</span>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors">Looker Studio Dashboard</h3>
+            <p class="text-xs text-gray-400 mt-2">Pre-built marketing executive dashboard connected to BigQuery production view.</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-gray-800 flex items-center justify-between text-xs text-amber-400 font-semibold">
+            <span>Launch Dashboard</span>
+            <span>↗</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Architecture & IP Decoupling -->
+    <section id="architecture" class="space-y-8">
+      <div class="text-center max-w-3xl mx-auto space-y-3">
+        <h2 class="text-3xl font-extrabold tracking-tight">Decoupled Intellectual Property Architecture</h2>
+        <p class="text-gray-400 text-sm">
+          "Your IP is not in the open-source tool itself, but in the deployment kit, the connectors and the migration agent. Keep those separate so they can be pointed at a different stack later."
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-lg">
+            01
+          </div>
+          <h3 class="text-xl font-bold">Universal Stack Adapter Protocol</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">
+            The core kit interacts strictly with abstract interfaces (<code class="text-emerald-300">AnalyticsStackAdapter</code>). It never makes proprietary hardcoded assumptions about Matomo or PostHog.
+          </p>
+          <ul class="text-xs font-mono text-gray-400 space-y-1.5 pt-2">
+            <li>• <span class="text-emerald-400">kit/adapters/matomo_adapter.py</span> (Priority 1)</li>
+            <li>• <span class="text-cyan-400">kit/adapters/posthog_adapter.py</span> (Priority 2)</li>
+          </ul>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-lg">
+            02
+          </div>
+          <h3 class="text-xl font-bold">Autonomous GA4 Migration Agent</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">
+            Harvests custom dimensions and conversion goals via Google Analytics Admin APIs, provisions them in the target engine, and stages tags as an unpublished draft workspace in GTM.
+          </p>
+          <ul class="text-xs font-mono text-gray-400 space-y-1.5 pt-2">
+            <li>• Draft-only GTM injection (<span class="text-amber-400">Safety First</span>)</li>
+            <li>• Executive markdown audit report output</li>
+          </ul>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-lg">
+            03
+          </div>
+          <h3 class="text-xl font-bold">Continuous Parity & Tag Diagnostics</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">
+            Compares GA4 vs the new stack daily on users, sessions, key events, and channels (target: ±5%). When numbers diverge, an autonomous rules engine diagnoses why and gives the fix.
+          </p>
+          <ul class="text-xs font-mono text-gray-400 space-y-1.5 pt-2">
+            <li>• Dedicated Tag-Break Simulator</li>
+            <li>• Diagnoses broken GTM tags & trigger conditions</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- DPDP Defaults Section -->
+    <section id="dpdp" class="glass-card rounded-3xl p-8 sm:p-12 space-y-8 border border-emerald-500/20">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-mono text-emerald-400 font-semibold tracking-wider uppercase">India DPDP Act (Effective 12 May 2027)</span>
+          <h2 class="text-3xl font-extrabold tracking-tight mt-1">DPDP-Ready Defaults Built-In</h2>
+        </div>
+        <div class="px-4 py-2 rounded-xl bg-gray-800 text-xs font-mono border border-gray-700 text-gray-300">
+          "DPDP-ready, never DPDP compliant"
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+        <div class="space-y-2">
+          <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+            <span>✓</span> Consent Gated by Default
+          </div>
+          <p class="text-xs text-gray-400">Zero tracking requests fire until the visitor grants consent in CMP banner (Google Consent Mode v2 denied).</p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+            <span>✓</span> Automated PII Scrubbing
+          </div>
+          <p class="text-xs text-gray-400">Phone numbers (+91 / standard) and emails are stripped from URLs and event parameters before logging.</p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+            <span>✓</span> Section 12 DSAR Erasure
+          </div>
+          <p class="text-xs text-gray-400">Verified CLI lookup and permanent deletion of database rows across raw visit logs and actions via PrivacyManager.</p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+            <span>✓</span> Immutable Audit Logging
+          </div>
+          <p class="text-xs text-gray-400">Every lookup, erasure, parity run, and migration execution is committed to an immutable audit database.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Five Tests Table -->
+    <section class="space-y-6">
+      <div class="space-y-2">
+        <h2 class="text-2xl font-bold tracking-tight">The Five Tests Defense: Why Matomo (Priority 1)</h2>
+        <p class="text-sm text-gray-400">Evaluation against the 5 criteria mandated in the problem statement.</p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm glass-card rounded-2xl overflow-hidden">
+          <thead class="bg-gray-800/60 font-mono text-xs uppercase text-gray-400 border-b border-gray-700">
+            <tr>
+              <th class="p-4">Criterion</th>
+              <th class="p-4">Matomo (Priority 1 — Chosen)</th>
+              <th class="p-4">PostHog (Priority 2)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800 font-normal">
+            <tr>
+              <td class="p-4 font-semibold text-white">1. Enterprise Traffic</td>
+              <td class="p-4 text-emerald-400 font-medium">Pass (100M+ hits/month battle-tested with MySQL & Redis)</td>
+              <td class="p-4 text-gray-400">Limited (Fails past a few 100k events on single-node open-source)</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold text-white">2. Commercial Licence</td>
+              <td class="p-4 text-emerald-400 font-medium">Pass (GPL v3 allows custom deployment & maintenance fees)</td>
+              <td class="p-4 text-gray-400">Pass with caveats (MIT core, but cloud features are proprietary)</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold text-white">3. Security Patches</td>
+              <td class="p-4 text-emerald-400 font-medium">Pass (19k+ stars, monthly CVE patches, dedicated security team)</td>
+              <td class="p-4 text-gray-400">Pass (Active releases, but larger microservices attack surface)</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold text-white">4. Tatvic Supportability</td>
+              <td class="p-4 text-emerald-400 font-medium">Pass (Tatvic has deep existing Matomo consulting experience)</td>
+              <td class="p-4 text-gray-400">Uncertain (Requires ClickHouse & Kafka expertise not in team)</td>
+            </tr>
+            <tr>
+              <td class="p-4 font-semibold text-white">5. One Tool, Not Two</td>
+              <td class="p-4 text-emerald-400 font-medium">Pass (Web analytics, conversions, segments, ad bidding in one)</td>
+              <td class="p-4 text-gray-400">Partial (Excels at product analytics, lacks marketing campaign depth)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Operator CLI Commands -->
+    <section class="space-y-6">
+      <h2 class="text-2xl font-bold tracking-tight">Judge Operator Command Reference</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+        <div class="glass-card p-4 rounded-xl border-l-4 border-emerald-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">1. Run GA4 Migration Agent</div>
+          <div class="text-emerald-300 font-bold">.venv/bin/python3 -m kit.cli migrate</div>
+          <div class="text-gray-400 text-[10px]">Harvests GA4/GTM, creates dimensions/goals, stages draft GTM tags.</div>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-cyan-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">2. Run Parity Checker</div>
+          <div class="text-cyan-300 font-bold">.venv/bin/python3 -m kit.cli parity</div>
+          <div class="text-gray-400 text-[10px]">Compares GA4 vs Matomo on users, sessions, key events (±5%).</div>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-amber-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">3. Simulate Broken Tag (Judge Test)</div>
+          <div class="text-amber-300 font-bold">.venv/bin/python3 -m kit.cli simulate-tag-break --event purchase</div>
+          <div class="text-gray-400 text-[10px]">Mutes telemetry, fires alert, and outputs autonomous diagnosis & GTM fix.</div>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-purple-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">4. DPDP DSAR Lookup & Delete</div>
+          <div class="text-purple-300 font-bold">.venv/bin/python3 -m kit.cli dsar-lookup --user-id 63702ffdd8293bc7</div>
+          <div class="text-gray-400 text-[10px]">Locates data subject records, executes erasure, logs immutable audit trail.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="relative z-10 border-t border-gray-800/80 py-8 text-center text-xs text-gray-400">
+    <p>Tatvic Hackathon 2026 • Problem Statement 3: Own-Your-Data Analytics Kit (OYDK)</p>
+    <p class="mt-1 text-gray-400">Deployed in Google Cloud Platform Region: <code class="text-emerald-400">asia-south1 (Mumbai, India)</code></p>
+  </footer>
+
+</body>
+</html>

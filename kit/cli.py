@@ -68,23 +68,126 @@ def simulate_tag_break(config: str, event: str, date: str | None):
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--user-id", required=True, help="Visitor ID or hashed email to look up")
 def dsar_lookup(config: str, user_id: str):
-    """DPDP: look up a person's analytics data."""
+    """DPDP: Look up all analytics data held for a data subject (visitor ID or email hash)."""
+    from rich.table import Table
     from dpdp.dsar import lookup_user
 
+    console.print(f"\n[bold cyan]╔══════════════════════════════════════════╗[/bold cyan]")
+    console.print(f"[bold cyan]║   DPDP — DATA SUBJECT ACCESS REQUEST     ║[/bold cyan]")
+    console.print(f"[bold cyan]╚══════════════════════════════════════════╝[/bold cyan]\n")
+    console.print(f"[bold]Looking up data subject:[/bold] [yellow]{user_id}[/yellow]\n")
+
     result = lookup_user(config, user_id)
-    console.print(result)
+
+    if result["visit_count"] == 0:
+        console.print("[green]✓ No records found for this subject — nothing held.[/green]")
+    else:
+        console.print(f"[bold red]⚠ Found {result['visit_count']} visit(s) associated with this subject.[/bold red]\n")
+        table = Table(title=f"Records Held — {user_id}")
+        table.add_column("Visit ID", style="cyan")
+        table.add_column("Date", style="white")
+        table.add_column("IP (masked)", style="dim")
+        table.add_column("City")
+        table.add_column("Actions", justify="right")
+        table.add_column("Events", justify="right")
+
+        for v in result["visits"]:
+            ip = v.get("visitIp", "")
+            # Mask last octet for display
+            masked_ip = ".".join(ip.split(".")[:3] + ["***"]) if ip else "—"
+            table.add_row(
+                str(v.get("idVisit", "—")),
+                v.get("serverDatePretty", "—"),
+                masked_ip,
+                v.get("city", "—") or "—",
+                str(v.get("actions", 0)),
+                str(v.get("events", 0)),
+            )
+        console.print(table)
+
+    console.print(f"\n[dim]✓ Lookup recorded in immutable DPDP audit log.[/dim]")
 
 
 @main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--user-id", required=True, help="Visitor ID or hashed email to delete")
-@click.confirmation_option(prompt="This will permanently delete the user's data. Continue?")
+@click.confirmation_option(prompt="⚠ This will PERMANENTLY delete the subject's analytics data. Continue?")
 def dsar_delete(config: str, user_id: str):
-    """DPDP: delete a person's analytics data."""
+    """DPDP: Permanently delete all analytics data for a data subject."""
     from dpdp.dsar import delete_user
 
+    console.print(f"\n[bold cyan]╔══════════════════════════════════════════╗[/bold cyan]")
+    console.print(f"[bold cyan]║   DPDP — DATA ERASURE REQUEST            ║[/bold cyan]")
+    console.print(f"[bold cyan]╚══════════════════════════════════════════╝[/bold cyan]\n")
+    console.print(f"[bold]Processing erasure for:[/bold] [yellow]{user_id}[/yellow]\n")
+
     result = delete_user(config, user_id)
-    console.print(result)
+    deletion = result.get("result", {})
+    visitor_ids = deletion.get("visitor_ids_deleted", [])
+    deletion_results = deletion.get("deletion_results", [])
+
+    if not visitor_ids:
+        console.print("[green]✓ No records found to delete — subject is clean.[/green]")
+    else:
+        for dr in deletion_results:
+            vid = dr["visitor_id"]
+            res = dr["result"]
+            rows = dr.get("rows_deleted", 0)
+            if isinstance(res, dict) and res.get("result") == "error":
+                console.print(f"  [red]✗ Failed to delete visitor {vid}: {res.get('message')}[/red]")
+            else:
+                console.print(f"  [green]✓ Erased visitor ID: {vid} — {rows} database row(s) purged[/green]")
+
+        total_rows = deletion.get("rows_deleted", 0)
+        console.print(f"\n[bold green]✓ Erasure complete.[/bold green] {len(visitor_ids)} visitor record(s), {total_rows} total row(s) purged from analytics stack.")
+
+    console.print(f"[dim]✓ Erasure recorded in immutable DPDP audit log (cannot be undone).[/dim]\n")
+
+
+@main.command("audit-log")
+@click.option("--limit", "-n", default=20, help="Number of recent entries to show (default 20)")
+def audit_log(limit: int):
+    """DPDP: Show the immutable audit trail of all DSAR and system actions."""
+    from rich.table import Table
+    from dpdp.audit_log import get_audit_log
+    import json
+
+    entries = get_audit_log(limit=limit)
+
+    console.print(f"\n[bold cyan]DPDP Immutable Audit Log[/bold cyan] [dim](last {limit} entries)[/dim]\n")
+
+    if not entries:
+        console.print("[dim]No audit entries yet.[/dim]")
+        return
+
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Timestamp (UTC)", style="dim", width=22)
+    table.add_column("Actor", style="cyan")
+    table.add_column("Action", style="bold")
+    table.add_column("Resource")
+    table.add_column("Details", style="dim")
+
+    for e in entries:
+        details = e.get("details")
+        details_str = json.dumps(details, separators=(",", ":")) if details else "—"
+        if len(details_str) > 60:
+            details_str = details_str[:57] + "..."
+        action_colour = {
+            "delete": "[bold red]delete[/bold red]",
+            "lookup": "[yellow]lookup[/yellow]",
+            "check":  "[green]check[/green]",
+            "migrate":"[blue]migrate[/blue]",
+            "sync":   "[cyan]sync[/cyan]",
+        }.get(e["action"], e["action"])
+        table.add_row(
+            e["timestamp"][:19].replace("T", " "),
+            e["actor"],
+            action_colour,
+            e["resource"],
+            details_str,
+        )
+
+    console.print(table)
 
 
 @main.command()

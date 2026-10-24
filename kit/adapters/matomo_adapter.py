@@ -183,20 +183,47 @@ class MatomoAdapter(AnalyticsStackAdapter):
 
     def delete_subject_records(self, user_id: str) -> dict[str, Any]:
         visits = self.search_subject_records(user_id)
-        visitor_ids = list({v.get("visitorId") for v in visits if v.get("visitorId")})
-        if user_id not in visitor_ids and len(user_id) == 16:
-            visitor_ids.append(user_id)
+
+        if not visits:
+            return {
+                "user_id": user_id,
+                "visitor_ids_deleted": [],
+                "deletion_results": [],
+                "rows_deleted": 0,
+            }
 
         deletion_results = []
-        for vid in visitor_ids:
-            res = self._api(
-                "PrivacyManager.deleteDataSubjects",
-                jsonData=json.dumps([{"visitorId": vid}]),
-            )
-            deletion_results.append({"visitor_id": vid, "result": res})
+        total_rows = 0
 
+        for i, visit in enumerate(visits):
+            id_visit = visit.get("idVisit")
+            visitor_id = visit.get("visitorId", "unknown")
+            if not id_visit:
+                continue
+
+            # Matomo PrivacyManager.deleteDataSubjects requires bracket-array format
+            payload = {
+                f"visits[{i}][idsite]": str(self.site_id),
+                f"visits[{i}][idvisit]": str(id_visit),
+            }
+            res = self._api("PrivacyManager.deleteDataSubjects", **payload)
+
+            rows = 0
+            if isinstance(res, dict):
+                rows = sum(v for v in res.values() if isinstance(v, int))
+                total_rows += rows
+
+            deletion_results.append({
+                "visitor_id": visitor_id,
+                "id_visit": id_visit,
+                "rows_deleted": rows,
+                "result": res,
+            })
+
+        visitor_ids = [v.get("visitorId") for v in visits if v.get("visitorId")]
         return {
             "user_id": user_id,
             "visitor_ids_deleted": visitor_ids,
             "deletion_results": deletion_results,
+            "rows_deleted": total_rows,
         }

@@ -1,6 +1,6 @@
 # SIMULATED CLIENT CONFIGURATION (DRY-RUN)
 client:
-  name: "client-766"
+  name: "test-clean"
   region: "asia-south1"
   environment: "gcp"
   simulation_mode: true

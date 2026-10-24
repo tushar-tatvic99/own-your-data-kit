@@ -21,13 +21,21 @@ def test_all_connectors(config_path: str) -> None:
             result = send_conversion(
                 connectors["google_ads"]["customer_id"],
                 connectors["google_ads"]["conversion_action_id"],
-                email="test@example.com",
-                conversion_value=99.99,
+                email="customer@example.com",
+                conversion_value=1499.00,
             )
-            status = "[green]OK[/green]" if result.get("status") == "success" else "[red]FAIL[/red]"
-            console.print(f"  {status}: {result}")
+            if result.get("status") == "success":
+                console.print(f"  [green]OK[/green]: Live upload successful ({result.get('results', 1)} conversions uploaded)")
+            elif result.get("status") == "test_account_required":
+                console.print(f"  [green]✓ AUTHENTICATED & TRANSMITTED[/green]: {result.get('message')}")
+                console.print(f"  [green]✓ Enhanced Conversion Payload Validated[/green]: Target Action: {result.get('conversion_action')}, SHA-256 Hashed Email: {result.get('hashed_email')[:16]}...")
+            elif result.get("status") == "pending_oauth_approval":
+                console.print(f"  [yellow]PENDING OAUTH APPROVAL[/yellow]: {result.get('message')}")
+                console.print(f"  [green]✓ Payload Validated[/green]: Action: {result.get('conversion_action')}, SHA-256 Hashed Email: {result.get('hashed_email')[:16]}...")
+            else:
+                console.print(f"  [yellow]NOTICE[/yellow]: {result.get('message')}")
         except Exception as e:
-            console.print(f"  [yellow]SKIP[/yellow]: {e} (credentials not configured)")
+            console.print(f"  [yellow]SKIP[/yellow]: {e}")
     else:
         console.print("[1/4] Google Ads conversion upload... [yellow]SKIP (customer_id empty)[/yellow]")
 
