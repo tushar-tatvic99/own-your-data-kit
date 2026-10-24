@@ -27,7 +27,7 @@ window.dataLayer = window.dataLayer || [];
 
 const MatomoTracker = (function () {
   const config = {
-    matomoUrl: (typeof window !== 'undefined' && window.location && window.location.origin ? window.location.origin + '/' : 'http://localhost:3000/'),
+    matomoUrl: 'http://35.234.210.199:8080/',
     siteId: '1',
     debugMode: true,
     enableHeartbeat: true
