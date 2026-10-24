@@ -13,7 +13,7 @@ from agents.parity.fixture_metrics import FixtureGA4Metrics
 from agents.parity.ga4_metrics import GA4Metrics
 from dpdp.audit_log import log_action
 from kit.config import load_config
-from kit.matomo_from_config import matomo_client_from_config
+from kit.analytics_stack import analytics_stack_from_config
 
 console = Console()
 
@@ -74,7 +74,7 @@ def run_parity(
         ga4_events = ga4.get_key_events(date, parity_cfg["key_events"])
         ga4_sources = ga4.get_traffic_sources(date)
 
-        matomo = matomo_client_from_config(config_path)
+        matomo = analytics_stack_from_config(config_path)
         matomo_summary = matomo.get_visits_summary(period="day", date=date)
         matomo_events_raw = matomo.get_events(period="day", date=date)
         matomo_referrers = matomo.get_referrers(period="day", date=date)

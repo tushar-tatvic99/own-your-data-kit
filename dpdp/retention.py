@@ -3,7 +3,7 @@
 from dpdp.audit_log import log_action
 from dpdp.settings import dpdp_config
 from kit.config import load_config
-from kit.matomo_from_config import matomo_client_from_config
+from kit.analytics_stack import analytics_stack_from_config
 
 
 def enforce_retention(config_path: str) -> dict:
@@ -19,7 +19,7 @@ def enforce_retention(config_path: str) -> dict:
 
     matomo_result: dict | str = {"status": "skipped", "reason": "not attempted"}
     try:
-        client = matomo_client_from_config(config_path)
+        client = analytics_stack_from_config(config_path)
         matomo_result = client.set_delete_logs_settings(days, enabled=True)
     except Exception as exc:
         matomo_result = {"status": "error", "message": str(exc)}

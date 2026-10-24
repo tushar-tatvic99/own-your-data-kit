@@ -2,7 +2,7 @@
 
 Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — deployed on the client's own cloud in India, with migration done mostly by an agent.
 
-**Built by Tatvic** | Stack: Matomo (self-hosted) | Region: India (`asia-south1`)
+**Built by Tatvic** | Default stack: Matomo (adapter swappable — [kit vs stack](docs/kit-vs-analytics-stack.md)) | Region: India (`asia-south1`)
 
 ---
 

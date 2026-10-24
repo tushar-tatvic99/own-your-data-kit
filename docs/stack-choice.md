@@ -58,4 +58,4 @@ PostHog is the right choice only for **app-led or product-led clients at modest 
 
 ## Architecture principle
 
-Our IP lives in the **kit layer** (deploy, migration agent, parity checker, connectors, DPDP module) — not in Matomo itself. The kit is stack-agnostic: swapping Matomo for PostHog means changing the `MatomoClient` adapter, not rewriting the agents.
+Our IP lives in the **kit layer** (deploy, migration agent, parity checker, connectors, DPDP module) — not in Matomo itself. Agents call `kit/analytics_stack.py`; swapping Matomo for PostHog means a new adapter implementing the same protocol, not rewriting agents. See [kit-vs-analytics-stack.md](kit-vs-analytics-stack.md).

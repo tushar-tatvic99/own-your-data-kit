@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from dpdp.audit_log import log_action
 from dpdp.pii_scrubber import scrub_url
 from dpdp.settings import dpdp_config
-from kit.matomo_from_config import matomo_client_from_config
+from kit.analytics_stack import analytics_stack_from_config
 
 
 def _audit_on(config_path: str) -> bool:
@@ -30,7 +30,7 @@ def _scrub_visits(config_path: str, visits: list) -> list:
 
 def lookup_user(config_path: str, user_id: str) -> dict:
     """Find all analytics data for a person (by visitor ID or custom dimension)."""
-    client = matomo_client_from_config(config_path)
+    client = analytics_stack_from_config(config_path)
     visits = client.find_visits_by_user_id(user_id)
     if isinstance(visits, dict) and visits.get("result") == "error":
         visits = []
@@ -72,7 +72,7 @@ def export_user(config_path: str, user_id: str) -> dict:
 
 def delete_user(config_path: str, user_id: str) -> dict:
     """Delete all analytics data for a person."""
-    client = matomo_client_from_config(config_path)
+    client = analytics_stack_from_config(config_path)
 
     visits = client.find_visits_by_user_id(user_id)
     if isinstance(visits, dict) and visits.get("result") == "error":

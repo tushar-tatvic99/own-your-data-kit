@@ -3,7 +3,7 @@
 from dpdp.audit_log import log_action
 from dpdp.settings import dpdp_config
 from dpdp.subject_id import matomo_lookup_ids_for_email, subject_user_id
-from kit.matomo_from_config import matomo_client_from_config
+from kit.analytics_stack import analytics_stack_from_config
 
 
 def _audit_on(config_path: str) -> bool:
@@ -11,7 +11,7 @@ def _audit_on(config_path: str) -> bool:
 
 
 def _lookup_all_ids(config_path: str, email: str) -> dict:
-    client = matomo_client_from_config(config_path)
+    client = analytics_stack_from_config(config_path)
     all_visits: list[dict] = []
     ids_tried: list[str] = []
     for uid in matomo_lookup_ids_for_email(email):
@@ -96,7 +96,7 @@ def process_erasure(
     lookup = _lookup_all_ids(config_path, email)
     deleted_total = 0
     deletion_results: list[dict] = []
-    client = matomo_client_from_config(config_path)
+    client = analytics_stack_from_config(config_path)
 
     if lookup["visits"]:
         result = client.delete_data_subjects(lookup["visits"])

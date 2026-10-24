@@ -19,7 +19,7 @@ from agents.migration.mapper import (
 )
 from dpdp.audit_log import log_action
 from kit.config import load_config
-from kit.matomo_client import MatomoClient
+from kit.analytics_stack import analytics_stack_from_config
 from kit.matomo_token import resolve_matomo_token, verify_matomo_token
 
 console = Console()
@@ -87,7 +87,7 @@ def run_migration(config_path: str, fixture: bool = False) -> dict:
     console.print("[3/5] Building Matomo configuration...")
     api_token = resolve_matomo_token(cfg["stack"]["api_token"])
     verify_matomo_token(cfg["stack"]["url"], api_token, int(cfg["stack"]["site_id"]))
-    matomo = MatomoClient(cfg["stack"]["url"], cfg["stack"]["site_id"], api_token)
+    matomo = analytics_stack_from_config(config_path)
 
     migrated = {"dimensions": [], "goals": [], "errors": []}
     existing_dims = {
