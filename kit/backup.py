@@ -168,3 +168,105 @@ def _prune_local_backups(backup_folder: Path, retention_days: int = 30) -> int:
         except Exception:
             pass
     return pruned
+
+
+def restore_backup(
+    archive_path: str,
+    restore_config: bool = False,
+) -> dict[str, Any]:
+    """Restore analytics stack state, audit logs, and database from a backup archive."""
+    start_time = time.time()
+    archive = Path(archive_path)
+
+    if not archive.exists():
+        # Check if relative to output/backups
+        alt_path = Path("output/backups") / archive_path
+        if alt_path.exists():
+            archive = alt_path
+        else:
+            return {"status": "error", "message": f"Backup archive not found: {archive_path}"}
+
+    restored_items = []
+    temp_stage = Path("output/backups") / f"restore_stage_{int(time.time())}"
+    temp_stage.mkdir(parents=True, exist_ok=True)
+
+    try:
+        with tarfile.open(archive, "r:gz") as tar:
+            tar.extractall(path=temp_stage)
+
+        # Locate extracted inner directory
+        extracted_dirs = [d for d in temp_stage.iterdir() if d.is_dir()]
+        inner_dir = extracted_dirs[0] if extracted_dirs else temp_stage
+
+        # 1. Restore SQLite Audit Log Database
+        audit_file = inner_dir / "audit.db"
+        if audit_file.exists():
+            dest = Path("output/audit.db")
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(audit_file, dest)
+            restored_items.append("audit_log_database")
+
+        # 2. Restore BigQuery Streaming Watermark
+        wm_file = inner_dir / "bq_sync_watermark.json"
+        if wm_file.exists():
+            dest = Path("output/bq_sync_watermark.json")
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(wm_file, dest)
+            restored_items.append("watermark_state")
+
+        # 3. Restore Config (optional)
+        if restore_config:
+            cfg_file = inner_dir / "client.yaml"
+            if cfg_file.exists():
+                dest = Path("config/client.yaml")
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(cfg_file, dest)
+                restored_items.append("client_configuration")
+
+        # 4. Restore MariaDB / MySQL dump if container runtime is present
+        sql_file = inner_dir / "matomo_database.sql"
+        if sql_file.exists():
+            try:
+                containers_cmd = subprocess.run(
+                    ["docker", "ps", "--filter", "name=db", "--format", "{{.Names}}"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                db_container = containers_cmd.stdout.strip().split("\n")[0] if containers_cmd.returncode == 0 else ""
+                if db_container:
+                    with open(sql_file, "r", encoding="utf-8") as f:
+                        subprocess.run(
+                            ["docker", "exec", "-i", db_container, "mariadb", "-u", "root", "-pMatomoSecurePass123!"],
+                            stdin=f,
+                            capture_output=True,
+                            timeout=60,
+                        )
+                    restored_items.append("mariadb_full_database")
+            except Exception:
+                pass
+
+        duration = round(time.time() - start_time, 2)
+
+        # 5. Log restore event to DPDP audit trail
+        log_action(
+            actor="operator-restore",
+            action="restore",
+            resource=f"backup:{archive.name}",
+            details={
+                "restored_items": restored_items,
+                "duration_seconds": duration,
+            },
+        )
+
+        return {
+            "status": "success",
+            "archive": str(archive),
+            "restored_items": restored_items,
+            "duration_seconds": duration,
+        }
+
+    finally:
+        if temp_stage.exists():
+            shutil.rmtree(temp_stage, ignore_errors=True)
+

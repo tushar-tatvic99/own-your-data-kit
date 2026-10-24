@@ -99,20 +99,21 @@
       </p>
 
       <!-- Primary Action: Deploy Command Box -->
-      <div class="pt-6 max-w-2xl mx-auto">
-        <div class="glass-card rounded-2xl p-2 flex items-center justify-between border border-gray-700/60 terminal-glow">
+      <div class="pt-6 max-w-2xl mx-auto space-y-3">
+        <div class="glass-card rounded-2xl p-2 flex items-center justify-between border border-emerald-500/40 terminal-glow">
           <div class="flex items-center gap-3 px-4 font-mono text-sm sm:text-base text-gray-200 overflow-x-auto">
             <span class="text-emerald-400 font-bold">$</span>
-            <span>./deploy/install.sh --target gcp --client client-demo</span>
+            <span>curl -fsSL https://oydk-portal-61760469326.asia-south1.run.app/install.sh | bash</span>
           </div>
-          <button onclick="navigator.clipboard.writeText('./deploy/install.sh --target gcp --client client-demo'); alert('Command copied to clipboard!');" 
+          <button onclick="navigator.clipboard.writeText('curl -fsSL https://oydk-portal-61760469326.asia-south1.run.app/install.sh | bash'); alert('One-command installer copied to clipboard!');" 
                   class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-all shadow-md shadow-emerald-500/20 shrink-0">
             Copy
           </button>
         </div>
-        <p class="text-xs text-gray-400 mt-2 font-mono">
-          Dry-run mode available: <code class="text-emerald-300">./deploy/install.sh --dry-run --target gcp</code> ($0 billing impact)
-        </p>
+        <div class="flex items-center justify-between px-2 text-xs text-gray-400 font-mono">
+          <span>Local Repo: <code class="text-emerald-300">./deploy/install.sh --target gcp --client client-demo</code></span>
+          <span>Dry-Run: <code class="text-emerald-300">./deploy/install.sh --dry-run</code> ($0)</span>
+        </div>
       </div>
     </section>
 
@@ -226,7 +227,7 @@
           <p class="text-xs text-gray-400 leading-relaxed">
             Automated database dumps and state capture scheduled daily at 02:00 IST via Cloud Scheduler to GCS bucket with 90-day retention lifecycle. 30-day local rotation prevents disk exhaustion.
           </p>
-          <div class="pt-2 text-[11px] font-mono text-cyan-400">On-demand CLI: <code class="text-gray-200">oydk backup</code></div>
+          <div class="pt-2 text-[11px] font-mono text-cyan-400">CLI: <code class="text-gray-200">oydk backup</code> • Restore: <code class="text-gray-200">oydk restore &lt;archive&gt;</code></div>
         </div>
 
         <!-- Card 3: Updates -->

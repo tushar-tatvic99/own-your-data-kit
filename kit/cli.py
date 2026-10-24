@@ -79,6 +79,24 @@ def backup(config: str, upload: bool):
 
 
 @main.command()
+@click.argument("archive_path")
+@click.option("--restore-config", is_flag=True, default=False, help="Restore client.yaml config from archive")
+def restore(archive_path: str, restore_config: bool):
+    """Restore state, audit logs, and database from a backup archive."""
+    from kit.backup import restore_backup
+
+    console.print(f"[bold cyan]Restoring analytics stack from archive:[/bold cyan] {archive_path}")
+    res = restore_backup(archive_path, restore_config=restore_config)
+    if res.get("status") == "success":
+        console.print(f"[bold green]✓ Restore Complete:[/bold green] {res['archive']}")
+        console.print(f"  • Items Restored : {', '.join(res.get('restored_items', []))}")
+        console.print(f"  • Duration       : {res['duration_seconds']}s")
+    else:
+        console.print(f"[bold red]✗ Restore Failed:[/bold red] {res.get('message', res)}")
+
+
+
+@main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--check-only", is_flag=True, default=False, help="Check for updates without applying")
 def update(config: str, check_only: bool):

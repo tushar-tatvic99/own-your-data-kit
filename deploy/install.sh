@@ -12,9 +12,28 @@
 # ==============================================================================
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-cd "$ROOT_DIR"
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ "${BASH_SOURCE[0]}" != "bash" ] && [ "${BASH_SOURCE[0]}" != "/dev/stdin" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+  cd "$ROOT_DIR"
+else
+  # Running from pipe (e.g. curl ... | bash)
+  if [ -f "deploy/install.sh" ]; then
+    ROOT_DIR="$(pwd)"
+  elif [ -d "own-your-data-kit" ] && [ -f "own-your-data-kit/deploy/install.sh" ]; then
+    cd own-your-data-kit
+    ROOT_DIR="$(pwd)"
+  else
+    echo "Cloning Own-Your-Data Kit repository..."
+    git clone https://github.com/tushar-tatvic99/own-your-data-kit.git || true
+    if [ -d "own-your-data-kit" ]; then
+      cd own-your-data-kit
+      ROOT_DIR="$(pwd)"
+    else
+      ROOT_DIR="$(pwd)"
+    fi
+  fi
+fi
 
 # ANSI Colors
 BOLD="\033[1m"
@@ -122,16 +141,16 @@ CLIENT_NAME="${CLIENT_NAME:-demo-client}"
 TARGET_ENV="${TARGET_ENV:-gcp}"
 
 echo -e "\n${BOLD}${BLUE}Deployment Configuration Summary:${RESET}"
-echo "--------------------------------------------------"
-echo "  Target Platform : ${BOLD}${TARGET_ENV^^}${RESET}"
-echo "  Client Name     : ${BOLD}${CLIENT_NAME}${RESET}"
-echo "  Analytics Stack : ${BOLD}${STACK_ENGINE^^}${RESET}"
+echo -e "--------------------------------------------------"
+echo -e "  Target Platform : ${BOLD}${TARGET_ENV^^}${RESET}"
+echo -e "  Client Name     : ${BOLD}${CLIENT_NAME}${RESET}"
+echo -e "  Analytics Stack : ${BOLD}${STACK_ENGINE^^}${RESET}"
 if [ "$TARGET_ENV" = "gcp" ]; then
-  echo "  GCP Project     : ${BOLD}${GCP_PROJECT}${RESET}"
-  echo "  Cloud Region    : ${BOLD}${GCP_REGION} (Mumbai, India)${RESET}"
+  echo -e "  GCP Project     : ${BOLD}${GCP_PROJECT}${RESET}"
+  echo -e "  Cloud Region    : ${BOLD}${GCP_REGION} (Mumbai, India)${RESET}"
 fi
-echo "  Mode            : ${BOLD}$( [ "$DRY_RUN" = true ] && echo "${MAGENTA}DRY-RUN SIMULATION" || echo "${GREEN}LIVE EXECUTION" )${RESET}"
-echo "--------------------------------------------------"
+echo -e "  Mode            : ${BOLD}$( [ "$DRY_RUN" = true ] && echo -e "${MAGENTA}DRY-RUN SIMULATION" || echo -e "${GREEN}LIVE EXECUTION" )${RESET}"
+echo -e "--------------------------------------------------"
 
 # ==============================================================================
 # DRY-RUN SIMULATION ENGINE
