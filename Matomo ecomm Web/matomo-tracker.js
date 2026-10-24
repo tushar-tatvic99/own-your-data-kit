@@ -27,7 +27,7 @@ window.dataLayer = window.dataLayer || [];
 
 const MatomoTracker = (function () {
   const config = {
-    matomoUrl: 'http://35.234.210.199:8080/',
+    matomoUrl: 'https://matomo.35-234-210-199.nip.io/',
     siteId: '1',
     debugMode: true,
     enableHeartbeat: true

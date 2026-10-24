@@ -4558,3 +4558,451 @@ button {
 
 
 
+
+
+/* ================= PROFESSIONAL FRONTEND UI ALIGNMENTS & BUTTON HARMONY ================= */
+
+/* Header Harmony */
+.site-header {
+  height: 74px;
+}
+
+.header-container {
+  height: 100%;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-dpdp-pill {
+  height: 40px !important;
+  padding: 0 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border-radius: 9999px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #1E293B !important;
+}
+
+.header-dpdp-pill:hover {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border-color: #0F172A !important;
+}
+
+.currency-selector select {
+  height: 40px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 9999px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.action-btn {
+  height: 40px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border-radius: 9999px !important;
+  font-size: 0.84rem !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.action-btn:hover {
+  border-color: #0F172A !important;
+  color: #0F172A !important;
+}
+
+/* Dark Hero Buttons Harmony */
+.hero-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  margin-bottom: 40px !important;
+  flex-wrap: wrap !important;
+}
+
+.bfsi-hero-dark .btn-primary {
+  height: 50px !important;
+  padding: 0 28px !important;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #FFFFFF !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.94rem !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  line-height: 1 !important;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.18) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.bfsi-hero-dark .btn-primary svg {
+  display: inline-block;
+  vertical-align: middle;
+  stroke: #0F172A;
+}
+
+.bfsi-hero-dark .btn-primary:hover {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.28) !important;
+}
+
+.bfsi-hero-dark .btn-secondary {
+  height: 50px !important;
+  padding: 0 28px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.94rem !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  line-height: 1 !important;
+  backdrop-filter: blur(12px) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.bfsi-hero-dark .btn-secondary svg {
+  display: inline-block;
+  vertical-align: middle;
+  stroke: #FFFFFF;
+}
+
+.bfsi-hero-dark .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-2px) !important;
+}
+
+/* BFSI Tabs Segmented Pill */
+.bfsi-tabs-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin-bottom: 40px !important;
+}
+
+.bfsi-tabs-nav {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #F1F5F9 !important;
+  padding: 6px !important;
+  border-radius: 9999px !important;
+  border: 1px solid #E2E8F0 !important;
+  gap: 6px !important;
+  max-width: 100% !important;
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.bfsi-tab {
+  height: 44px !important;
+  padding: 0 22px !important;
+  border-radius: 9999px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  color: #475569 !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  user-select: none !important;
+}
+
+.bfsi-tab:hover {
+  color: #0F172A !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+}
+
+.bfsi-tab.active {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18) !important;
+}
+
+.bfsi-tab-icon {
+  font-size: 1.05rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bfsi-tab-text {
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  font-weight: 600 !important;
+}
+
+/* Tenure Pills & Buttons */
+.tenure-pills {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 12px !important;
+}
+
+.tenure-btn {
+  height: 46px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 0 14px !important;
+  border-radius: 8px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #334155 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.tenure-btn:hover {
+  background: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+.tenure-btn.active {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border-color: #0F172A !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15) !important;
+}
+
+/* Controls Bar & Filter Pills */
+.controls-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  flex-wrap: wrap !important;
+}
+
+.category-tabs {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.cat-pill {
+  height: 38px !important;
+  padding: 0 18px !important;
+  border-radius: 9999px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  color: #64748B !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+
+.cat-pill:hover {
+  border-color: #0F172A !important;
+  color: #0F172A !important;
+}
+
+.cat-pill.active {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border-color: #0F172A !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14) !important;
+}
+
+.sort-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.sort-label {
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  color: #64748B !important;
+  line-height: 1 !important;
+}
+
+.sort-select {
+  height: 38px !important;
+  padding: 0 34px 0 16px !important;
+  border-radius: 9999px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  color: #0F172A !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+/* Product Card Button */
+.product-footer-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding-top: 16px !important;
+  margin-top: auto !important;
+  border-top: 1px solid #E2E8F0 !important;
+}
+
+.product-price {
+  font-family: var(--font-sans) !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  line-height: 1 !important;
+}
+
+.btn-add-card {
+  height: 38px !important;
+  padding: 0 18px !important;
+  border-radius: 9999px !important;
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  font-size: 0.84rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border: 1px solid #0F172A !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.btn-add-card:hover {
+  background: #1E293B !important;
+  border-color: #1E293B !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18) !important;
+}
+
+/* Full Width Block Buttons in Cards & Calculators */
+.btn-block {
+  width: 100% !important;
+  height: 48px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border: 1px solid #0F172A !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-block:hover {
+  background: #1E293B !important;
+  border-color: #1E293B !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2) !important;
+}
+
+.calc-rate-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 28px !important;
+  padding: 0 12px !important;
+  border-radius: 9999px !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #10B981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+.calc-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 28px !important;
+  padding: 0 12px !important;
+  border-radius: 9999px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  background: #F1F5F9 !important;
+  color: #475569 !important;
+  border: 1px solid #E2E8F0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
