@@ -196,6 +196,61 @@
       </div>
     </section>
 
+    <!-- One-Command Deployment (Requirement 1) -->
+    <section id="deployment" class="space-y-8">
+      <div class="text-center max-w-3xl mx-auto space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          Requirement 1 • Enterprise Deployment
+        </div>
+        <h2 class="text-3xl font-extrabold tracking-tight">One-Command Enterprise Deployment</h2>
+        <p class="text-gray-400 text-sm">
+          Deploy the complete self-hosted stack on a fresh cloud project in an India region with a single command, including database, backups, updates, and monitoring. Anyone at Tatvic can repeat the deployment for a new client in under 15 minutes.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Card 1: Cloud & Database -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-emerald-500">
+          <div class="text-xs font-mono text-emerald-400 font-semibold uppercase">Pillar 1: Infrastructure</div>
+          <h3 class="text-lg font-bold text-white">Cloud & Database</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Terraform automated VPC, subnets, static IP, and e2-standard-4 VM in India (<code class="text-emerald-300">asia-south1</code>). Production MariaDB 10.11 database with utf8mb4 collation and Redis session caching.
+          </p>
+          <div class="pt-2 text-[11px] font-mono text-emerald-400">Zero cloud lock-in: toggle to local Docker Compose.</div>
+        </div>
+
+        <!-- Card 2: Backups -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-cyan-500">
+          <div class="text-xs font-mono text-cyan-400 font-semibold uppercase">Pillar 2: Disaster Recovery</div>
+          <h3 class="text-lg font-bold text-white">Automated Backups</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Automated database dumps and state capture scheduled daily at 02:00 IST via Cloud Scheduler to GCS bucket with 90-day retention lifecycle. 30-day local rotation prevents disk exhaustion.
+          </p>
+          <div class="pt-2 text-[11px] font-mono text-cyan-400">On-demand CLI: <code class="text-gray-200">oydk backup</code></div>
+        </div>
+
+        <!-- Card 3: Updates -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-purple-500">
+          <div class="text-xs font-mono text-purple-400 font-semibold uppercase">Pillar 3: Maintenance</div>
+          <h3 class="text-lg font-bold text-white">Zero-Downtime Updates</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Automated OS security patches via <code class="text-purple-300">unattended-upgrades</code>. Engine update engine executes pre-update safety backups before applying database migrations (<code class="text-purple-300">core:update</code>).
+          </p>
+          <div class="pt-2 text-[11px] font-mono text-purple-400">CLI check: <code class="text-gray-200">oydk update --check-only</code></div>
+        </div>
+
+        <!-- Card 4: Monitoring -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-amber-500">
+          <div class="text-xs font-mono text-amber-400 font-semibold uppercase">Pillar 4: Reliability</div>
+          <h3 class="text-lg font-bold text-white">Cloud Monitoring</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Google Cloud Monitoring 300s uptime probe on ingress URL with alert policy. Unified single-screen operational health status for database, backups, watermarks, and engine.
+          </p>
+          <div class="pt-2 text-[11px] font-mono text-amber-400">Health dashboard: <code class="text-gray-200">oydk health</code></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Architecture & IP Decoupling -->
     <section id="architecture" class="space-y-8">
       <div class="text-center max-w-3xl mx-auto space-y-3">
@@ -343,27 +398,39 @@
     <!-- Operator CLI Commands -->
     <section class="space-y-6">
       <h2 class="text-2xl font-bold tracking-tight">Judge Operator Command Reference</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 font-mono text-xs">
         <div class="glass-card p-4 rounded-xl border-l-4 border-emerald-500 space-y-1">
-          <div class="text-gray-400 text-[11px]">1. Run GA4 Migration Agent</div>
-          <div class="text-emerald-300 font-bold">.venv/bin/python3 -m kit.cli migrate</div>
-          <div class="text-gray-400 text-[10px]">Harvests GA4/GTM, creates dimensions/goals, stages draft GTM tags.</div>
+          <div class="text-gray-400 text-[11px]">1. Stack Health & Monitoring</div>
+          <div class="text-emerald-300 font-bold">.venv/bin/python3 -m kit.cli health</div>
+          <div class="text-gray-400 text-[10px]">Engine status, site ID, backup archives, BigQuery watermark freshness.</div>
         </div>
 
         <div class="glass-card p-4 rounded-xl border-l-4 border-cyan-500 space-y-1">
-          <div class="text-gray-400 text-[11px]">2. Run Parity Checker</div>
-          <div class="text-cyan-300 font-bold">.venv/bin/python3 -m kit.cli parity</div>
+          <div class="text-gray-400 text-[11px]">2. Run GA4 Migration Agent</div>
+          <div class="text-cyan-300 font-bold">.venv/bin/python3 -m kit.cli migrate</div>
+          <div class="text-gray-400 text-[10px]">Harvests GA4/GTM, creates dimensions/goals, stages draft GTM tags.</div>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-blue-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">3. Run Parity Checker</div>
+          <div class="text-blue-300 font-bold">.venv/bin/python3 -m kit.cli parity</div>
           <div class="text-gray-400 text-[10px]">Compares GA4 vs Matomo on users, sessions, key events (±5%).</div>
         </div>
 
         <div class="glass-card p-4 rounded-xl border-l-4 border-amber-500 space-y-1">
-          <div class="text-gray-400 text-[11px]">3. Simulate Broken Tag (Judge Test)</div>
+          <div class="text-gray-400 text-[11px]">4. Simulate Broken Tag (Judge Test)</div>
           <div class="text-amber-300 font-bold">.venv/bin/python3 -m kit.cli simulate-tag-break --event purchase</div>
           <div class="text-gray-400 text-[10px]">Mutes telemetry, fires alert, and outputs autonomous diagnosis & GTM fix.</div>
         </div>
 
+        <div class="glass-card p-4 rounded-xl border-l-4 border-indigo-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">5. Trigger Automated Backup</div>
+          <div class="text-indigo-300 font-bold">.venv/bin/python3 -m kit.cli backup</div>
+          <div class="text-gray-400 text-[10px]">Archives databases, manifests, watermarks and uploads to GCS bucket.</div>
+        </div>
+
         <div class="glass-card p-4 rounded-xl border-l-4 border-purple-500 space-y-1">
-          <div class="text-gray-400 text-[11px]">4. DPDP DSAR Lookup & Delete</div>
+          <div class="text-gray-400 text-[11px]">6. DPDP DSAR Lookup & Delete</div>
           <div class="text-purple-300 font-bold">.venv/bin/python3 -m kit.cli dsar-lookup --user-id 63702ffdd8293bc7</div>
           <div class="text-gray-400 text-[10px]">Locates data subject records, executes erasure, logs immutable audit trail.</div>
         </div>

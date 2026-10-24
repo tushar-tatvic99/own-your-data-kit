@@ -35,8 +35,12 @@ class KitAPIHandler(BaseHTTPRequestHandler):
             self._json_response(200, result)
 
         elif self.path == "/internal/backup":
-            log_action("system", "backup", "matomo-db", {"trigger": "scheduled"})
-            self._json_response(200, {"status": "backup triggered"})
+            try:
+                from kit.backup import execute_backup
+                result = execute_backup("config/client.yaml")
+                self._json_response(200, result)
+            except Exception as e:
+                self._json_response(500, {"status": "error", "message": str(e)})
 
         else:
             self._json_response(404, {"error": "not found"})

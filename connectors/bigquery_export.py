@@ -10,8 +10,8 @@ from typing import Any
 from google.cloud import bigquery
 
 from dpdp.audit_log import log_action
+from kit.adapters import get_stack_adapter
 from kit.config import load_config
-from kit.matomo_client import MatomoClient
 
 DEFAULT_WATERMARK_FILE = "output/bq_sync_watermark.json"
 
@@ -50,7 +50,7 @@ def save_sync_watermark(watermark_path: str, timestamp: int, extra: dict | None 
 
 
 def fetch_matomo_actions(
-    matomo: MatomoClient,
+    matomo: Any = None,
     min_timestamp: int = 0,
     filter_limit: int = 100,
 ) -> tuple[list[dict], int]:
@@ -215,11 +215,7 @@ def run_bigquery_sync(
     create_export_schema(project_id, dataset, events_table)
     create_export_schema(project_id, dataset, conversions_table)
 
-    matomo = MatomoClient(
-        base_url=stack_cfg["url"],
-        site_id=stack_cfg["site_id"],
-        token=stack_cfg["api_token"],
-    )
+    adapter = get_stack_adapter(cfg)
 
     iteration = 0
     total_synced = 0
@@ -227,7 +223,7 @@ def run_bigquery_sync(
     while True:
         iteration += 1
         watermark = get_last_sync_watermark(watermark_path)
-        events, new_watermark = fetch_matomo_actions(matomo, min_timestamp=watermark)
+        events, new_watermark = adapter.fetch_stream_actions(since_timestamp=watermark)
 
         if events:
             # 1. Insert into raw events table

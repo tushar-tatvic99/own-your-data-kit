@@ -1,6 +1,6 @@
 # SIMULATED CLIENT CONFIGURATION (DRY-RUN)
 client:
-  name: "test-clean"
+  name: "tatvic-ecom"
   region: "asia-south1"
   environment: "gcp"
   simulation_mode: true

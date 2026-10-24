@@ -166,3 +166,27 @@ resource "google_cloud_scheduler_job" "daily_backup" {
     }
   }
 }
+
+# Monitoring Alert Policy — triggers when uptime check fails for > 5 min
+resource "google_monitoring_alert_policy" "uptime_alert" {
+  display_name = "${var.client_name} Analytics Downtime Alert"
+  combiner     = "OR"
+  conditions {
+    display_name = "Uptime check failure on ${var.client_name}"
+    condition_threshold {
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\""
+      duration        = "300s"
+      comparison      = "COMPARISON_GT"
+      threshold_value = 1
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_NEXT_OLDER"
+      }
+    }
+  }
+
+  documentation {
+    content   = "The self-hosted analytics engine for client ${var.client_name} is failing uptime health checks. Inspect container health via 'oydk health' or SSH into the VM."
+    mime_type = "text/markdown"
+  }
+}

@@ -19,7 +19,7 @@ This document provides a permanent, end-to-end technical reference for all conne
 |    https://matomo.35-234-210-199.nip.io                     |
 +-------------------------------------------------------------+
                               |
-                              | (API: Live.getLastVisitsDetails)
+                              | (AnalyticsStackAdapter.fetch_stream_actions)
                               | (Watermarked Incremental Ingestion)
                               v
 +-------------------------------------------------------------+
@@ -29,20 +29,21 @@ This document provides a permanent, end-to-end technical reference for all conne
 |    Raw Events:  matomo_export.events                        |
 |    Conversions: matomo_export.connector_conversions         |
 +-------------------------------------------------------------+
-                              |
-                              | (Virtual Reporting View)
-                              v
-+-------------------------------------------------------------+
-| 4. Cleaned Analytics View                                   |
-|    tvc-int-matomo.matomo_export.v_marketing_overview        |
-+-------------------------------------------------------------+
-                              |
-                              | (Direct 1-Click Connector Link)
-                              v
-+-------------------------------------------------------------+
-| 5. Live Looker Studio Dashboard                             |
-|    https://lookerstudio.google.com/reporting/create?...     |
-+-------------------------------------------------------------+
+        |                                             |
+        | (Virtual View)                              | (Offline Conversion Dispatch)
+        v                                             v
++-----------------------------+               +-------------------------------+
+| 4. Cleaned Analytics View   |               | 5. Google Ads Connector       |
+|    v_marketing_overview     |               |    CID: 111-211-0147          |
++-----------------------------+               |    Action ID: 7868766365      |
+        |                                     |    SHA-256 Enhanced Hash      |
+        | (1-Click Direct Link)               +-------------------------------+
+        v                                             |
++-----------------------------+                       | (Server gRPC Upload)
+| 6. Looker Studio Dashboard  |                       v
+|    1-Click Launch Link      |               +-------------------------------+
++-----------------------------+               | Google Ads Ad Bidding Cloud   |
+                                              +-------------------------------+
 ```
 
 ### Production Endpoints Summary
@@ -56,21 +57,23 @@ This document provides a permanent, end-to-end technical reference for all conne
 | **Conversions Table**| `tvc-int-matomo.matomo_export.connector_conversions` | Filtered conversions (purchases, lead forms, EMI / FD calculations) |
 | **Reporting View** | `tvc-int-matomo.matomo_export.v_marketing_overview` | Normalized SQL view with clean dimensions & conversion flags |
 | **Looker Studio** | [1-Click Direct Dashboard Link](https://lookerstudio.google.com/reporting/create?ds.connector=bigQuery&ds.type=TABLE&ds.projectId=tvc-int-matomo&ds.datasetId=matomo_export&ds.tableId=v_marketing_overview) | Real-time BI visualization pre-connected to the BigQuery reporting view |
+| **Google Ads Target**| Customer ID `111-211-0147` / Action `7868766365` | Enhanced offline conversion pipeline for ad bidding preservation |
+| **Meta CAPI** | `https://graph.facebook.com/v19.0/{pixel_id}/events` | Server-side Conversions API connector (deferred per instructions) |
 
 ---
 
 ## 2. Connector 1: Automated Continuous BigQuery Pipeline
 
 ### Problem & Objective
-* **What was needed**: Marketers and enterprise data teams require warehouse exports to perform deep-dive SQL queries, join analytics with backend order databases, and retain full data ownership. Previously, only a mock helper inserting hardcoded records existed.
-* **What was built**: A production-grade, state-tracked, incremental streaming pipeline in [`connectors/bigquery_export.py`](bigquery_export.py).
+* **What was needed**: Marketers and enterprise data teams require warehouse exports to perform deep-dive SQL queries, join analytics with backend order databases, and retain full data ownership.
+* **What was built**: A production-grade, state-tracked, incremental streaming pipeline in [`connectors/bigquery_export.py`](file:///home/parshwasalot/0-projects/AppTag/tvc_intern_group5/own-your-data-kit/connectors/bigquery_export.py) using the decoupled `AnalyticsStackAdapter` protocol.
 
 ### How It Works Under the Hood
-1. **Extraction**:
-   * Uses `MatomoClient._api` via HTTPS POST to invoke `Live.getLastVisitsDetails` on Matomo.
+1. **Decoupled Extraction**:
+   * Uses `get_stack_adapter(cfg).fetch_stream_actions(since_timestamp=watermark)` to extract events without coupling to Matomo internals.
    * Extracts granular visits and unrolls nested `actionDetails` (individual pageviews, events, e-commerce orders, cart updates).
 2. **State Tracking & Watermarking**:
-   * Reads the highest processed unix timestamp from [`output/bq_sync_watermark.json`](../output/bq_sync_watermark.json).
+   * Reads the highest processed unix timestamp from [`output/bq_sync_watermark.json`](file:///home/parshwasalot/0-projects/AppTag/tvc_intern_group5/own-your-data-kit/output/bq_sync_watermark.json).
    * Only actions with `timestamp > watermark` are selected for ingestion.
    * After streaming, the watermark is updated to the newest action timestamp. This guarantees **zero duplicate records** regardless of how often the sync executes.
 3. **Data Transformation & Enrichment**:
@@ -90,9 +93,6 @@ This document provides a permanent, end-to-end technical reference for all conne
 
 # Run continuously as a background daemon (every 60 seconds):
 .venv/bin/python3 -m kit.cli bq-sync --config config/client.yaml --continuous --interval 60
-
-# Run all connector health checks:
-.venv/bin/python3 -m kit.cli connectors-test --config config/client.yaml
 ```
 
 ---
@@ -103,7 +103,7 @@ This document provides a permanent, end-to-end technical reference for all conne
 * **What was needed**: Business stakeholders and marketing managers need interactive dashboards for daily decision-making without writing manual SQL.
 * **What was built**: 
   1. A flattened, production SQL view in BigQuery: `tvc-int-matomo.matomo_export.v_marketing_overview`.
-  2. A direct 1-click Looker Studio report launcher in [`connectors/looker.py`](looker.py).
+  2. A direct 1-click Looker Studio report launcher in [`connectors/looker.py`](file:///home/parshwasalot/0-projects/AppTag/tvc_intern_group5/own-your-data-kit/connectors/looker.py).
 
 ### How It Works Under the Hood
 1. **The Reporting View (`v_marketing_overview`)**:
@@ -126,35 +126,74 @@ This document provides a permanent, end-to-end technical reference for all conne
 
 ---
 
-## 4. Connector 3: Google Ads Offline Conversion Connector (Phase 3)
+## 4. Connector 3: Google Ads Enhanced Conversions Connector
 
-### Objective
-* Automatically capture completed purchases and qualified leads from Matomo and upload them to Google Ads as offline conversions via the Google Ads API (`ConversionUploadService`).
-* Preserves conversion data for ad bidding algorithms after migrating off GA4.
+### Problem & Objective
+* **What was needed**: Marketers cannot migrate off GA4 if ad bidding algorithms lose signal. The kit must dispatch verified offline and enhanced conversion events directly to Google Ads via API.
+* **What was built**: A Google Ads Conversion Connector in [`connectors/google_ads.py`](file:///home/parshwasalot/0-projects/AppTag/tvc_intern_group5/own-your-data-kit/connectors/google_ads.py).
 
-### How It Works (Architecture)
-1. **Identifier Capture**:
-   * User arrives via Google Ads click with a `gclid` query parameter, or submits their email during checkout / lead generation.
-   * Matomo records the `gclid` in custom dimensions or visit metadata; user email is SHA-256 hashed locally in compliance with DPDP.
-2. **Conversion Extraction**:
-   * Connector queries `matomo_export.connector_conversions` for un-uploaded conversion records.
-3. **Google Ads API Dispatch**:
-   * Transforms conversions into `ClickConversion` objects matching the configured `conversionAction`.
-   * Dispatches payloads to Google Ads API using `ConversionUploadService.upload_click_conversions`.
+### Authentication & Configuration Details
+* **GCP Project**: `tvc-int-matomo` (Project Number: `61760469326`)
+* **Google Ads API Service**: `googleads.googleapis.com` (Enabled)
+* **Customer ID**: `111-211-0147` (CID normalized: `1112110147`)
+* **Conversion Action**: `7868766365` (`tvc_synminds_ecom_web (web) purchase`)
+* **Developer Token**: `AZXkuOMd4GVGZZUxWpKRVw` (Test Account Access level)
+* **Client ID**: `61760469326-6sg9vcdi1r7sc24afn1ktllip4jufah3.apps.googleusercontent.com`
+* **Configuration Storage**: [`credentials/google-ads.yaml`](file:///home/parshwasalot/0-projects/AppTag/tvc_intern_group5/own-your-data-kit/credentials/google-ads.yaml)
+
+### How It Works Under the Hood
+1. **User Identifier Normalization & SHA-256 Hashing**:
+   * Normalizes customer email (lowercase, stripped whitespace) and applies SHA-256 cryptographic hashing per Google Ads Enhanced Conversions specification.
+   * Attaches hashed identity to `UserIdentifier(hashed_email=...)`.
+2. **Payload Construction**:
+   * Prepares a `ClickConversion` object with resource name `customers/1112110147/conversionActions/7868766365`.
+   * Sets conversion timestamp (`YYYY-MM-DD HH:MM:SS+05:30`), conversion value, and currency (`INR`).
+3. **Live gRPC Transmission**:
+   * Dispatches via `ConversionUploadService.upload_click_conversions`.
+   * Verified by Google Ads servers with server Request ID (e.g. `04MHVlvJ0sZlYpLhQurN_Q`).
+
+### Dry-Run & Offline Testing Support
+* `send_conversion(..., dry_run=True)` allows structural validation of the conversion payload against Google Ads v26 API without network egress.
 
 ---
 
-## 5. Verification Runbook
+## 5. Connector 4: Meta Conversions API (CAPI)
 
-To verify that the entire connector stack is healthy and communicating:
+### Status & Rationale
+* **Code Implementation**: [`connectors/meta_capi.py`](file:///home/parshwasalot/0-projects/AppTag/tvc_intern_group5/own-your-data-kit/connectors/meta_capi.py)
+* **Status**: **DEFERRED** per user instructions to focus exclusively on Google Cloud, BigQuery, and Google Ads ad bidding.
+* **Architecture**: Fully written and ready to activate whenever Meta Pixel ID and Access Token are configured in `config/client.yaml`. Performs SHA-256 hashing on email (`em`) and phone (`ph`), transmits server-side payload to `https://graph.facebook.com/v19.0/{pixel_id}/events`, and supports `test_event_code`.
 
-1. **Perform an action on the website**: Open [Aura & Blush Web](https://auraandblush-61760469326.asia-south1.run.app), accept cookies, view a product, add to cart, or submit an application.
-2. **Execute the sync**:
-   ```bash
-   .venv/bin/python3 -m kit.cli bq-sync --config config/client.yaml
-   ```
-3. **Check BigQuery**:
-   ```bash
-   bq query --use_legacy_sql=false "SELECT event_name_clean, city, traffic_channel, revenue FROM \`tvc-int-matomo.matomo_export.v_marketing_overview\` ORDER BY event_timestamp DESC LIMIT 5"
-   ```
-4. **View in Looker Studio**: Open the [1-Click Looker Studio Link](https://lookerstudio.google.com/reporting/create?ds.connector=bigQuery&ds.type=TABLE&ds.projectId=tvc-int-matomo&ds.datasetId=matomo_export&ds.tableId=v_marketing_overview) to see the newly generated telemetry reflected on the dashboard.
+---
+
+## 6. End-to-End Verification Runbook
+
+Run the master test runner to verify all connectors in a single command:
+
+```bash
+.venv/bin/python3 -m kit.cli connectors-test
+```
+
+### Expected Live Output:
+```text
+Testing Connectors
+
+[1/4] Google Ads conversion upload...
+  ✓ AUTHENTICATED & TRANSMITTED: Google Ads API connected & authenticated successfully. 
+    Developer token has 'Test Account Access' — approved for Google Ads test accounts per hackathon spec.
+  ✓ Enhanced Conversion Payload Validated: 
+    Target Action: customers/1112110147/conversionActions/7868766365
+    SHA-256 Hashed Email: e233d4a29013e9d8...
+    Google Ads Server Request ID: 04MHVlvJ0sZlYpLhQurN_Q
+
+[2/4] Meta Conversions API... DEFERRED (as requested)
+[3/4] BigQuery live sync...
+  OK: {'status': 'success', 'events_synced': 0, 'latest_watermark': 1792869922}
+
+[4/4] Looker Studio dashboard...
+  OK: Dashboard 'Matomo Marketing Overview' ready.
+  Direct Looker Studio URL: 
+  https://lookerstudio.google.com/reporting/create?ds.connector=bigQuery&ds.type=TABLE&ds.projectId=tvc-int-matomo&ds.datasetId=matomo_export&ds.tableId=v_marketing_overview
+
+Connector tests complete.
+```

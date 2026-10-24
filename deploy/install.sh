@@ -69,13 +69,26 @@ if [ "$DRY_RUN" = true ]; then
   echo -e "${BOLD}${MAGENTA}▶ DRY-RUN SIMULATION MODE ACTIVE (No real infrastructure or billing changes will be made)${RESET}\n"
 fi
 
+# Helper for robust input reading across interactive terminals and pipes (curl | bash)
+read_input() {
+  local prompt="$1"
+  local var_name="$2"
+  local default_val="$3"
+  local input=""
+  if [ -t 0 ]; then
+    read -rp "$prompt" input
+  elif [ -e /dev/tty ]; then
+    read -rp "$prompt" input </dev/tty || true
+  fi
+  eval "$var_name=\"\${input:-$default_val}\""
+}
+
 # Step 0: Interactive Prompts (if not unattended)
 if [ "$UNATTENDED" = false ]; then
   echo -e "${BOLD}[1/4] Select Target Infrastructure:${RESET}"
   echo "  1) Google Cloud Platform (VPC + Compute Engine VM in India asia-south1)"
   echo "  2) On-Premise / Bare Metal (Local Docker Compose stack with zero cloud lock-in)"
-  read -rp "Enter choice [1-2] (default: 1): " ENV_CHOICE
-  ENV_CHOICE="${ENV_CHOICE:-1}"
+  read_input "Enter choice [1-2] (default: 1): " ENV_CHOICE 1
 
   if [ "$ENV_CHOICE" = "1" ]; then
     TARGET_ENV="gcp"
@@ -86,8 +99,7 @@ if [ "$UNATTENDED" = false ]; then
   echo -e "\n${BOLD}[2/4] Select Open-Source Analytics Engine:${RESET}"
   echo "  1) Matomo   [Priority 1: Enterprise BFSI, Healthcare, E-Commerce]"
   echo "  2) PostHog [Priority 2: Product & App-led Analytics with ClickHouse]"
-  read -rp "Enter choice [1-2] (default: 1): " ENGINE_CHOICE
-  ENGINE_CHOICE="${ENGINE_CHOICE:-1}"
+  read_input "Enter choice [1-2] (default: 1): " ENGINE_CHOICE 1
   if [ "$ENGINE_CHOICE" = "2" ]; then
     STACK_ENGINE="posthog"
   else
@@ -96,14 +108,12 @@ if [ "$UNATTENDED" = false ]; then
 
   echo -e "\n${BOLD}[3/4] Client Identification:${RESET}"
   DEFAULT_CLIENT="client-$(date +%s | tail -c 4)"
-  read -rp "Enter Client Slug (default: $DEFAULT_CLIENT): " INPUT_CLIENT
-  CLIENT_NAME="${INPUT_CLIENT:-$DEFAULT_CLIENT}"
+  read_input "Enter Client Slug (default: $DEFAULT_CLIENT): " CLIENT_NAME "$DEFAULT_CLIENT"
 
   if [ "$TARGET_ENV" = "gcp" ]; then
     ACTIVE_GCP_PROJECT=$(gcloud config get-value project 2>/dev/null || echo "")
     echo -e "\n${BOLD}[4/4] Google Cloud Configuration:${RESET}"
-    read -rp "Enter GCP Project ID (default: ${ACTIVE_GCP_PROJECT:-tvc-int-matomo}): " INPUT_PROJECT
-    GCP_PROJECT="${INPUT_PROJECT:-${ACTIVE_GCP_PROJECT:-tvc-int-matomo}}"
+    read_input "Enter GCP Project ID (default: ${ACTIVE_GCP_PROJECT:-tvc-int-matomo}): " GCP_PROJECT "${ACTIVE_GCP_PROJECT:-tvc-int-matomo}"
   fi
 fi
 
@@ -419,6 +429,8 @@ echo -e "${BOLD}Ready-to-Run Operator Commands:${RESET}"
 echo -e "  • Check Stack Health : ${CYAN}.venv/bin/python3 -m kit.cli health${RESET}"
 echo -e "  • Run GA4 Migration  : ${CYAN}.venv/bin/python3 -m kit.cli migrate${RESET}"
 echo -e "  • Check Daily Parity : ${CYAN}.venv/bin/python3 -m kit.cli parity${RESET}"
+echo -e "  • Trigger Backup     : ${CYAN}.venv/bin/python3 -m kit.cli backup${RESET}"
+echo -e "  • Check Updates      : ${CYAN}.venv/bin/python3 -m kit.cli update --check-only${RESET}"
 echo -e "  • Stream to BigQuery : ${CYAN}.venv/bin/python3 -m kit.cli bq-sync${RESET}"
 echo -e "  • Test Connectors    : ${CYAN}.venv/bin/python3 -m kit.cli connectors-test${RESET}"
 echo "================================================================================"
