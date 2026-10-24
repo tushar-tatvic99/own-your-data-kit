@@ -1617,6 +1617,10 @@ function initBfsiEngine() {
     };
     window.dataLayer.push(eventPayload);
 
+    // Push to Matomo Tag Manager (MTM)
+    window._mtm = window._mtm || [];
+    window._mtm.push(eventPayload);
+
     // Also push to Matomo for dual-tracking
     if (window._paq && Array.isArray(window._paq)) {
       window._paq.push(['trackEvent', 'BFSI', eventName, params.financial_product_name || params.financial_category || '', params.financial_amount || 0]);
@@ -1711,6 +1715,8 @@ function initBfsiEngine() {
           if (d.dataLayer) {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push(d.dataLayer);
+            window._mtm = window._mtm || [];
+            window._mtm.push(d.dataLayer);
           }
         })
         .catch(() => {
@@ -1826,6 +1832,8 @@ function initBfsiEngine() {
           if (d.dataLayer) {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push(d.dataLayer);
+            window._mtm = window._mtm || [];
+            window._mtm.push(d.dataLayer);
           }
         })
         .catch(() => {
@@ -1957,7 +1965,9 @@ function initBfsiEngine() {
         if (d.dataLayer) {
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push(d.dataLayer);
-        }
+            window._mtm = window._mtm || [];
+            window._mtm.push(d.dataLayer);
+          }
         showToast('🏛️', 'Application Dispatched', `Dossier ${refId} submitted to Private Underwriting.`);
       })
       .catch(() => {
