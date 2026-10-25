@@ -44,7 +44,7 @@ if (-not $PyExe) {
             Write-Host "Installing requirements from requirements.txt (one-time setup)..." -ForegroundColor Cyan
             & $PyExe -m pip install --quiet --upgrade pip
             & $PyExe -m pip install --quiet -r "$ScriptDir\requirements.txt"
-            Write-Host "✓ Dependencies installed successfully." -ForegroundColor Green
+            Write-Host "[OK] Dependencies installed successfully." -ForegroundColor Green
         } else {
             Write-Host "Please install dependencies manually: py -3 -m pip install -r requirements.txt" -ForegroundColor Red
         }
