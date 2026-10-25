@@ -37,12 +37,20 @@ def run_parity(
     mode: str = "migration",
     dry_run: bool = False,
     override_events: list[str] | None = None,
+    fixture: bool = False,
+    break_tag: str | None = None,
 ) -> dict:
     """Run continuous parity check (migration dual-run or post-migration CRM ground truth)."""
     cfg = load_config(config_path)
     parity_cfg = cfg.get("parity", {})
     target_gap = float(parity_cfg.get("target_gap_percent", 5.0))
     stack_type = cfg.get("stack", {}).get("type", "matomo").upper()
+
+    # Backward compatibility with main branch arguments
+    if fixture or parity_cfg.get("use_fixture"):
+        dry_run = True
+    if break_tag:
+        simulate_break_event = break_tag
 
     if date is None:
         date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -310,13 +318,17 @@ def run_parity(
     else:
         console.print("\n[green]✓ All metrics within target tolerance.[/green]")
 
-    # Save report
+    # Save report (both JSON and Markdown summary)
     output_dir = Path("output/parity")
     output_dir.mkdir(parents=True, exist_ok=True)
     report_filename = f"parity-crm-{date}.json" if mode == "crm" else f"parity-{date}.json"
     report_path = output_dir / report_filename
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, default=str)
+
+    md_filename = f"parity-crm-{date}.md" if mode == "crm" else f"parity-{date}.md"
+    md_path = output_dir / md_filename
+    _write_markdown_report(md_path, report)
 
     log_action(
         actor="parity-agent",
@@ -458,3 +470,58 @@ def _send_alert(cfg: dict, report: dict, missed: list[dict]) -> None:
                 console.print("  [green]✓ Alert dispatched to Slack channel[/green]")
         except Exception as e:
             console.print(f"  [yellow]Slack alert webhook notice: {e}[/yellow]")
+
+
+def _write_markdown_report(path: Path, report: dict) -> None:
+    """Generate human-readable markdown summary for dashboard or email archiving."""
+    lines = [
+        f"# Parity Report — {report.get('date')}",
+        f"Mode: **{report.get('mode', 'live')}** ({report.get('execution_mode', 'live')}) | Target: ±{report.get('target_gap_percent')}%",
+    ]
+    if report.get("simulated_break"):
+        lines.append(f"Simulated break: **{report['simulated_break']}**")
+    lines.extend(["", "| Metric / Source | Baseline | Target Engine | Gap % | Status |", "|---|---|---|---|---|"])
+    for g in report.get("gaps", []):
+        status = "OK" if g.get("within_target") else "**MISS**"
+        metric_name = g.get("metric") or g.get("source")
+        base_val = g.get("ga4") if "ga4" in g else g.get("source_val")
+        tgt_val = g.get("target_engine")
+        lines.append(f"| {metric_name} | {base_val} | {tgt_val} | {g.get('gap_percent')}% | {status} |")
+    if report.get("diagnosis"):
+        lines.extend(["", "## Root-Cause Diagnosis & Proposed Fixes"])
+        for d in report["diagnosis"]:
+            lines.append(f"- **{d.get('confidence')}**: {d.get('cause')}")
+            lines.append(f"  - Fix: {d.get('fix')}")
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _send_threshold_alert(cfg: dict, report: dict) -> None:
+    """Backward compatibility alias for threshold miss alerts."""
+    missed = [g for g in report.get("gaps", []) if not g.get("within_target")]
+    _send_alert(cfg, report, missed)
+
+
+def _send_daily_report_email(cfg: dict, report: dict) -> None:
+    """Backward compatibility alias for daily parity email dispatch."""
+    missed = [g for g in report.get("gaps", []) if not g.get("within_target")]
+    _send_alert(cfg, report, missed)
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="OYDK Continuous Parity Engine")
+    parser.add_argument("config", nargs="?", default="config/client.yaml", help="Client config file")
+    parser.add_argument("date", nargs="?", default=None, help="Check date (YYYY-MM-DD)")
+    parser.add_argument("--dry-run", action="store_true", help="Run in simulation mode without querying live APIs")
+    parser.add_argument("--fixture", action="store_true", help="Alias for --dry-run (offline mode)")
+    parser.add_argument("--mode", choices=["migration", "crm"], default="migration", help="Parity mode")
+    parser.add_argument("--break-event", "--break-tag", dest="break_event", default=None, help="Simulate a broken tag event")
+    args = parser.parse_args()
+
+    run_parity(
+        config_path=args.config,
+        date=args.date,
+        simulate_break_event=args.break_event,
+        mode=args.mode,
+        dry_run=args.dry_run or args.fixture,
+    )

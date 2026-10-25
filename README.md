@@ -2,9 +2,10 @@
 
 Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — deployed on the client's own cloud in India, with migration done mostly by an agent.
 
-**Built by Tatvic** | Stack: Matomo (self-hosted) | Region: India (`asia-south1`)  
+**Built by Tatvic** | Default stack: Matomo (adapter swappable — [kit vs stack](docs/kit-vs-analytics-stack.md)) | Region: India (`asia-south1`)  
 **Live Judge Portal**: [https://oydk-portal-61760469326.asia-south1.run.app](https://oydk-portal-61760469326.asia-south1.run.app)  
 **Live Test Store**: [https://auraandblush-61760469326.asia-south1.run.app](https://auraandblush-61760469326.asia-south1.run.app)  
+**Matomo Analytics Admin**: [https://matomo.35-234-210-199.nip.io](https://matomo.35-234-210-199.nip.io)
 
 ---
 
@@ -17,6 +18,12 @@ Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — dep
 | **GA4 migration agent** | Reads GA4 + GTM via APIs, builds Matomo setup, writes GTM draft |
 | **Parity checker** | Daily/weekly GA4 vs Matomo comparison with alerts and diagnosis |
 | **Connectors** | Google Ads, Meta CAPI, BigQuery export, Looker Studio dashboard |
+
+## Aurablush production (asia-south1)
+
+- **Site:** https://auraandblush-61760469326.asia-south1.run.app  
+- **Tracking:** Google GTM → GA4; Matomo via MTM (see [docs/aurablush-tracking-architecture.md](docs/aurablush-tracking-architecture.md))  
+- **Config:** `config/client.yaml`
 
 ## Quick start
 
@@ -49,10 +56,32 @@ Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — dep
 # Install dependencies
 pip install -r requirements.txt
 
-# Background Daemon (Parity checker & BigQuery incremental streaming)
-docker compose up -d
-docker compose logs -f
+# Start local stack (Matomo + kit services)
+export OYDK_LOCAL=1            # Linux/Mac
+# On Windows PowerShell: $env:OYDK_LOCAL = "1"
+
+# Or run via Docker Compose directly:
+docker compose -f deploy/docker/docker-compose.yml up -d
+docker compose -f deploy/docker/docker-compose.yml logs -f
+
+# Matomo:  http://localhost:8080
+# Kit API: http://localhost:8090
 ```
+
+### Cloud deployment (one command)
+
+**One command** provisions the full stack on a **new GCP project** (VM, Matomo, TLS, kit API, backups, schedulers — India region). No manual Terraform or Docker assembly.
+
+```bash
+# Interactive Master Installer (GCP India Region or On-Premise Docker)
+./deploy/install.sh
+
+# Unattended GCP Cloud Deploy
+SCALE_PROFILE=standard ./deploy/deploy.sh <gcp-project-id> <client-name>
+# On Windows PowerShell: .\deploy\deploy.ps1 -ProjectId <gcp-project-id> -ClientName <client> -Profile standard
+```
+
+**After that**, the client’s Google/Matomo logins need **~3 short steps** (wizard + `client.yaml` + site tags) — things no deploy script can do without their accounts. See **[docs/post-deploy-checklist.md](docs/post-deploy-checklist.md)**.
 
 ### Configure a client
 
@@ -76,7 +105,20 @@ python -m kit.cli dsar-delete --user-id visitor-123
 
 # Test connectors
 python -m kit.cli connectors-test
+
+# Verify all five required build parts (hackathon checklist)
+python -m kit.cli verify-parts
 ```
+
+See **[docs/five-parts-complete.md](docs/five-parts-complete.md)** for the full rubric mapping.
+
+### Stretch: GA4 history import (BigQuery → Matomo)
+
+```powershell
+py -3 -m kit.cli import-ga4-history -c config/client.yaml --fixture --dry-run
+```
+
+See **[docs/ga4-history-import.md](docs/ga4-history-import.md)**.
 
 ## Project structure
 

@@ -4,6 +4,10 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 
+from kit.env import load_kit_env
+
+load_kit_env()
+
 console = Console()
 
 
@@ -128,28 +132,34 @@ def update(config: str, check_only: bool):
 @click.option("--property-id", "-p", default=None, help="GA4 Property ID (overrides config)")
 @click.option("--container-id", "-g", default=None, help="GTM Container ID (overrides config)")
 @click.option("--dry-run", is_flag=True, help="Simulate migration without live Google API calls")
-def migrate(config: str, property_id: str | None, container_id: str | None, dry_run: bool):
+@click.option("--fixture", is_flag=True, help="Alias for --dry-run (offline mode)")
+def migrate(config: str, property_id: str | None, container_id: str | None, dry_run: bool, fixture: bool):
     """Run GA4/GTM migration agent."""
     from agents.migration.run import run_migration
 
-    run_migration(config_path=config, property_id=property_id, container_id=container_id, dry_run=dry_run)
+    actual_dry_run = dry_run or fixture
+    run_migration(config_path=config, property_id=property_id, container_id=container_id, dry_run=actual_dry_run)
 
 
 @main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--date", "-d", default=None, help="Date to check (YYYY-MM-DD, default yesterday)")
 @click.option("--simulate-break", default=None, help="Simulate a broken tag for this event name (e.g. purchase)")
+@click.option("--break-tag", default=None, help="Alias for --simulate-break")
 @click.option("--mode", "-m", type=click.Choice(["migration", "crm"]), default="migration", help="Parity mode: 'migration' (GA4 dual-run) or 'crm' (client backend CRM records)")
 @click.option("--crm", is_flag=True, default=False, help="Shortcut to verify parity against client CRM / backend records (post-migration mode)")
 @click.option("--events", default=None, help="Comma-separated list of key events to check (overrides config)")
 @click.option("--dry-run", is_flag=True, help="Simulate parity check without live Google/BigQuery calls")
-def parity(config: str, date: str | None, simulate_break: str | None, mode: str, crm: bool, events: str | None, dry_run: bool):
+@click.option("--fixture", is_flag=True, help="Alias for --dry-run (offline mode)")
+def parity(config: str, date: str | None, simulate_break: str | None, break_tag: str | None, mode: str, crm: bool, events: str | None, dry_run: bool, fixture: bool):
     """Run continuous parity check (GA4 dual-run or post-migration CRM ground truth)."""
     from agents.parity.run import run_parity
 
     actual_mode = "crm" if crm else mode
+    actual_dry_run = dry_run or fixture
+    actual_break = simulate_break or break_tag
     ev_list = [e.strip() for e in events.split(",") if e.strip()] if events else None
-    run_parity(config, date, simulate_break_event=simulate_break, mode=actual_mode, dry_run=dry_run, override_events=ev_list)
+    run_parity(config, date, simulate_break_event=actual_break, mode=actual_mode, dry_run=actual_dry_run, override_events=ev_list)
 
 
 @main.command("simulate-tag-break")
@@ -531,6 +541,97 @@ def cost_calculator(monthly_events: int, tool: str, currency: str):
     from kit.sales.cost_calculator import display_cost_calculator
 
     display_cost_calculator(monthly_events=monthly_events, current_tool=tool, currency=currency)
+
+
+@main.command("dsar-subject-id")
+@click.option("--email", "-e", required=True, help="Registered email from the erasure form")
+def dsar_subject_id(email: str):
+    """Print Matomo User ID (dpdp-…) for an email — use with dsar-lookup."""
+    from dpdp.subject_id import subject_user_id
+
+    console.print(subject_user_id(email))
+
+
+@main.command("verify-dpdp")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+def verify_dpdp_cmd(config: str):
+    """Verify DPDP: token, DSAR, retention, audit, PII scrub."""
+    from dpdp.verify_dpdp import verify_dpdp
+
+    raise SystemExit(0 if verify_dpdp(config) else 1)
+
+
+@main.command("verify-matomo")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+def verify_matomo(config: str):
+    """Check Matomo API token from .env against config stack URL."""
+    from kit.config import load_config
+    from kit.matomo_token import resolve_matomo_token, verify_matomo_token
+
+    cfg = load_config(config)
+    token = resolve_matomo_token(cfg["stack"]["api_token"])
+    verify_matomo_token(cfg["stack"]["url"], token, int(cfg["stack"]["site_id"]))
+    console.print("[green]Matomo API token OK[/green]")
+
+
+@main.command("verify-parts")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+def verify_parts(config: str):
+    """Verify all five required build parts are present."""
+    from kit.verify_parts import verify_all
+
+    ok = verify_all(config)
+    raise SystemExit(0 if ok else 1)
+
+
+@main.command("dsar-export")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--user-id", required=True, help="Visitor ID or hashed email to export")
+def dsar_export(config: str, user_id: str):
+    """DPDP: export a person's analytics data (access/portability)."""
+    from dpdp.dsar import export_user
+
+    console.print(export_user(config, user_id))
+
+
+@main.command("import-ga4-history")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--start", default=None, help="Start date YYYY-MM-DD")
+@click.option("--end", default=None, help="End date YYYY-MM-DD")
+@click.option("--limit", type=int, default=None, help="Max rows to import")
+@click.option("--fixture", is_flag=True, help="Use sample JSON instead of BigQuery")
+@click.option("--dry-run", is_flag=True, help="Count only; do not send tracker hits")
+@click.option("--mirror-bq", is_flag=True, help="Also write rows to kit BigQuery warehouse")
+def import_ga4_history_cmd(
+    config: str,
+    start: str | None,
+    end: str | None,
+    limit: int | None,
+    fixture: bool,
+    dry_run: bool,
+    mirror_bq: bool,
+):
+    """Stretch: import GA4 BigQuery export history into Matomo (backdated cdt)."""
+    from agents.history.run import run_ga4_history_import
+
+    run_ga4_history_import(
+        config,
+        start_date=start,
+        end_date=end,
+        limit=limit,
+        fixture=fixture,
+        dry_run=dry_run,
+        mirror_bq=mirror_bq,
+    )
+
+
+@main.command("retention-run")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+def retention_run(config: str):
+    """Apply / audit configured data retention policy."""
+    from dpdp.retention import enforce_retention
+
+    console.print(enforce_retention(config))
 
 
 if __name__ == "__main__":

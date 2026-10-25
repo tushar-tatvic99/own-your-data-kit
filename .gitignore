@@ -1,3 +1,6 @@
+# Node
+node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -19,8 +22,13 @@ deploy/terraform/terraform.tfvars
 credentials/
 *.json
 !config/example.client.yaml
+config/client.yaml
 !dpdp/klaro_config.json
 !connectors/looker/templates/*.json
+!agents/parity/fixtures/*.json
+!agents/history/fixtures/*.json
+!demo/infinity-shop/package.json
+!demo/infinity-shop/package-lock.json
 
 # OS
 .DS_Store

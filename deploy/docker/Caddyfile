@@ -1,0 +1,4 @@
+{$MATOMO_PUBLIC_HOST:matomo.35-234-210-199.nip.io} {
+	encode gzip
+	reverse_proxy matomo:80
+}

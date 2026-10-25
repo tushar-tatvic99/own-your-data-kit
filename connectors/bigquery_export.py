@@ -1,7 +1,6 @@
-"""Automated BigQuery Export Pipeline for Matomo Telemetry."""
+"""BigQuery export — batch insert, Matomo live sync, and kit warehouse tables."""
 
 import json
-import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,8 +24,16 @@ CONVERSION_EVENT_NAMES = {
 }
 
 
+def _ensure_dataset(client: bigquery.Client, project_id: str, dataset: str) -> None:
+    dataset_ref = bigquery.Dataset(f"{project_id}.{dataset}")
+    dataset_ref.location = "asia-south1"
+    try:
+        client.create_dataset(dataset_ref, exists_ok=True)
+    except Exception:
+        pass
+
+
 def get_last_sync_watermark(watermark_path: str = DEFAULT_WATERMARK_FILE) -> int:
-    """Retrieve the highest processed unix timestamp from the watermark file."""
     path = Path(watermark_path)
     if not path.exists():
         return 0
@@ -38,7 +45,6 @@ def get_last_sync_watermark(watermark_path: str = DEFAULT_WATERMARK_FILE) -> int
 
 
 def save_sync_watermark(watermark_path: str, timestamp: int, extra: dict | None = None) -> None:
-    """Persist the highest processed unix timestamp to disk."""
     path = Path(watermark_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -54,7 +60,6 @@ def fetch_matomo_actions(
     min_timestamp: int = 0,
     filter_limit: int = 100,
 ) -> tuple[list[dict], int]:
-    """Extract individual actions (pageviews, events, conversions) from Matomo visits."""
     try:
         visits = matomo._api(
             "Live.getLastVisitsDetails",
@@ -63,14 +68,13 @@ def fetch_matomo_actions(
             date="today",
         )
     except Exception as e:
-        # Fallback or empty if connection error
         print(f"Warning: Failed to fetch live visits from Matomo: {e}")
         return [], min_timestamp
 
     if not isinstance(visits, list):
         return [], min_timestamp
 
-    extracted_events = []
+    extracted_events: list[dict] = []
     max_ts = min_timestamp
 
     for visit in visits:
@@ -82,15 +86,11 @@ def fetch_matomo_actions(
             action_ts = int(action.get("timestamp", 0))
             if action_ts <= min_timestamp:
                 continue
-
-            if action_ts > max_ts:
-                max_ts = action_ts
+            max_ts = max(max_ts, action_ts)
 
             action_type = action.get("type", "unknown")
             page_url = action.get("url") or visit.get("referrerUrl") or ""
             revenue = float(action.get("revenue") or action.get("eventValue") or 0.0)
-
-            # Dimensions & metadata
             dimensions = {
                 "city": visit.get("city"),
                 "country": visit.get("country"),
@@ -101,24 +101,21 @@ def fetch_matomo_actions(
             }
 
             if action_type == "action":
-                event_name = "pageview"
-                event_category = "pageview"
+                event_name, event_category = "pageview", "pageview"
             elif action_type == "event":
                 event_name = action.get("eventName") or action.get("eventAction") or "event"
                 event_category = action.get("eventCategory", "general")
             elif action_type == "ecommerceOrder":
-                event_name = "purchase"
-                event_category = "ecommerce"
+                event_name, event_category = "purchase", "ecommerce"
             elif action_type == "ecommerceAbandonedCart":
-                event_name = "abandoned_cart"
-                event_category = "ecommerce"
+                event_name, event_category = "abandoned_cart", "ecommerce"
             else:
                 event_name = action.get("title") or action_type
                 event_category = action_type
 
-            # ISO Timestamp for BigQuery TIMESTAMP field
-            iso_timestamp = datetime.fromtimestamp(action_ts, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-
+            iso_timestamp = datetime.fromtimestamp(action_ts, timezone.utc).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
             extracted_events.append({
                 "event_timestamp": iso_timestamp,
                 "event_name": str(event_name),
@@ -131,21 +128,13 @@ def fetch_matomo_actions(
                 "_raw_timestamp": action_ts,
             })
 
-    # Sort ascending by timestamp so streaming occurs chronologically
     extracted_events.sort(key=lambda x: x["_raw_timestamp"])
     return extracted_events, max_ts
 
 
 def create_export_schema(project_id: str, dataset: str, table: str) -> None:
-    """Create BigQuery table with standard schema if it does not already exist."""
     client = bigquery.Client(project=project_id)
-    dataset_ref = bigquery.Dataset(f"{project_id}.{dataset}")
-    dataset_ref.location = "asia-south1"
-    try:
-        client.create_dataset(dataset_ref, exists_ok=True)
-    except Exception:
-        pass
-
+    _ensure_dataset(client, project_id, dataset)
     schema = [
         bigquery.SchemaField("event_timestamp", "TIMESTAMP"),
         bigquery.SchemaField("event_name", "STRING"),
@@ -160,37 +149,48 @@ def create_export_schema(project_id: str, dataset: str, table: str) -> None:
     client.create_table(table_ref, exists_ok=True)
 
 
+def _normalize_event_row(event: dict[str, Any]) -> dict[str, Any]:
+    """Accept kit demo rows (category/url) or sync rows (event_category/page_url)."""
+    ts = event.get("event_timestamp")
+    if not ts:
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    cat = event.get("event_category") or event.get("category") or ""
+    url = event.get("page_url") or event.get("url") or ""
+    dims = event.get("custom_dimensions", {})
+    if not isinstance(dims, str):
+        dims = json.dumps(dims)
+    return {
+        "event_timestamp": ts,
+        "event_name": event.get("event_name", ""),
+        "event_category": cat,
+        "page_url": url,
+        "visitor_id": event.get("visitor_id", ""),
+        "session_id": event.get("session_id", ""),
+        "custom_dimensions": dims,
+        "revenue": float(event.get("revenue", 0.0) or 0.0),
+    }
+
+
 def export_events(
     project_id: str,
     dataset: str,
     table: str,
     events: list[dict],
+    credentials_path: str | None = None,
 ) -> dict:
-    """Stream formatted events into BigQuery."""
+    """Insert events into BigQuery (demo pipeline, history mirror, or sync)."""
     if not events:
         return {"status": "success", "rows_inserted": 0, "errors": []}
 
     client = bigquery.Client(project=project_id)
     table_ref = f"{project_id}.{dataset}.{table}"
+    create_export_schema(project_id, dataset, table)
 
-    rows_to_insert = [
-        {
-            "event_timestamp": e["event_timestamp"],
-            "event_name": e["event_name"],
-            "event_category": e["event_category"],
-            "page_url": e["page_url"],
-            "visitor_id": e["visitor_id"],
-            "session_id": e["session_id"],
-            "custom_dimensions": e["custom_dimensions"],
-            "revenue": e["revenue"],
-        }
-        for e in events
-    ]
-
-    errors = client.insert_rows_json(table_ref, rows_to_insert)
+    rows = [_normalize_event_row(e) for e in events]
+    errors = client.insert_rows_json(table_ref, rows)
     return {
         "status": "success" if not errors else "partial",
-        "rows_inserted": len(rows_to_insert) - len(errors),
+        "rows_inserted": len(rows) - len(errors),
         "errors": errors,
     }
 
@@ -201,7 +201,6 @@ def run_bigquery_sync(
     continuous: bool = False,
     interval_seconds: int = 60,
 ) -> dict:
-    """Orchestrate end-to-end sync from Matomo to BigQuery."""
     cfg = load_config(config_path)
     bq_cfg = cfg.get("connectors", {}).get("bigquery", {})
     stack_cfg = cfg.get("stack", {})
@@ -211,7 +210,6 @@ def run_bigquery_sync(
     events_table = bq_cfg.get("table", "events")
     conversions_table = bq_cfg.get("conversions_table", "connector_conversions")
 
-    # Ensure tables exist
     create_export_schema(project_id, dataset, events_table)
     create_export_schema(project_id, dataset, conversions_table)
 
@@ -219,6 +217,7 @@ def run_bigquery_sync(
 
     iteration = 0
     total_synced = 0
+    new_watermark = get_last_sync_watermark(watermark_path)
 
     while True:
         iteration += 1
@@ -226,19 +225,15 @@ def run_bigquery_sync(
         events, new_watermark = adapter.fetch_stream_actions(since_timestamp=watermark)
 
         if events:
-            # 1. Insert into raw events table
             res_events = export_events(project_id, dataset, events_table, events)
-            
-            # 2. Filter conversions and insert into conversions table
             conversion_events = [
-                e for e in events
+                e
+                for e in events
                 if e["event_name"].lower() in CONVERSION_EVENT_NAMES
                 or e["event_category"].lower() in ("ecommerce", "bfsi_backend_api", "lead")
                 or e["revenue"] > 0
             ]
             res_conv = export_events(project_id, dataset, conversions_table, conversion_events)
-
-            # 3. Update watermark
             save_sync_watermark(
                 watermark_path,
                 new_watermark,
@@ -247,7 +242,6 @@ def run_bigquery_sync(
                     "total_conversions_synced": res_conv["rows_inserted"],
                 },
             )
-
             total_synced += res_events["rows_inserted"]
             log_action(
                 actor="connector-bq",
@@ -259,9 +253,14 @@ def run_bigquery_sync(
                     "new_watermark": new_watermark,
                 },
             )
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Synced {res_events['rows_inserted']} events, {res_conv['rows_inserted']} conversions to BigQuery.")
+            print(
+                f"[{datetime.now().strftime('%H:%M:%S')}] Synced "
+                f"{res_events['rows_inserted']} events, {res_conv['rows_inserted']} conversions."
+            )
         else:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] No new events since watermark ({watermark}). BigQuery up to date.")
+            print(
+                f"[{datetime.now().strftime('%H:%M:%S')}] No new events since watermark ({watermark})."
+            )
 
         if not continuous:
             return {

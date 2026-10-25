@@ -38,9 +38,18 @@ def _get_session() -> Session:
     return _Session()
 
 
-def log_action(actor: str, action: str, resource: str,
-               details: dict | None = None, ip_address: str | None = None) -> None:
+def log_action(
+    actor: str,
+    action: str,
+    resource: str,
+    details: dict | None = None,
+    ip_address: str | None = None,
+    *,
+    enabled: bool = True,
+) -> None:
     """Record an audit log entry."""
+    if not enabled:
+        return
     session = _get_session()
     entry = AuditEntry(
         actor=actor,

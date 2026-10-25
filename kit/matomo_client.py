@@ -22,8 +22,28 @@ class MatomoClient:
             "token_auth": self.token,
         })
         resp = requests.post(f"{self.base_url}/index.php", data=params, timeout=30)
-        resp.raise_for_status()
-        return resp.json()
+        if resp.status_code == 401:
+            raise requests.HTTPError(
+                "401 Unauthorized — set MATOMO_API_TOKEN in .env (Matomo → Personal → Security)",
+                response=resp,
+            )
+        if resp.status_code >= 400:
+            try:
+                body = resp.json()
+                msg = body.get("message", resp.text[:200])
+            except Exception:
+                msg = resp.text[:200]
+            if "too many failed logins" in msg.lower():
+                raise requests.HTTPError(
+                    f"{resp.status_code} — {msg}. Clear matomo_brute_force_log on the server "
+                    "(deploy/docker/clear-matomo-brute-force.sh) or wait ~15 minutes.",
+                    response=resp,
+                )
+            raise requests.HTTPError(f"{resp.status_code} — {msg}", response=resp)
+        data = resp.json()
+        if isinstance(data, dict) and data.get("result") == "error":
+            raise requests.HTTPError(data.get("message", "Matomo API error"), response=resp)
+        return data
 
     # --- Goals (conversions) ---
     def list_goals(self) -> list[dict]:
@@ -65,23 +85,43 @@ class MatomoClient:
 
     # --- DSAR ---
     def find_visits_by_user_id(self, user_id: str) -> list[dict]:
-        """Search visits by custom dimension or visitor ID."""
-        return self._api(
-            "Live.getLastVisitsDetails",
-            filterLimit=100,
-            segment=f"customVariableValue1=={user_id}",
-        )
+        """Search visits by User ID, visitor ID, or email-like custom dimension."""
+        segments = [
+            f"userId=={user_id}",
+            f"visitorId=={user_id}",
+        ]
+        for segment in segments:
+            result = self._api(
+                "Live.getLastVisitsDetails",
+                period="month",
+                date="today",
+                filterLimit=100,
+                segment=segment,
+            )
+            if isinstance(result, dict) and result.get("result") == "error":
+                continue
+            if isinstance(result, list):
+                return result
+        return []
 
-    def delete_visitor_data(self, visitor_id: str) -> dict:
-        """Request deletion of all data for a visitor (GDPR/DPDP plugin)."""
-        return self._api(
-            "PrivacyManager.deleteDataSubjects",
-            jsonData=json.dumps([{"visitorId": visitor_id}]),
-        )
+    def delete_data_subjects(self, visits: list[dict]) -> dict:
+        """Delete stored visit rows for data subjects (Matomo PrivacyManager GDPR API)."""
+        params: dict[str, Any] = {}
+        for i, visit in enumerate(visits):
+            id_site = visit.get("idSite") or visit.get("idsite") or self.site_id
+            id_visit = visit.get("idVisit") or visit.get("idvisit")
+            if id_visit is None:
+                continue
+            params[f"visits[{i}][idsite]"] = int(id_site)
+            params[f"visits[{i}][idvisit]"] = int(id_visit)
+        if not params:
+            return {"result": "error", "message": "No visits to delete"}
+        return self._api("PrivacyManager.deleteDataSubjects", **params)
 
-    # --- Site settings ---
-    def set_data_retention(self, days: int) -> dict:
+    # --- Privacy / retention ---
+    def set_delete_logs_settings(self, days: int, enabled: bool = True) -> dict:
         return self._api(
-            "SitesManager.setSiteSpecificSettings",
-            settings=json.dumps({"delete_logs_older_than": days}),
+            "PrivacyManager.setDeleteLogsSettings",
+            deleteLogsEnable=1 if enabled else 0,
+            deleteLogsOlderThan=int(days),
         )

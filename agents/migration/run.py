@@ -36,8 +36,11 @@ def run_migration(
     property_id: str | None = None,
     container_id: str | None = None,
     dry_run: bool = False,
+    fixture: bool = False,
 ) -> dict:
     """Execute the full autonomous migration agent pipeline."""
+    if fixture:
+        dry_run = True
     cfg = load_config(config_path)
     output_dir = Path(cfg.get("migration", {}).get("output_dir", "output/migration"))
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -344,3 +347,21 @@ def _write_markdown_report(path: Path, report: dict) -> None:
     ])
 
     path.write_text("\n".join(lines), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="OYDK Autonomous GA4 Migration Agent")
+    parser.add_argument("config", nargs="?", default="config/client.yaml", help="Path to client config file")
+    parser.add_argument("-p", "--property-id", default=None, help="GA4 Property ID override")
+    parser.add_argument("-g", "--container-id", default=None, help="GTM Container ID override")
+    parser.add_argument("--dry-run", action="store_true", help="Simulate migration without calling Google APIs")
+    parser.add_argument("--fixture", action="store_true", help="Alias for --dry-run")
+    args = parser.parse_args()
+
+    run_migration(
+        config_path=args.config,
+        property_id=args.property_id,
+        container_id=args.container_id,
+        dry_run=args.dry_run or args.fixture,
+    )

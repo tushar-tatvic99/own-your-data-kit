@@ -1,10 +1,13 @@
-"""Kit API — DSAR endpoints, audit log, backup trigger."""
+"""Kit API — DSAR endpoints, audit log, backup trigger, parity, retention."""
 
 import json
+import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from dpdp.audit_log import get_audit_log, log_action
-from dpdp.dsar import delete_user, lookup_user
+from dpdp.dsar import delete_user, export_user, lookup_user
+from dpdp.erasure import process_erasure
+from dpdp.retention import enforce_retention
 
 
 class KitAPIHandler(BaseHTTPRequestHandler):
@@ -12,7 +15,16 @@ class KitAPIHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
+        self.wfile.write(json.dumps(data, default=str).encode())
+
+    def _read_json(self) -> dict:
+        length = int(self.headers.get("Content-Length", 0))
+        if not length:
+            return {}
+        try:
+            return json.loads(self.rfile.read(length))
+        except Exception:
+            return {}
 
     def do_GET(self):
         if self.path == "/health":
@@ -23,24 +35,79 @@ class KitAPIHandler(BaseHTTPRequestHandler):
             self._json_response(404, {"error": "not found"})
 
     def do_POST(self):
-        length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length)) if length else {}
+        body = self._read_json()
 
-        if self.path == "/dsar/lookup":
-            result = lookup_user("config/client.yaml", body["user_id"])
+        if self.path == "/dsar/process-erasure":
+            email = (body.get("email") or "").strip()
+            if not email:
+                self._json_response(400, {"error": "email required"})
+                return
+            result = process_erasure(
+                "config/client.yaml",
+                email=email,
+                scope=body.get("scope", "full_erasure"),
+                ticket_id=body.get("ticket_id") or body.get("ticketId") or "WEB-UNKNOWN",
+                legal_hold=bool(body.get("legal_hold")),
+                name=body.get("name"),
+            )
             self._json_response(200, result)
+            return
 
-        elif self.path == "/dsar/delete":
-            result = delete_user("config/client.yaml", body["user_id"])
+        if self.path in ("/dsar/lookup", "/dsar/export", "/dsar/delete"):
+            user_id = body.get("user_id")
+            if not user_id:
+                self._json_response(400, {"error": "user_id required"})
+                return
+            if self.path == "/dsar/lookup":
+                result = lookup_user("config/client.yaml", user_id)
+            elif self.path == "/dsar/export":
+                result = export_user("config/client.yaml", user_id)
+            else:
+                result = delete_user("config/client.yaml", user_id)
             self._json_response(200, result)
+            return
 
         elif self.path == "/internal/backup":
             try:
                 from kit.backup import execute_backup
+
                 result = execute_backup("config/client.yaml")
                 self._json_response(200, result)
             except Exception as e:
                 self._json_response(500, {"status": "error", "message": str(e)})
+
+        elif self.path == "/internal/dpdp-audit":
+            log_action(
+                "web-dpdp-form",
+                body.get("action", "erasure"),
+                f"ticket:{body.get('ticket_id', 'unknown')}",
+                details={
+                    k: body[k]
+                    for k in (
+                        "visits_before",
+                        "visits_deleted",
+                        "legal_hold",
+                        "email_domain",
+                    )
+                    if k in body
+                },
+            )
+            self._json_response(200, {"status": "logged"})
+
+        elif self.path == "/internal/retention":
+            result = enforce_retention("config/client.yaml")
+            self._json_response(200, result)
+
+        elif self.path == "/internal/parity":
+            date = body.get("date")
+
+            def _run():
+                from agents.parity.run import run_parity
+
+                run_parity("config/client.yaml", date)
+
+            threading.Thread(target=_run, daemon=True).start()
+            self._json_response(202, {"status": "parity started", "date": date})
 
         else:
             self._json_response(404, {"error": "not found"})

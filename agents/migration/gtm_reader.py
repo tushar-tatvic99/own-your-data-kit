@@ -209,6 +209,27 @@ class GTMReader:
                 f"Google Tag Manager API error while creating draft workspace '{name}' in '{self._container_path}':\n{e}"
             )
 
+    def get_or_create_migration_workspace(self, name: str = "OYDK Migration Draft") -> dict[str, Any]:
+        """Return OYDK draft workspace, creating it if it doesn't already exist."""
+        if self.dry_run:
+            return self.create_migration_workspace(name)
+
+        try:
+            listed = self.service.accounts().containers().workspaces().list(parent=self._container_path).execute()
+            for workspace in listed.get("workspace", []):
+                if workspace.get("name") == name:
+                    return {
+                        "workspace_id": workspace.get("workspaceId"),
+                        "workspace_path": workspace.get("path"),
+                        "name": workspace.get("name"),
+                        "created": False,
+                    }
+            res = self.create_migration_workspace(name)
+            res["created"] = True
+            return res
+        except Exception:
+            return self.create_migration_workspace(name)
+
     def create_custom_html_tag(
         self,
         workspace_id: str,
