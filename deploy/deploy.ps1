@@ -174,8 +174,28 @@ if command -v docker-compose >/dev/null; then DC=docker-compose; else DC='docker
 sudo `$DC up -d --build
 if [ -f matomo-https-config.sh ]; then sudo ./matomo-https-config.sh || true; fi
 "@
-gcloud compute ssh $VmName @VmFlags --command="echo $(ConvertTo-RemoteBase64 $RemoteSetup) | base64 -d | bash"
-if ($LASTEXITCODE -ne 0) { throw "Remote environment setup on $VmName failed" }
+# plink drops long sessions with heavy output (docker build) with "nonexistent
+# channel", so run the setup detached on the VM and poll for its exit code
+$Launch = @"
+echo $(ConvertTo-RemoteBase64 $RemoteSetup) | base64 -d > /tmp/oydk-setup.sh
+rm -f /tmp/oydk-setup.exit
+setsid nohup bash -c 'bash /tmp/oydk-setup.sh > /tmp/oydk-setup.log 2>&1; echo `$? > /tmp/oydk-setup.exit' >/dev/null 2>&1 < /dev/null &
+"@
+gcloud compute ssh $VmName @VmFlags --command="echo $(ConvertTo-RemoteBase64 $Launch) | base64 -d | bash"
+if ($LASTEXITCODE -ne 0) { throw "Starting remote environment setup on $VmName failed" }
+
+$Poll = "if [ -f /tmp/oydk-setup.exit ]; then echo EXIT=`$(cat /tmp/oydk-setup.exit); else echo RUNNING; tail -n 1 /tmp/oydk-setup.log; fi"
+$SetupExit = $null
+for ($i = 1; $i -le 80 -and $null -eq $SetupExit; $i++) {
+    Start-Sleep -Seconds 15
+    $status = @(gcloud compute ssh $VmName @VmFlags --command="echo $(ConvertTo-RemoteBase64 $Poll) | base64 -d | bash")
+    $exitLine = $status | Where-Object { $_ -match '^EXIT=(\d+)' } | Select-Object -First 1
+    if ($exitLine) { $SetupExit = [int]($exitLine -replace '^EXIT=', '') }
+    else { Write-Host "  Setup running on VM ($i/80): $(($status | Select-Object -Last 1))" }
+}
+gcloud compute ssh $VmName @VmFlags --command="tail -n 15 /tmp/oydk-setup.log"
+if ($null -eq $SetupExit) { throw "Remote environment setup on $VmName did not finish within 20 minutes (log: /tmp/oydk-setup.log on the VM)" }
+if ($SetupExit -ne 0) { throw "Remote environment setup on $VmName failed with exit code $SetupExit (log: /tmp/oydk-setup.log on the VM)" }
 
 Write-Host "[5/7] Waiting for Matomo (HTTPS)..."
 $ok = $false
