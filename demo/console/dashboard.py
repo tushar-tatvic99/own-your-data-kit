@@ -448,6 +448,26 @@ def connectors_dashboard(config_path: str) -> dict[str, Any]:
     return {"connectors": items, "demo_mode": demo}
 
 
+def _ga4_export_dataset_status(project: str, dataset: str) -> dict[str, Any]:
+    if not project or not dataset:
+        return {"exists": False, "detail": "project_id or dataset not configured"}
+    try:
+        from agents.history.ga4_bq_reader import resolve_bq_location
+        from google.cloud import bigquery
+
+        client = bigquery.Client(project=project)
+        loc = resolve_bq_location(client, project, dataset)
+        if loc:
+            return {"exists": True, "location": loc, "dataset_id": f"{project}.{dataset}"}
+        return {
+            "exists": False,
+            "dataset_id": f"{project}.{dataset}",
+            "detail": "Dataset not found — enable GA4 → BigQuery linking for this property.",
+        }
+    except Exception as exc:
+        return {"exists": False, "dataset_id": f"{project}.{dataset}", "detail": str(exc)[:300]}
+
+
 def bq_export_guide(config_path: str) -> dict[str, Any]:
     """GA4 BigQuery export → Matomo backfill (not Matomo → BQ)."""
     cfg = load_config(config_path)
@@ -458,6 +478,7 @@ def bq_export_guide(config_path: str) -> dict[str, Any]:
     project = bq_hist.get("project_id") or (cfg.get("connectors") or {}).get("bigquery", {}).get(
         "project_id", ""
     )
+    ds_status = _ga4_export_dataset_status(str(project), str(dataset))
     return {
         "flow": "GA4 (BigQuery export) → OYDK history agent → Matomo",
         "prerequisites": [
@@ -486,4 +507,6 @@ def bq_export_guide(config_path: str) -> dict[str, Any]:
             },
         ],
         "config": {"ga4_bigquery": bq_hist, "ga4_property_id": ga4.get("property_id")},
+        "ga4_export_dataset": ds_status,
+        "demo_without_bq": "Use Preview (fixture) on this tab — no BigQuery export required.",
     }

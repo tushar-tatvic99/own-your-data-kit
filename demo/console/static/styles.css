@@ -122,6 +122,8 @@ pre.bundle-json { max-height: 320px; font-size: 0.68rem; }
   background: rgba(91, 156, 245, 0.1); border: 1px solid rgba(91, 156, 245, 0.35); color: var(--text);
 }
 .deploy-banner strong { color: var(--accent); }
+.deploy-banner.ok { border-color: rgba(52, 211, 153, 0.45); background: rgba(52, 211, 153, 0.08); }
+.deploy-banner.err { border-color: rgba(251, 113, 133, 0.45); background: rgba(251, 113, 133, 0.08); }
 .panel-output.error { border-color: rgba(251, 113, 133, 0.4); }
 
 .tag { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 6px; margin-left: 0.35rem; font-weight: 600; }

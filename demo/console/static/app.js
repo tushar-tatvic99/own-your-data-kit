@@ -1443,6 +1443,23 @@ async function loadBqGuide() {
   }
   const flow = document.getElementById("bq-flow");
   if (flow) flow.textContent = data.flow || "";
+  const banner = document.getElementById("bq-dataset-banner");
+  if (banner) {
+    const ds = data.ga4_export_dataset || {};
+    if (ds.exists) {
+      banner.className = "deploy-banner ok";
+      banner.textContent = `GA4 export dataset found: ${ds.dataset_id} (${ds.location || "region OK"})`;
+      banner.classList.remove("hidden");
+    } else if (ds.dataset_id) {
+      banner.className = "deploy-banner err";
+      banner.innerHTML =
+        `<strong>Live import blocked</strong> — BigQuery dataset <code>${esc(ds.dataset_id)}</code> does not exist yet. ` +
+        `${esc(ds.detail || "")} ${esc(data.demo_without_bq || "")}`;
+      banner.classList.remove("hidden");
+    } else {
+      banner.classList.add("hidden");
+    }
+  }
   document.getElementById("bq-prereq").innerHTML = (data.prerequisites || [])
     .map((p) => `<li>${esc(p)}</li>`)
     .join("");

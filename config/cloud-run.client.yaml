@@ -51,6 +51,7 @@ history:
   ga4_bigquery:
     project_id: "tvc-int-matomo"
     dataset: "analytics_560630351"
+    location: "asia-south1"
 
 migration:
   gtm_draft_only: true
