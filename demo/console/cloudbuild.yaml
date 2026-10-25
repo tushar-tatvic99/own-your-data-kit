@@ -1,0 +1,16 @@
+# Cloud Build: repo root context, Dockerfile under demo/console/
+substitutions:
+  _IMAGE: gcr.io/tvc-int-matomo/oydk-demo-console
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - demo/console/Dockerfile
+      - -t
+      - ${_IMAGE}
+      - .
+
+images:
+  - ${_IMAGE}
