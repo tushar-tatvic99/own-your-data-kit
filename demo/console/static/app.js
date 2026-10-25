@@ -564,11 +564,12 @@ async function runDemoSuite(fixtureOnly) {
   if (busy) return;
   busy = true;
   setPanelOutput("demo", fixtureOnly ? "Running fixture-only suite…" : "Running default connection suite…", false);
-  const buckets = { demo: [], migration: [], dpdp: [], parity: [], connectors: [] };
+  const buckets = { demo: [], migration: [], dpdp: [], parity: [], connectors: [], bq: [] };
   try {
     const data = await apiPost("/api/demo/run-suite", { fixture_only: fixtureOnly });
     (data.steps || []).forEach((s) => {
       const panel = ACTION_PANEL[s.action] || "demo";
+      if (!buckets[panel]) buckets[panel] = [];
       buckets[panel].push(formatStepBlock(s));
     });
     Object.entries(buckets).forEach(([panel, lines]) => {
@@ -815,14 +816,28 @@ async function loadLinks() {
   const btnGcp = document.getElementById("btn-deploy-start");
   const btnLocal = document.getElementById("btn-deploy-local");
   const btnGcloud = document.getElementById("btn-go-demo-gcloud");
+  const btnMatomoGcp = document.getElementById("btn-matomo-gcp-deploy");
+  const btnGcloudLogin = document.getElementById("btn-gcloud-login");
   if (dep.host === "cloud_run") {
-    if (btnGcp) btnGcp.textContent = "Prepare GCP deploy";
+    // Laptop-only actions — cannot open PowerShell / gcloud from Cloud Run.
+    if (btnGcp) btnGcp.classList.add("hidden");
     if (btnLocal) btnLocal.classList.add("hidden");
     if (btnGcloud) btnGcloud.classList.add("hidden");
+    if (btnMatomoGcp) btnMatomoGcp.classList.add("hidden");
+    if (btnGcloudLogin) btnGcloudLogin.classList.add("hidden");
+    setDeployStatus(
+      "Hosted demo — use Save & activate for config. Deploy Matomo / gcloud only work on a laptop with this repo.",
+      true
+    );
   } else {
-    if (btnGcp) btnGcp.textContent = "Deploy to GCP";
+    if (btnGcp) {
+      btnGcp.classList.remove("hidden");
+      btnGcp.textContent = "Deploy to GCP";
+    }
     if (btnLocal) btnLocal.classList.add("hidden");
     if (btnGcloud) btnGcloud.classList.add("hidden");
+    if (btnMatomoGcp) btnMatomoGcp.classList.remove("hidden");
+    if (btnGcloudLogin) btnGcloudLogin.classList.remove("hidden");
   }
 }
 
