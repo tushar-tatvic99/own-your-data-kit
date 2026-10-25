@@ -29,24 +29,72 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Detect root directory or clone repository
-$RootDir = Get-Location
-if (Test-Path "deploy\deploy.ps1") {
+# Avoid running or cloning inside Windows system directories (like C:\Windows\System32)
+$currentPath = (Get-Location).Path
+$winDir = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Windows)
+if (-not (Test-Path "deploy\deploy.ps1") -and ($currentPath.StartsWith($winDir, [System.StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path $currentPath))) {
+    Write-Host "Notice: Switched working directory from '$currentPath' to user home '$HOME'." -ForegroundColor Yellow
+    Set-Location $HOME
+}
+
+# Detect root directory or clone/download repository
+$RootDir = (Get-Location).Path
+if (Test-Path (Join-Path $RootDir "deploy\deploy.ps1")) {
     # Already in repo root
-} elseif (Test-Path "own-your-data-kit\deploy\deploy.ps1") {
-    Set-Location "own-your-data-kit"
-    $RootDir = Get-Location
+} elseif (Test-Path (Join-Path $RootDir "own-your-data-kit\deploy\deploy.ps1")) {
+    Set-Location (Join-Path $RootDir "own-your-data-kit")
+    $RootDir = (Get-Location).Path
 } else {
-    Write-Host "Cloning Own-Your-Data Kit repository from GitHub..." -ForegroundColor Cyan
-    try {
-        git clone https://github.com/tushar-tatvic99/own-your-data-kit.git
-        if (Test-Path "own-your-data-kit") {
-            Set-Location "own-your-data-kit"
-            $RootDir = Get-Location
-            Write-Host "[OK] Repository cloned successfully." -ForegroundColor Green
+    $targetDir = Join-Path (Get-Location).Path "own-your-data-kit"
+    $cloned = $false
+
+    # Method 1: Git clone if git is available
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        Write-Host "Cloning Own-Your-Data Kit repository via Git..." -ForegroundColor Cyan
+        try {
+            git clone https://github.com/tushar-tatvic99/own-your-data-kit.git
+            if (Test-Path (Join-Path $targetDir "deploy\deploy.ps1")) {
+                $cloned = $true
+            }
+        } catch {
+            Write-Warning "git clone encountered an issue: $_. Falling back to direct archive download."
         }
-    } catch {
-        Write-Warning "Could not clone repository automatically via git. If in dry-run mode, simulation will proceed."
+    }
+
+    # Method 2: Direct GitHub ZIP download (zero git prerequisite)
+    if (-not $cloned -and -not (Test-Path (Join-Path $targetDir "deploy\deploy.ps1"))) {
+        Write-Host "Downloading Own-Your-Data Kit repository archive from GitHub..." -ForegroundColor Cyan
+        $zipUrl = "https://github.com/tushar-tatvic99/own-your-data-kit/archive/refs/heads/main.zip"
+        $tempZip = Join-Path $env:TEMP "own-your-data-kit-main.zip"
+        $tempExtract = Join-Path $env:TEMP "oydk_extract_$(Get-Random)"
+        try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $prevProg = $ProgressPreference
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest -UseBasicParsing -Uri $zipUrl -OutFile $tempZip
+            $ProgressPreference = $prevProg
+
+            Expand-Archive -Path $tempZip -DestinationPath $tempExtract -Force
+            $extractedFolder = Join-Path $tempExtract "own-your-data-kit-main"
+            if (Test-Path $extractedFolder) {
+                if (Test-Path $targetDir) { Remove-Item $targetDir -Recurse -Force -ErrorAction SilentlyContinue }
+                Move-Item -Path $extractedFolder -Destination $targetDir -Force
+            }
+            Remove-Item $tempZip -Force -ErrorAction SilentlyContinue
+            Remove-Item $tempExtract -Recurse -Force -ErrorAction SilentlyContinue
+
+            if (Test-Path (Join-Path $targetDir "deploy\deploy.ps1")) {
+                $cloned = $true
+            }
+        } catch {
+            Write-Warning "Direct archive download failed: $_"
+        }
+    }
+
+    if (Test-Path (Join-Path $targetDir "deploy\deploy.ps1")) {
+        Set-Location $targetDir
+        $RootDir = (Get-Location).Path
+        Write-Host "[OK] Repository initialized successfully at $RootDir" -ForegroundColor Green
     }
 }
 
@@ -303,6 +351,12 @@ connectors:
 # ==============================================================================
 # LIVE EXECUTION PATH
 # ==============================================================================
+$deployScript = Join-Path $RootDir "deploy\deploy.ps1"
+if (-not (Test-Path $deployScript)) {
+    Write-Error "Deployment script not found at '$deployScript'. Repository files could not be located."
+    exit 1
+}
+
 if ($Target -eq "on-premise") {
     Write-Host "`nExecuting On-Premise Bare-Metal Deployment on Windows Docker..." -ForegroundColor Cyan
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
