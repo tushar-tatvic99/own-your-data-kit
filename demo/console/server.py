@@ -20,6 +20,7 @@ from demo.console.dashboard import (
 )
 from demo.console.connector_views import connector_view
 from demo.console.deploy_wizard import (
+    build_powershell_launcher,
     deploy_preflight,
     get_deploy_status,
     preview_deploy,
@@ -48,7 +49,7 @@ from kit.env import load_kit_env
 
 STATIC = Path(__file__).resolve().parent / "static"
 # Bump when static UI changes; Cloud Run must be redeployed to pick up new assets.
-CONSOLE_UI_VERSION = "20261025t"
+CONSOLE_UI_VERSION = "20261025v"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = os.environ.get("OYDK_CONFIG", "config/client.yaml")
 
@@ -448,6 +449,11 @@ class DemoHandler(BaseHTTPRequestHandler):
             )
         if path == "/api/deploy/start-terminal":
             return self._send_json(200, start_deploy_in_terminal(body.get("fields") or {}))
+        if path == "/api/deploy/powershell-launcher":
+            result = build_powershell_launcher(body.get("fields") or {})
+            if not result.get("ok"):
+                return self._send_json(400, result)
+            return self._send_json(200, result)
         if path == "/api/agent/chat":
             msg = (body.get("message") or "").strip()
             if not msg:

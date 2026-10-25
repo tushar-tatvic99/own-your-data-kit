@@ -261,26 +261,30 @@ def start_deploy(fields: dict[str, Any], local_only: bool = False) -> dict[str, 
         return {"started": False, "error": "gcp_project_id required"}
 
     if caps["host"] == "cloud_run":
-        saved = save_client_config(fields)
+        launcher = build_powershell_launcher(fields)
+        if not launcher.get("ok"):
+            return {
+                "started": False,
+                "runtime": "cloud_run",
+                "error": launcher.get("error"),
+                "message": launcher.get("error"),
+            }
         preview = preview_deploy(fields)
         return {
-            "started": False,
+            "started": True,
             "runtime": "cloud_run",
+            "download_launcher": True,
+            "launcher": launcher,
             "capabilities": caps,
-            "saved_config": saved["path"],
+            "saved_config": launcher.get("saved_config"),
             "command": preview["command"],
             "checklist": preview["checklist"],
-            "message": (
-                "Deploy does not run inside the hosted Cloud Run console. "
-                "Your YAML was saved — run the command below on a Windows PC with gcloud."
-            ),
+            "message": launcher["message"],
             "local_only_requested": local_only,
             "steps": [
-                "On your laptop: install gcloud CLI and run gcloud auth login",
-                "Clone this repo (or use the same release) and copy your .env + credentials",
-                f"Saved profile: {saved['path']}",
-                "Open PowerShell in the repo root and run the deploy command shown below",
-                "Or run locally: py -3 -m kit.cli demo-ui → Demo → Sign in to Google Cloud → Deploy to GCP",
+                "Download OYDK-Open-PowerShell-Deploy.cmd (automatic)",
+                "Double-click it on your Windows PC",
+                "PowerShell opens and runs the same GCP deploy commands as local",
             ],
             "doc": "docs/run-console-on-your-pc.md",
         }
@@ -364,6 +368,97 @@ def start_deploy(fields: dict[str, Any], local_only: bool = False) -> dict[str, 
     }
 
 
+def build_powershell_launcher(fields: dict[str, Any]) -> dict[str, Any]:
+    """Build a double-clickable .cmd that opens PowerShell and runs the same Matomo GCP deploy as local."""
+    import base64
+
+    fields = _normalize_deploy_fields(fields)
+    project = (fields.get("gcp_project_id") or "").strip()
+    if not project:
+        return {"ok": False, "error": "gcp_project_id required"}
+    client = (fields.get("client_name") or "client-demo").strip()
+    profile = (fields.get("profile") or "standard").strip()
+    ga4 = (fields.get("ga4_property_id") or "560630351").strip()
+    gtm = (fields.get("gtm_container_id") or "283402441").strip()
+    emails = (fields.get("alert_emails") or "tushar@tatvic.com").strip()
+
+    def q(s: str) -> str:
+        return s.replace("'", "''")
+
+    ps = f"""$ErrorActionPreference = 'Stop'
+$ProjectId = '{q(project)}'
+$ClientName = '{q(client)}'
+$Profile = '{q(profile)}'
+$Ga4PropertyId = '{q(ga4)}'
+$GtmContainerId = '{q(gtm)}'
+$AlertEmails = '{q(emails)}'
+function Find-OydkRepo {{
+  if ($env:OYDK_REPO -and (Test-Path (Join-Path $env:OYDK_REPO 'scripts\\matomo-gcp-deploy-terminal.ps1'))) {{
+    return $env:OYDK_REPO
+  }}
+  $candidates = @(
+    (Join-Path $env:USERPROFILE 'Projects\\own-your-data-kit'),
+    (Join-Path $env:USERPROFILE 'own-your-data-kit'),
+    'C:\\Users\\TusharBorude\\Projects\\own-your-data-kit'
+  )
+  foreach ($c in $candidates) {{
+    if ($c -and (Test-Path (Join-Path $c 'scripts\\matomo-gcp-deploy-terminal.ps1'))) {{ return $c }}
+  }}
+  Add-Type -AssemblyName Microsoft.VisualBasic
+  $picked = [Microsoft.VisualBasic.Interaction]::InputBox(
+    'Enter the full path to your own-your-data-kit folder (must contain scripts\\matomo-gcp-deploy-terminal.ps1):',
+    'OYDK repo path',
+    (Join-Path $env:USERPROFILE 'Projects\\own-your-data-kit')
+  )
+  if (-not $picked) {{ throw 'Repo path required to open PowerShell deploy.' }}
+  return $picked.Trim()
+}}
+$Repo = Find-OydkRepo
+$Script = Join-Path $Repo 'scripts\\matomo-gcp-deploy-terminal.ps1'
+if (-not (Test-Path $Script)) {{ throw "Missing $Script - clone the OYDK repo first." }}
+Write-Host "Opening PowerShell deploy (same as local console)..." -ForegroundColor Cyan
+Write-Host "Repo: $Repo"
+Start-Process -FilePath powershell.exe -WorkingDirectory $Repo -ArgumentList @(
+  '-NoExit',
+  '-ExecutionPolicy', 'Bypass',
+  '-File', $Script,
+  '-ProjectId', $ProjectId,
+  '-ClientName', $ClientName,
+  '-Profile', $Profile,
+  '-Ga4PropertyId', $Ga4PropertyId,
+  '-GtmContainerId', $GtmContainerId,
+  '-AlertEmails', $AlertEmails,
+  '-RepoRoot', $Repo
+)
+"""
+    b64 = base64.b64encode(ps.encode("utf-8")).decode("ascii")
+    cmd = (
+        "@echo off\r\n"
+        "title OYDK Open PowerShell Deploy\r\n"
+        "echo Downloading launcher payload into a new PowerShell window...\r\n"
+        "powershell -NoProfile -ExecutionPolicy Bypass -Command "
+        "\"$p=Join-Path $env:TEMP 'oydk-open-ps-deploy.ps1'; "
+        f"[IO.File]::WriteAllText($p,[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{b64}'))); "
+        "Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',$p\"\r\n"
+        "if errorlevel 1 (\r\n"
+        "  echo Failed to start PowerShell.\r\n"
+        "  pause\r\n"
+        ")\r\n"
+    )
+    saved = save_client_config(fields)
+    return {
+        "ok": True,
+        "filename": "OYDK-Open-PowerShell-Deploy.cmd",
+        "content_type": "application/octet-stream",
+        "script": cmd,
+        "saved_config": saved["path"],
+        "message": (
+            "Downloaded OYDK-Open-PowerShell-Deploy.cmd — double-click it on your Windows PC "
+            "to open PowerShell and run the same Matomo GCP deploy as local."
+        ),
+    }
+
+
 def start_deploy_in_terminal(fields: dict[str, Any]) -> dict[str, Any]:
     """Open a visible PowerShell window: prerequisites, gcloud auth, GCP Matomo deploy."""
     from demo.console.runtime import deploy_capabilities
@@ -374,7 +469,9 @@ def start_deploy_in_terminal(fields: dict[str, Any]) -> dict[str, Any]:
         return {"started": False, "error": "gcp_project_id required"}
 
     if caps["host"] == "cloud_run":
-        saved = save_client_config(fields)
+        launcher = build_powershell_launcher(fields)
+        if not launcher.get("ok"):
+            return {"started": False, "error": launcher.get("error"), "runtime": "cloud_run"}
         preview = preview_deploy(fields)
         script_rel = "scripts/matomo-gcp-deploy-terminal.ps1"
         command = (
@@ -383,20 +480,18 @@ def start_deploy_in_terminal(fields: dict[str, Any]) -> dict[str, Any]:
             f"-Profile {fields.get('profile') or 'standard'}"
         )
         return {
-            # "started" means the hosted action finished OK (saved YAML + showed laptop command).
             "started": True,
             "runtime": "cloud_run",
             "interactive": False,
-            "saved_config": saved["path"],
+            "download_launcher": True,
+            "launcher": launcher,
+            "saved_config": launcher.get("saved_config"),
             "command": command,
-            "message": (
-                "Profile saved on the hosted console. "
-                "GCP Matomo deploy needs PowerShell on your laptop — open the repo and run the command in Details."
-            ),
+            "message": launcher["message"],
             "steps": [
-                "On your Windows laptop, open PowerShell in the OYDK repo root",
-                f"Saved profile: {saved['path']}",
-                f"Run: {command}",
+                "Download OYDK-Open-PowerShell-Deploy.cmd (automatic from this button)",
+                "Double-click the file on your Windows PC",
+                "A PowerShell window opens and runs the same deploy as local",
             ],
             "checklist": preview["checklist"],
         }

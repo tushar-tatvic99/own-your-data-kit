@@ -272,6 +272,48 @@ function startMatomoDeployPoll() {
   refreshMatomoUrlFromDeploy(true);
 }
 
+function downloadTextFile(filename, text, mime) {
+  const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+async function downloadPowershellDeployLauncher() {
+  const fields = deployFields();
+  if (!(fields.gcp_project_id || "").trim()) {
+    setDeployStatus("Enter GCP project ID in the form below (required for your Matomo VM).", false);
+    document.getElementById("deploy-form")?.elements?.gcp_project_id?.focus();
+    return null;
+  }
+  if (!(fields.client_name || "").trim()) {
+    setDeployStatus("Enter Client name (used for VM name and Terraform).", false);
+    return null;
+  }
+  const data = await apiPost("/api/deploy/powershell-launcher", { fields });
+  if (!data.ok) throw new Error(data.error || "Could not build PowerShell launcher");
+  downloadTextFile(data.filename || "OYDK-Open-PowerShell-Deploy.cmd", data.script, data.content_type);
+  const detail = [
+    data.message,
+    "",
+    "1. Open the downloaded OYDK-Open-PowerShell-Deploy.cmd",
+    "2. A PowerShell window opens (same deploy as local)",
+    "3. If asked, enter your own-your-data-kit repo path",
+    data.saved_config ? `Saved profile: ${data.saved_config}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  showDeployLog(detail, { summary: data.message });
+  setDeployStatus(data.message, true);
+  focusMatomoDeployOutput();
+  return data;
+}
+
 async function deployMatomoOnMyGcp() {
   const fields = deployFields();
   if (!(fields.gcp_project_id || "").trim()) {
@@ -284,11 +326,23 @@ async function deployMatomoOnMyGcp() {
     return;
   }
   const dep = linksCache.deploy || {};
-  const confirmMsg =
-    dep.host === "cloud_run"
-      ? "This hosted page cannot open PowerShell on your PC.\n\nWe will show the command to run locally. Continue?"
-      : "Open PowerShell on this PC?\n\nIt will install Terraform/gcloud if needed, sign you into Google if needed, then deploy Matomo on your GCP project (15–25 min).";
-  if (!confirm(confirmMsg)) return;
+  // Hosted browser cannot spawn PowerShell on the user's PC — download a launcher instead.
+  if (dep.host === "cloud_run") {
+    try {
+      await downloadPowershellDeployLauncher();
+    } catch (e) {
+      setDeployStatus(String(e?.message || e), false);
+    }
+    return;
+  }
+
+  if (
+    !confirm(
+      "Open PowerShell on this PC?\n\nIt will install Terraform/gcloud if needed, sign you into Google if needed, then deploy Matomo on your GCP project (15–25 min)."
+    )
+  ) {
+    return;
+  }
 
   setMatomoSourceMode("own");
   focusMatomoDeployOutput();
@@ -316,13 +370,8 @@ async function deployMatomoOnMyGcp() {
   }
   const text = formatDeployStartResponse(data);
   setDeployLog(text);
-  const hostedHint = data.runtime === "cloud_run";
-  const ok = !!data.started || hostedHint;
-  setDeployStatus(data.message || data.error || "Deploy", ok);
-  if (hostedHint) {
-    // Hosted URL only saves YAML + shows laptop command — do not poll local deploy.log.
-    showDeployLog(text, { summary: data.message || "Run deploy command on your laptop (see Details)." });
-  } else if (data.started) {
+  setDeployStatus(data.message || data.error || "Deploy", !!data.started);
+  if (data.started) {
     renderDeployLogPanel({ deploy_running: true, log_tail: "" }, "PowerShell deploy running");
     startMatomoDeployPoll();
   } else {
@@ -933,11 +982,13 @@ function formatDeployStartResponse(data) {
 async function handleDeployStart(localOnly, opts = {}) {
   const matomoGcp = !!opts.matomoGcp;
   const dep = linksCache.deploy || {};
+  // Hosted browser cannot spawn PowerShell — download launcher that opens PS and runs deploy.
   if (!localOnly && dep.host === "cloud_run") {
-    const data = await apiPost("/api/deploy/start", { fields: deployFields() });
-    const cloudText = formatDeployStartResponse(data);
-    setDeployLog(cloudText);
-    setDeployStatus(data.message, true);
+    try {
+      await downloadPowershellDeployLauncher();
+    } catch (e) {
+      setDeployStatus(String(e?.message || e), false);
+    }
     return;
   }
   const msg = localOnly
@@ -1631,6 +1682,19 @@ async function loadInfra() {
 function wireDeploy() {
   document.getElementById("btn-matomo-gcp-deploy")?.addEventListener("click", (e) => {
     e.preventDefault();
+    deployMatomoOnMyGcp();
+  });
+  document.getElementById("btn-open-powershell-deploy")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const dep = linksCache.deploy || {};
+    if (dep.host === "cloud_run") {
+      try {
+        await downloadPowershellDeployLauncher();
+      } catch (err) {
+        setDeployStatus(String(err?.message || err), false);
+      }
+      return;
+    }
     deployMatomoOnMyGcp();
   });
   document.getElementById("btn-open-matomo-own")?.addEventListener("click", (e) => {
