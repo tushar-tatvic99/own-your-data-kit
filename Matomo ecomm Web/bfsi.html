@@ -277,7 +277,7 @@
                 <label for="fdAmountRange" class="slider-label">Deposit Principal (USD)</label>
                 <span class="slider-value" id="fdAmountVal">$100,000</span>
               </div>
-              <input type="range" class="bfsi-range-slider" id="fdAmountRange" min="10000" max="1000000" step="5000" value="100000">
+              <input type="range" class="bfsi-range-slider" id="fdAmountRange" min="10000" max="1000000" step="5000" value="100000" oninput="calculateFd()" onchange="calculateFd()">
               <div class="slider-scale">
                 <span>$10,000</span>
                 <span>$250,000</span>
@@ -290,10 +290,10 @@
             <div class="tenure-group">
               <label class="slider-label">Investment Horizon</label>
               <div class="tenure-pills" id="fdTenurePills">
-                <button type="button" class="tenure-btn" data-months="12" data-rate="7.25">12 Months (7.25%)</button>
-                <button type="button" class="tenure-btn" data-months="24" data-rate="7.80">24 Months (7.80%)</button>
-                <button type="button" class="tenure-btn active" data-months="36" data-rate="8.45">36 Months (8.45%)</button>
-                <button type="button" class="tenure-btn" data-months="60" data-rate="8.90">60 Months (8.90%)</button>
+                <button type="button" class="tenure-btn" data-months="12" data-rate="7.25" onclick="setFdTenure(12, 7.25, this)">12 Months (7.25%)</button>
+                <button type="button" class="tenure-btn" data-months="24" data-rate="7.80" onclick="setFdTenure(24, 7.80, this)">24 Months (7.80%)</button>
+                <button type="button" class="tenure-btn active" data-months="36" data-rate="8.45" onclick="setFdTenure(36, 8.45, this)">36 Months (8.45%)</button>
+                <button type="button" class="tenure-btn" data-months="60" data-rate="8.90" onclick="setFdTenure(60, 8.90, this)">60 Months (8.90%)</button>
               </div>
             </div>
 
@@ -302,11 +302,11 @@
               <label class="slider-label">Interest Distribution Mode</label>
               <div class="payout-options" id="fdPayoutOptions">
                 <label class="radio-chip active">
-                  <input type="radio" name="fdPayout" value="compounded" checked>
+                  <input type="radio" name="fdPayout" value="compounded" checked onchange="setFdPayout('compounded', this)">
                   <span>Reinvest &amp; Compound at Maturity</span>
                 </label>
                 <label class="radio-chip">
-                  <input type="radio" name="fdPayout" value="monthly">
+                  <input type="radio" name="fdPayout" value="monthly" onchange="setFdPayout('monthly', this)">
                   <span>Monthly Interest Payout</span>
                 </label>
               </div>
@@ -338,7 +338,7 @@
               <span>🛡️ Fully insured up to $250,000 via Statutory Protection Scheme.</span>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block" id="btnLockDeposit" data-bfsi-product="Infinite High-Yield Multiplier Deposit">
+            <button type="button" class="btn btn-primary btn-block" id="btnLockDeposit" data-bfsi-product="Infinite High-Yield Multiplier Deposit" onclick="openBfsiModal('Infinite High-Yield Multiplier Deposit')">
               <span>Lock This Rate &amp; Open Deposit</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
@@ -361,9 +361,9 @@
             <div class="tenure-group">
               <label class="slider-label">Financing Structure</label>
               <div class="tenure-pills" id="loanTypePills">
-                <button type="button" class="tenure-btn active" data-loan-type="home" data-rate="7.65">Prime Home Mortgage (7.65%)</button>
-                <button type="button" class="tenure-btn" data-loan-type="enterprise" data-rate="8.95">Private Enterprise Credit (8.95%)</button>
-                <button type="button" class="tenure-btn" data-loan-type="personal" data-rate="9.85">Executive Personal Line (9.85%)</button>
+                <button type="button" class="tenure-btn active" data-loan-type="home" data-rate="7.65" onclick="setLoanType('Prime Home Mortgage', 7.65, this)">Prime Home Mortgage (7.65%)</button>
+                <button type="button" class="tenure-btn" data-loan-type="enterprise" data-rate="8.95" onclick="setLoanType('Private Enterprise Credit', 8.95, this)">Private Enterprise Credit (8.95%)</button>
+                <button type="button" class="tenure-btn" data-loan-type="personal" data-rate="9.85" onclick="setLoanType('Executive Personal Line', 9.85, this)">Executive Personal Line (9.85%)</button>
               </div>
             </div>
 
@@ -373,7 +373,7 @@
                 <label for="loanAmountRange" class="slider-label">Financing Requirement</label>
                 <span class="slider-value" id="loanAmountVal">$350,000</span>
               </div>
-              <input type="range" class="bfsi-range-slider" id="loanAmountRange" min="25000" max="1500000" step="25000" value="350000">
+              <input type="range" class="bfsi-range-slider" id="loanAmountRange" min="50000" max="2500000" step="25000" value="350000" oninput="calculateLoan()" onchange="calculateLoan()">
               <div class="slider-scale">
                 <span>$25,000</span>
                 <span>$500,000</span>
@@ -388,7 +388,7 @@
                 <label for="loanYearsRange" class="slider-label">Repayment Tenure</label>
                 <span class="slider-value" id="loanYearsVal">15 Years</span>
               </div>
-              <input type="range" class="bfsi-range-slider" id="loanYearsRange" min="1" max="25" step="1" value="15">
+              <input type="range" class="bfsi-range-slider" id="loanYearsRange" min="5" max="30" step="1" value="15" oninput="calculateLoan()" onchange="calculateLoan()">
               <div class="slider-scale">
                 <span>1 Year</span>
                 <span>5 Years</span>
@@ -423,7 +423,7 @@
               <span>⚡ Pre-approval completed in 4 minutes with zero credit impact.</span>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block" id="btnCheckLoanOffer" data-bfsi-product="Prime Wealth Lending Facility">
+            <button type="button" class="btn btn-primary btn-block" id="btnCheckLoanOffer" data-bfsi-product="Prime Wealth Lending Facility" onclick="openBfsiModal(window.activeLoanType || 'Prime Home Mortgage')">
               <span>Check Pre-Approved Facility</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
@@ -449,7 +449,7 @@
               <span class="fee-label">Annual Fee</span>
               <span class="fee-val">$495 <small>(Waived with $100k bal)</small></span>
             </div>
-            <button type="button" class="btn btn-primary btn-block btn-apply-card" data-bfsi-product="Infinity Black Titanium Card" data-bfsi-tier="titanium">
+            <button type="button" class="btn btn-primary btn-block btn-apply-card" data-bfsi-product="Infinity Black Titanium Card" data-bfsi-tier="titanium" onclick="openBfsiModal('Infinity Black Titanium Card', '$50,000 Revolving Line')">
               <span>Apply for Titanium</span>
             </button>
           </div>
@@ -469,7 +469,7 @@
               <span class="fee-label">Maintenance</span>
               <span class="fee-val">$0 / Mo <small>(Complimentary)</small></span>
             </div>
-            <button type="button" class="btn btn-primary btn-block btn-apply-card" data-bfsi-product="Sovereign Privilege Checking Account" data-bfsi-tier="sovereign">
+            <button type="button" class="btn btn-primary btn-block btn-apply-card" data-bfsi-product="Sovereign Privilege Checking Account" data-bfsi-tier="sovereign" onclick="openBfsiModal('Sovereign Privilege Checking Account', '$100,000 Minimum Balance')">
               <span>Open Sovereign Account</span>
             </button>
           </div>
@@ -489,7 +489,7 @@
               <span class="fee-label">Management</span>
               <span class="fee-val">0.15% <small>(Industry-low)</small></span>
             </div>
-            <button type="button" class="btn btn-primary btn-block btn-apply-card" data-bfsi-product="Horizon Treasury Institutional Fund" data-bfsi-tier="horizon">
+            <button type="button" class="btn btn-primary btn-block btn-apply-card" data-bfsi-product="Horizon Treasury Institutional Fund" data-bfsi-tier="horizon" onclick="openBfsiModal('Horizon Treasury Institutional Fund', '$250,000 Initial Allocation')">
               <span>Inquire for Allocation</span>
             </button>
           </div>
@@ -508,17 +508,17 @@
             <p class="calc-sub">Protect family assets and generational succession with tailored private placement policies.</p>
 
             <div class="insurance-tiers-grid">
-              <div class="insurance-tier-box active" data-coverage="2000000" data-premium="185">
+              <div class="insurance-tier-box active" data-coverage="2000000" data-premium="185" onclick="setInsuranceTier(2000000, 185, 'Executive Shield', this)">
                 <span class="ins-name">Executive Shield</span>
                 <span class="ins-coverage">$2,000,000 Coverage</span>
                 <span class="ins-rate">$185 / month</span>
               </div>
-              <div class="insurance-tier-box" data-coverage="5000000" data-premium="395">
+              <div class="insurance-tier-box" data-coverage="5000000" data-premium="395" onclick="setInsuranceTier(5000000, 395, 'Family Sovereign', this)">
                 <span class="ins-name">Family Sovereign</span>
                 <span class="ins-coverage">$5,000,000 Coverage</span>
                 <span class="ins-rate">$395 / month</span>
               </div>
-              <div class="insurance-tier-box" data-coverage="10000000" data-premium="740">
+              <div class="insurance-tier-box" data-coverage="10000000" data-premium="740" onclick="setInsuranceTier(10000000, 740, 'Ultra-High Net Worth', this)">
                 <span class="ins-name">Ultra-High Net Worth</span>
                 <span class="ins-coverage">$10,000,000+ Coverage</span>
                 <span class="ins-rate">$740 / month</span>
@@ -541,7 +541,7 @@
               <span class="metric-label">Estimated Premium</span>
               <span class="metric-number" id="insSelectedPremium">$185 / mo</span>
             </div>
-            <button type="button" class="btn btn-primary btn-block" id="btnApplyInsurance" data-bfsi-product="Executive Sovereign Asset Shield">
+            <button type="button" class="btn btn-primary btn-block" id="btnApplyInsurance" data-bfsi-product="Executive Sovereign Asset Shield" onclick="openInsuranceModal()">
               <span>Request Private Underwriting Quote</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
@@ -553,18 +553,18 @@
   </section>
 
   <!-- Financial Lead & Product Application Modal -->
-  <div class="bfsi-modal-backdrop" id="bfsiApplyModal">
+  <div class="bfsi-modal-backdrop" id="bfsiApplyModal" onclick="if(event.target===this)closeBfsiModal()">
     <div class="bfsi-modal-window">
       <div class="bfsi-modal-header">
         <div>
           <span class="modal-pretitle">INFINITY BANK • PRIVATE WEALTH ONBOARDING</span>
           <h3 class="modal-title" id="bfsiModalProductTitle">Infinite Wealth Solution</h3>
         </div>
-        <button type="button" class="bfsi-modal-close" id="closeBfsiModalBtn" aria-label="Close modal">✕</button>
+        <button type="button" class="bfsi-modal-close" id="closeBfsiModalBtn" onclick="closeBfsiModal()" aria-label="Close modal">✕</button>
       </div>
 
       <div class="bfsi-modal-body">
-        <form class="bfsi-form" id="bfsiApplicationForm">
+        <form class="bfsi-form" id="bfsiApplicationForm" onsubmit="submitBfsiLead(event)">
           <input type="hidden" id="bfsiSelectedProduct" value="Infinite High-Yield Multiplier Deposit">
           
           <div class="bfsi-selected-badge" id="bfsiSelectedBadge" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10B981; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; margin-bottom: 14px; display: inline-block;">
@@ -615,7 +615,7 @@
           </div>
 
           <div style="display: flex; justify-content: flex-end; margin: 4px 0 10px;">
-            <button type="button" class="btn-demo-fill" id="btnFillBfsiDemo" style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE; cursor: pointer;">✨ Fill Demo Details</button>
+            <button type="button" class="btn-demo-fill" id="btnFillBfsiDemo" onclick="fillBfsiDemo()" style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE; cursor: pointer;">✨ Fill Demo Details</button>
           </div>
 
           <div class="bfsi-checkbox-wrap" style="margin-bottom: 14px;">
@@ -643,7 +643,7 @@
             <strong class="ref-code" id="bfsiRefCode" style="font-size: 1.25rem; font-family: monospace; color: #10B981; letter-spacing: 1px;">INF-BFSI-2026-89412</strong>
           </div>
           <p class="success-contact" style="font-size: 0.78rem; color: #64748B; margin-bottom: 16px;">A dedicated Senior Private Banker will reach out via your verified contact details within 2 business hours.</p>
-          <button type="button" class="btn btn-primary" id="btnDoneBfsiModal" style="padding: 10px 24px; font-size: 0.84rem; font-weight: 700;">Done &amp; Return to Dashboard</button>
+          <button type="button" class="btn btn-primary" id="btnDoneBfsiModal" onclick="closeBfsiModal()">Done &amp; Return to Dashboard</button>
         </div>
       </div>
     </div>
