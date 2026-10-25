@@ -157,8 +157,10 @@ for ($i = 1; $i -le 36; $i++) {
 if (-not $ok) { Write-Host "[yellow]Matomo HTTPS not ready yet - complete setup wizard in browser[/yellow]" }
 
 Write-Host "[6/7] Smoke test Kit API..."
+$kitOk = $false
 try {
     Invoke-WebRequest -Uri "$KitApiUrl/health" -UseBasicParsing -TimeoutSec 10 | Out-Null
+    $kitOk = $true
     Write-Host "Kit API: OK"
 } catch {
     Write-Host "[yellow]Kit API not responding yet on :8090[/yellow]"
@@ -182,4 +184,5 @@ Write-Host ""
     -MatomoUrl $MatomoUrl `
     -BackupBucket $BackupBucket `
     -KitApiUrl $KitApiUrl `
-    -RootDir $RootDir
+    -RootDir $RootDir `
+    -Healthy:($ok -and $kitOk)
