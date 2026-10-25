@@ -124,11 +124,22 @@ class GA4Reader:
                 })
             return dims
         except Exception as e:
+            err_str = str(e)
+            scope_hint = ""
+            if "insufficient authentication scopes" in err_str.lower():
+                scope_hint = (
+                    "\n\nRoot Cause: Your Google ADC credentials lack the 'analytics.readonly' OAuth scope.\n"
+                    "Fix with either:\n"
+                    "  A) Copy your service account JSON key to: credentials/ga-service-account.json\n"
+                    "  B) Or run in PowerShell:\n"
+                    "     gcloud auth application-default login --scopes=https://www.googleapis.com/auth/analytics.readonly,https://www.googleapis.com/auth/tagmanager.readonly,https://www.googleapis.com/auth/cloud-platform\n"
+                    "  C) Or run: .\\oydk auth\n"
+                )
             raise RuntimeError(
                 f"Google Analytics Admin API error while listing custom dimensions on property '{self.property_id}':\n"
-                f"{e}\n\n"
+                f"{e}{scope_hint}\n\n"
                 f"Action Required:\n"
-                f"1. Ensure the Service Account has 'Viewer' permission on GA4 Property '{self.property_id}'.\n"
+                f"1. Ensure your user/Service Account has 'Viewer' permission on GA4 Property '{self.property_id}'.\n"
                 f"2. Ensure the 'analyticsadmin.googleapis.com' API is enabled in your GCP project.\n"
                 f"3. Run with '--dry-run' if you want to test migration workflows offline."
             )

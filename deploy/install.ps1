@@ -155,8 +155,9 @@ function Initialize-GcloudAuth {
     }
     gcloud auth application-default print-access-token 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "`nAuthorise Terraform with Application Default Credentials (a browser window will open)..." -ForegroundColor Yellow
-        gcloud auth application-default login
+        Write-Host "`nAuthorise Google Cloud, GA4, and GTM (a browser window will open)..." -ForegroundColor Yellow
+        $oauthScopes = "https://www.googleapis.com/auth/analytics.readonly,https://www.googleapis.com/auth/tagmanager.readonly,https://www.googleapis.com/auth/tagmanager.edit.containers,https://www.googleapis.com/auth/cloud-platform"
+        gcloud auth application-default login --scopes="$oauthScopes"
         if ($LASTEXITCODE -ne 0) { throw "gcloud auth application-default login failed" }
     }
     $Account = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>$null
@@ -212,6 +213,13 @@ if (-not $Unattended) {
     Write-Host "`n[5/5] GA4 & GTM Migration Source (Press Enter for practice property):" -ForegroundColor Yellow
     $Ga4PropertyId = Prompt-User "Enter GA4 Property ID" $Ga4PropertyId
     $GtmContainerId = Prompt-User "Enter GTM Container ID" $GtmContainerId
+    $CredInput = Prompt-User "Enter Service Account JSON key path (or leave empty to use Google account login)" ""
+    if ($CredInput -and (Test-Path $CredInput)) {
+        $credDir = Join-Path $RootDir "credentials"
+        New-Item -ItemType Directory -Force -Path $credDir | Out-Null
+        Copy-Item -Path $CredInput -Destination (Join-Path $credDir "ga-service-account.json") -Force
+        Write-Host "  [OK] Copied key to credentials\ga-service-account.json" -ForegroundColor Green
+    }
     $AlertEmails = Prompt-User "Enter alert notification email(s)" $AlertEmails
 }
 

@@ -65,6 +65,51 @@ def health(config: str):
 
 
 @main.command()
+@click.option("--key-file", "-k", default=None, help="Path to Google Service Account JSON key")
+def auth(key_file: str | None):
+    """Authorize Google APIs (GA4 & GTM) via Service Account JSON or ADC."""
+    import shutil
+    import subprocess
+    from pathlib import Path
+
+    dest = Path("credentials/ga-service-account.json")
+    if key_file:
+        src = Path(key_file.strip('"\'')).resolve()
+        if not src.exists():
+            console.print(f"[bold red]Error:[/bold red] Key file '{src}' does not exist.")
+            return
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(src, dest)
+        console.print(f"[bold green][OK][/bold green] Service account key saved to '{dest}'.")
+        return
+
+    console.print("\n[bold cyan]Google APIs Authorization (GA4 & GTM)[/bold cyan]")
+    console.print("  1) Provide path to Service Account JSON key file")
+    console.print("  2) Log in with your Google account (gcloud ADC with Analytics & GTM scopes)\n")
+    choice = click.prompt("Enter choice [1-2]", default="2")
+
+    if choice == "1":
+        path_input = click.prompt("Enter path to your service account JSON file")
+        src = Path(path_input.strip('"\'')).resolve()
+        if not src.exists():
+            console.print(f"[bold red]Error:[/bold red] Key file '{src}' does not exist.")
+            return
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(src, dest)
+        console.print(f"[bold green][OK][/bold green] Service account key saved to '{dest}'.")
+    else:
+        scopes = ",".join([
+            "https://www.googleapis.com/auth/analytics.readonly",
+            "https://www.googleapis.com/auth/tagmanager.readonly",
+            "https://www.googleapis.com/auth/tagmanager.edit.containers",
+            "https://www.googleapis.com/auth/cloud-platform",
+        ])
+        console.print(f"\n[cyan]Authorizing Google account via gcloud with Analytics & GTM scopes...[/cyan]")
+        subprocess.run(["gcloud", "auth", "application-default", "login", f"--scopes={scopes}"])
+        console.print(f"[bold green][OK][/bold green] ADC authorized with Analytics and Tag Manager scopes.")
+
+
+@main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--upload/--no-upload", default=True, help="Upload archive to GCS bucket (default: True)")
 def backup(config: str, upload: bool):
