@@ -162,8 +162,13 @@ $RemoteSetup = @"
 for i in `$(seq 1 60); do sudo docker compose version >/dev/null 2>&1 && break; echo "Waiting for Docker install on VM... (`$i/60)"; sleep 5; done
 set -e
 cd ${KitRemote}/deploy/docker
-cp -n .env.example .env || true
-grep -q MATOMO_PUBLIC_HOST .env || echo MATOMO_PUBLIC_HOST=$MatomoHost >> .env
+if [ ! -f .env ]; then
+  cp .env.example .env
+  # Fresh install: replace placeholder passwords before the databases initialise
+  for k in MYSQL_ROOT_PASSWORD MYSQL_PASSWORD KIT_DB_PASSWORD; do sed -i "s|^`$k=.*|`$k=`$(openssl rand -hex 16)|" .env; done
+fi
+# .env.example ships another deployment's host, so always pin it to this VM
+if grep -q '^MATOMO_PUBLIC_HOST=' .env; then sed -i 's|^MATOMO_PUBLIC_HOST=.*|MATOMO_PUBLIC_HOST=$MatomoHost|' .env; else echo MATOMO_PUBLIC_HOST=$MatomoHost >> .env; fi
 chmod +x backup-to-gcs.sh update-stack.sh matomo-https-config.sh 2>/dev/null || true
 if command -v docker-compose >/dev/null; then DC=docker-compose; else DC='docker compose'; fi
 sudo `$DC up -d --build

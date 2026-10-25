@@ -75,8 +75,11 @@ gcloud compute ssh "${CLIENT_NAME}-analytics" \
   --zone="$ZONE" --project="$PROJECT_ID" \
   --command="set -e
 cd ${KIT_REMOTE}/deploy/docker
-cp -n .env.example .env || true
-grep -q MATOMO_PUBLIC_HOST .env || echo MATOMO_PUBLIC_HOST=$MATOMO_HOST >> .env
+if [ ! -f .env ]; then
+  cp .env.example .env
+  for k in MYSQL_ROOT_PASSWORD MYSQL_PASSWORD KIT_DB_PASSWORD; do sed -i \"s|^\$k=.*|\$k=\$(openssl rand -hex 16)|\" .env; done
+fi
+if grep -q '^MATOMO_PUBLIC_HOST=' .env; then sed -i 's|^MATOMO_PUBLIC_HOST=.*|MATOMO_PUBLIC_HOST=$MATOMO_HOST|' .env; else echo MATOMO_PUBLIC_HOST=$MATOMO_HOST >> .env; fi
 if command -v docker-compose >/dev/null; then DC=docker-compose; else DC='docker compose'; fi
 sudo \$DC up -d --build
 [ -f matomo-https-config.sh ] && sudo ./matomo-https-config.sh || true"

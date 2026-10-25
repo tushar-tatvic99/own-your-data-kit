@@ -2,9 +2,21 @@
 # Run on the VM after Caddy is up. Patches Matomo for HTTPS behind reverse proxy.
 set -euo pipefail
 
-HOST="${MATOMO_PUBLIC_HOST:-matomo.35-234-210-199.nip.io}"
-CONTAINER="${MATOMO_CONTAINER:-docker_matomo_1}"
+ENV_FILE="$(dirname "$0")/.env"
+if [ -z "${MATOMO_PUBLIC_HOST:-}" ] && [ -f "$ENV_FILE" ]; then
+  MATOMO_PUBLIC_HOST="$(grep '^MATOMO_PUBLIC_HOST=' "$ENV_FILE" | cut -d= -f2-)"
+fi
+HOST="${MATOMO_PUBLIC_HOST:?MATOMO_PUBLIC_HOST not set and not found in $ENV_FILE}"
+# Compose v1 names it docker_matomo_1, Compose v2 docker-matomo-1
+CONTAINER="${MATOMO_CONTAINER:-$(docker ps --format '{{.Names}}' | grep -E '^docker[-_]matomo[-_]1$' | head -1)}"
 CFG="/var/www/html/config/config.ini.php"
+
+# Before the setup wizard has run there is no config to patch; writing one here
+# would leave an empty root-owned file and Matomo would answer 500
+if ! docker exec "$CONTAINER" test -s "$CFG"; then
+  echo "Matomo not set up yet - complete the wizard, then re-run $0"
+  exit 0
+fi
 
 docker exec "$CONTAINER" php -r "
 \$f = '$CFG';
