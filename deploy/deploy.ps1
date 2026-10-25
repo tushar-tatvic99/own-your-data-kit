@@ -40,7 +40,7 @@ if (-not (Get-Command terraform -ErrorAction SilentlyContinue)) {
         }
     }
     $env:PATH = "$LocalTfDir;$env:PATH"
-    Write-Host "✓ Using Terraform at $LocalTf" -ForegroundColor Green
+    Write-Host "[OK] Using Terraform at $LocalTf" -ForegroundColor Green
 }
 
 Write-Host "========================================"
