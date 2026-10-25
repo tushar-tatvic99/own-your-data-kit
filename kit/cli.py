@@ -368,5 +368,41 @@ def connectors_test(config: str):
     test_all_connectors(config)
 
 
+@main.command("import-history")
+@click.option("--project", default="tvc-int-matomo", help="GCP Project ID")
+@click.option("--dataset", default=None, help="GA4 BigQuery export dataset (e.g. analytics_xxx)")
+@click.option("--days", type=int, default=30, help="Days of history to backfill")
+@click.option("--dry-run", is_flag=True, help="Simulate historical backfill without cloud egress")
+def import_history(project: str, dataset: str | None, days: int, dry_run: bool):
+    """Stretch Goal 1: Import past GA4 data from BigQuery export so the client doesn't start from zero."""
+    from agents.migration.historical_import import import_ga4_history
+
+    import_ga4_history(project_id=project, dataset_id=dataset, days=days, dry_run=dry_run)
+
+
+@main.command()
+@click.argument("query", required=False)
+@click.option("--interactive", "-i", is_flag=True, help="Start interactive conversational assistant")
+def ask(query: str | None, interactive: bool):
+    """Stretch Goal 2: Assistant answering plain-English questions from the new stack's data."""
+    from kit.assistant.ask import ask_assistant, interactive_loop
+
+    if interactive or not query:
+        interactive_loop()
+    else:
+        ask_assistant(query)
+
+
+@main.command("cost-calculator")
+@click.option("--monthly-events", type=int, default=10000000, help="Monthly event volume")
+@click.option("--tool", default="ga4_360", type=click.Choice(["ga4_360", "adobe_analytics", "mixpanel", "free_ga4"]), help="Incumbent tool to compare")
+@click.option("--currency", default="INR", type=click.Choice(["INR", "USD"]), help="Currency display")
+def cost_calculator(monthly_events: int, tool: str, currency: str):
+    """Stretch Goal 3: Sales tool comparing 3-year TCO (current tool vs OYDK self-hosted + Tatvic maintenance)."""
+    from kit.sales.cost_calculator import display_cost_calculator
+
+    display_cost_calculator(monthly_events=monthly_events, current_tool=tool, currency=currency)
+
+
 if __name__ == "__main__":
     main()

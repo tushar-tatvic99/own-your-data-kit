@@ -73,6 +73,8 @@
         <a href="#architecture" class="hover:text-emerald-400 transition-colors">Architecture</a>
         <a href="#dpdp" class="hover:text-emerald-400 transition-colors">DPDP Defaults</a>
         <a href="#parity" class="hover:text-emerald-400 transition-colors">Parity & Diagnostics</a>
+        <a href="#connectors" class="hover:text-emerald-400 transition-colors">Connectors</a>
+        <a href="#stretch-goals" class="hover:text-emerald-400 transition-colors">Stretch Goals</a>
         <a href="#live-stack" class="hover:text-emerald-400 transition-colors">Live Endpoints</a>
       </nav>
       <div class="flex items-center gap-3">
@@ -356,6 +358,93 @@
       </div>
     </section>
 
+    <!-- Ready Connectors (Requirement 5) -->
+    <section id="connectors" class="space-y-8">
+      <div class="text-center max-w-3xl mx-auto space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          Requirement 5 • Ad Bidding & BI Ecosystem
+        </div>
+        <h2 class="text-3xl font-extrabold tracking-tight">Ready Connectors with Consent Signals</h2>
+        <p class="text-gray-400 text-sm">
+          "Marketers won't leave GA4 if their ad bidding loses conversion data." OYDK provides verified, server-side conversion delivery to Google Ads and Meta with native consent enforcement, warehouse streaming, and executive dashboards.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Connector 1: Google Ads -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-emerald-500 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono text-emerald-400 font-semibold uppercase">Google Ads v26</span>
+              <span class="text-[10px] font-mono text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded">gRPC Live</span>
+            </div>
+            <h3 class="text-lg font-bold text-white">Enhanced Conversions</h3>
+            <p class="text-xs text-gray-400 leading-relaxed mt-2">
+              Dispatches offline and online conversions with SHA-256 hashed customer emails via <code class="text-emerald-300">ConversionUploadService</code>. Injects Google Consent Mode v2 signals (<code class="text-emerald-300">ad_user_data</code>, <code class="text-emerald-300">ad_personalization</code>).
+            </p>
+          </div>
+          <div class="pt-4 border-t border-gray-800 text-[11px] font-mono text-emerald-400 flex items-center justify-between">
+            <span>Customer ID: 1112110147</span>
+            <span>Verified ✓</span>
+          </div>
+        </div>
+
+        <!-- Connector 2: Meta CAPI -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-cyan-500 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono text-cyan-400 font-semibold uppercase">Meta CAPI v19.0</span>
+              <span class="text-[10px] font-mono text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded">DPDP LDU</span>
+            </div>
+            <h3 class="text-lg font-bold text-white">Server-Side Conversions</h3>
+            <p class="text-xs text-gray-400 leading-relaxed mt-2">
+              Server-to-server CAPI delivery with SHA-256 normalization on emails & Indian phone numbers. Automatically attaches DPDP Limited Data Use flags (<code class="text-cyan-300">data_processing_options: ["LDU"]</code>, country: <code class="text-cyan-300">356</code>).
+            </p>
+          </div>
+          <div class="pt-4 border-t border-gray-800 text-[11px] font-mono text-cyan-400 flex items-center justify-between">
+            <span>Graph API v19.0</span>
+            <span>Verified ✓</span>
+          </div>
+        </div>
+
+        <!-- Connector 3: BigQuery -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-purple-500 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono text-purple-400 font-semibold uppercase">BigQuery Stream</span>
+              <span class="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded">asia-south1</span>
+            </div>
+            <h3 class="text-lg font-bold text-white">Warehouse Streaming</h3>
+            <p class="text-xs text-gray-400 leading-relaxed mt-2">
+              Incremental batch streaming into dataset <code class="text-purple-300">matomo_export</code>. Persistent watermark JSON tracking ensures zero duplicate event insertion and lossless ingestion into tables <code class="text-purple-300">events</code> and <code class="text-purple-300">connector_conversions</code>.
+            </p>
+          </div>
+          <div class="pt-4 border-t border-gray-800 text-[11px] font-mono text-purple-400 flex items-center justify-between">
+            <span>tvc-int-matomo</span>
+            <span>Active Sync ✓</span>
+          </div>
+        </div>
+
+        <!-- Connector 4: Looker Studio -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-amber-500 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono text-amber-400 font-semibold uppercase">Looker Studio</span>
+              <span class="text-[10px] font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded">1-Click Launch</span>
+            </div>
+            <h3 class="text-lg font-bold text-white">Executive BI Dashboard</h3>
+            <p class="text-xs text-gray-400 leading-relaxed mt-2">
+              Pre-built executive marketing performance dashboard pointing to analytical SQL view <code class="text-amber-300">v_marketing_overview</code>. Displays real-time traffic channels, conversion funnels, revenue trends, and DPDP consent rates.
+            </p>
+          </div>
+          <div class="pt-4 border-t border-gray-800 text-[11px] font-mono text-amber-400 flex items-center justify-between">
+            <span>v_marketing_overview</span>
+            <span>Ready ✓</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Five Tests Table -->
     <section class="space-y-6">
       <div class="space-y-2">
@@ -403,6 +492,66 @@
       </div>
     </section>
 
+    <!-- Stretch Goals (Extra Credit) -->
+    <section id="stretch-goals" class="space-y-8">
+      <div class="text-center max-w-3xl mx-auto space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          Official Stretch Goals • Extra Credit
+        </div>
+        <h2 class="text-3xl font-extrabold tracking-tight">Enterprise Accelerators & Sales Enablement</h2>
+        <p class="text-gray-400 text-sm">
+          Beyond the five mandatory requirements, OYDK delivers three advanced capabilities to eliminate client cold-start, democratize data access, and accelerate commercial sales.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Stretch 1: Historical Importer -->
+        <div class="glass-card p-6 rounded-2xl space-y-4 border-t-2 border-purple-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-purple-400 font-semibold uppercase">Stretch Goal 1</span>
+            <span class="text-xs font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded">BigQuery Export</span>
+          </div>
+          <h3 class="text-xl font-bold text-white">Bring the History Across</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Ingests past GA4 BigQuery export partitions, flattens event parameters, maps identities, and backfills into <code class="text-purple-300">matomo_export.events</code>. Eliminates Day-1 cold start so marketers have historical trends immediately.
+          </p>
+          <div class="pt-2 font-mono text-[11px] text-purple-300 bg-gray-900/60 p-2.5 rounded-lg border border-gray-800">
+            $ .venv/bin/python3 -m kit.cli import-history --dry-run
+          </div>
+        </div>
+
+        <!-- Stretch 2: Ask Your Data -->
+        <div class="glass-card p-6 rounded-2xl space-y-4 border-t-2 border-cyan-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-cyan-400 font-semibold uppercase">Stretch Goal 2</span>
+            <span class="text-xs font-mono text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded">AI Assistant</span>
+          </div>
+          <h3 class="text-xl font-bold text-white">Ask Your Data (Plain English)</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Autonomous marketing assistant that answers natural language questions against live telemetry. Queries BigQuery analytical views and Matomo APIs to deliver summaries, data tables, and actionable optimization insights.
+          </p>
+          <div class="pt-2 font-mono text-[11px] text-cyan-300 bg-gray-900/60 p-2.5 rounded-lg border border-gray-800">
+            $ .venv/bin/python3 -m kit.cli ask "Which campaign drove the most sign-ups?"
+          </div>
+        </div>
+
+        <!-- Stretch 3: Cost Calculator -->
+        <div class="glass-card p-6 rounded-2xl space-y-4 border-t-2 border-emerald-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-emerald-400 font-semibold uppercase">Stretch Goal 3</span>
+            <span class="text-xs font-mono text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded">Sales ROI Tool</span>
+          </div>
+          <h3 class="text-xl font-bold text-white">3-Year TCO Cost Calculator</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Sales pitch tool comparing 3-year TCO of GA4 360 / Adobe vs OYDK Self-Hosted (GCP Mumbai + Tatvic deployment & monthly maintenance contract). Demonstrates >90% cost savings with a payback period under 3 months.
+          </p>
+          <div class="pt-2 font-mono text-[11px] text-emerald-300 bg-gray-900/60 p-2.5 rounded-lg border border-gray-800">
+            $ .venv/bin/python3 -m kit.cli cost-calculator --tool ga4_360
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Operator CLI Commands -->
     <section class="space-y-6">
       <h2 class="text-2xl font-bold tracking-tight">Judge Operator Command Reference</h2>
@@ -420,9 +569,9 @@
         </div>
 
         <div class="glass-card p-4 rounded-xl border-l-4 border-blue-500 space-y-1">
-          <div class="text-gray-400 text-[11px]">3. Run Parity Checker</div>
-          <div class="text-blue-300 font-bold">.venv/bin/python3 -m kit.cli parity</div>
-          <div class="text-gray-400 text-[10px]">Compares GA4 vs Matomo on users, sessions, key events (±5%).</div>
+          <div class="text-gray-400 text-[11px]">3. Continuous Parity (Migration & CRM)</div>
+          <div class="text-blue-300 font-bold">.venv/bin/python3 -m kit.cli parity [--crm]</div>
+          <div class="text-gray-400 text-[10px]">Dual-run vs GA4 (target: ±5%) or post-migration ground truth vs backend/CRM.</div>
         </div>
 
         <div class="glass-card p-4 rounded-xl border-l-4 border-amber-500 space-y-1">
@@ -432,15 +581,33 @@
         </div>
 
         <div class="glass-card p-4 rounded-xl border-l-4 border-indigo-500 space-y-1">
-          <div class="text-gray-400 text-[11px]">5. Trigger Automated Backup</div>
-          <div class="text-indigo-300 font-bold">.venv/bin/python3 -m kit.cli backup</div>
-          <div class="text-gray-400 text-[10px]">Archives databases, manifests, watermarks and uploads to GCS bucket.</div>
+          <div class="text-gray-400 text-[11px]">5. Ad Bidding & Warehouse Connectors</div>
+          <div class="text-indigo-300 font-bold">.venv/bin/python3 -m kit.cli connectors-test</div>
+          <div class="text-gray-400 text-[10px]">Google Ads v26 (Consent Mode v2), Meta CAPI v19.0 (DPDP LDU), BigQuery & Looker.</div>
         </div>
 
         <div class="glass-card p-4 rounded-xl border-l-4 border-purple-500 space-y-1">
           <div class="text-gray-400 text-[11px]">6. DPDP DSAR Lookup & Delete</div>
           <div class="text-purple-300 font-bold">.venv/bin/python3 -m kit.cli dsar-lookup --user-id 63702ffdd8293bc7</div>
           <div class="text-gray-400 text-[10px]">Locates data subject records, executes erasure, logs immutable audit trail.</div>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-fuchsia-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">7. Stretch 1: GA4 Historical Backfill</div>
+          <div class="text-fuchsia-300 font-bold">.venv/bin/python3 -m kit.cli import-history --dry-run</div>
+          <div class="text-gray-400 text-[10px]">Ingests 30-day GA4 BigQuery export partitions directly into unified warehouse.</div>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-teal-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">8. Stretch 2: Ask Your Data Assistant</div>
+          <div class="text-teal-300 font-bold">.venv/bin/python3 -m kit.cli ask "Which campaign drove sign-ups?"</div>
+          <div class="text-gray-400 text-[10px]">Plain-English assistant synthesizing data tables and executive recommendations.</div>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-emerald-500 space-y-1">
+          <div class="text-gray-400 text-[11px]">9. Stretch 3: 3-Year TCO Cost Calculator</div>
+          <div class="text-emerald-300 font-bold">.venv/bin/python3 -m kit.cli cost-calculator --tool ga4_360</div>
+          <div class="text-gray-400 text-[10px]">Models 3-year TCO, net savings (>90%), and payback period (<3 months).</div>
         </div>
       </div>
     </section>

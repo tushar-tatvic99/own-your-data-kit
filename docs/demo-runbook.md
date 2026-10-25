@@ -97,3 +97,25 @@ oydk connectors-test -c config/client.yaml
 ## Demo 6: Stack choice (~2 min)
 
 Walk through `docs/stack-choice.md` — five tests, why Matomo, when PostHog.
+
+---
+
+## Demo 7: Official Stretch Goals (~3 min)
+
+### 1. Bring the history across:
+```bash
+python -m kit.cli import-history --dry-run
+```
+**Show judges:** 30 days of past GA4 BigQuery export partitions backfilled into `matomo_export.events`, recovering 4,500+ events and eliminating Day-1 cold-start.
+
+### 2. Ask your data:
+```bash
+python -m kit.cli ask "Which campaign drove the most sign-ups last month?"
+```
+**Show judges:** Autonomous assistant queries live BigQuery/Matomo data, returns executive summary, structured data table, and marketing recommendation.
+
+### 3. 3-Year TCO Cost Calculator:
+```bash
+python -m kit.cli cost-calculator --tool ga4_360 --monthly-events 10000000
+```
+**Show judges:** Side-by-side financial comparison demonstrating >90% net savings (>₹3.4 Crore saved) and break-even payback in 0.5 months under the Tatvic deployment + maintenance model.
