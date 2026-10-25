@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google Consent Mode v2 Default (DPDP-Ready: Denied by default) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      'analytics_storage': 'denied',
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'functionality_storage': 'granted',
+      'security_storage': 'granted'
+    });
+  </script>
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MMXM5L53');</script>
+  <!-- End Google Tag Manager -->
+
+  <!-- Matomo Tag Manager -->
+  <script>
+  var _mtm = window._mtm = window._mtm || [];
+  _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+  (function() {
+  var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+  g.async=true; g.src='https://matomo.35-234-210-199.nip.io/js/container_1Is4prw5.js'; s.parentNode.insertBefore(g,s);
+  })();
+  </script>
+  <!-- End Matomo Tag Manager -->
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura &amp; Blush | Curated Products</title>
+  <meta name="description" content="Aura &amp; Blush - Curated horology, bullion, and craftsmanship.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body class="page-ecommerce">
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MMXM5L53"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <!-- Main Navigation Header -->
+  <header class="site-header" id="siteHeader">
+    <div class="header-container">
+      
+      <!-- Brand Logo -->
+      <div class="header-left">
+        <a href="ecommerce.html" class="brand-link" aria-label="Aura &amp; Blush Home">
+          <span class="brand-crest">✦</span>
+          <span class="brand-name">Aura &amp; Blush</span>
+        </a>
+      </div>
+
+      <!-- Nav Links Center (Removed as requested) -->
+      <nav class="nav-links desktop-only" id="mainNav"></nav>
+
+      <!-- Header Actions Right -->
+      <div class="header-actions">
+        <!-- Currency Selector -->
+        <div class="currency-selector">
+          <select id="currencySelect" aria-label="Select Currency">
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="CAD">CAD ($)</option>
+          </select>
+        </div>
+
+        <!-- Wishlist Button -->
+        <button class="action-btn" id="wishlistTrigger" aria-label="View Wishlist">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <span class="badge-count" id="wishlistCount">0</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button class="action-btn cart-btn" id="cartTrigger" aria-label="Open Shopping Bag">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span class="badge-count" id="cartCount">0</span>
+          <span class="cart-subtotal desktop-only" id="headerCartTotal">$0.00</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Product Showcase Section: Exactly 7 Products -->
+  <section class="products-section" id="curations" style="padding: 16px 0 40px;">
+    <div class="section-container">
+
+      <!-- Product Grid (Populated dynamically via app.js) -->
+      <div class="products-grid" id="productsGrid">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Shopping Bag Drawer -->
+  <div class="drawer-overlay" id="cartOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping Bag">
+    <div class="drawer-header">
+      <div class="drawer-title-wrap">
+        <h3 class="drawer-title">Shopping Bag</h3>
+        <span class="item-count-badge" id="cartBadgeCount">(0 items)</span>
+      </div>
+      <button class="drawer-close-btn" id="closeCartBtn" aria-label="Close Shopping Bag">✕</button>
+    </div>
+
+    <div class="cart-items-container" id="cartItemsList">
+      <!-- Items dynamically populated -->
+    </div>
+
+    <div class="cart-drawer-footer" id="cartFooter">
+      <div class="summary-line subtotal">
+        <span>Subtotal</span>
+        <span class="amount" id="drawerSubtotal">$0.00</span>
+      </div>
+      <button class="btn btn-primary btn-checkout" id="checkoutBtn">
+        <span>Proceed to Secure Checkout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Wishlist Drawer -->
+  <div class="drawer-overlay" id="wishlistOverlay"></div>
+  <aside class="wishlist-drawer" id="wishlistDrawer" aria-label="Saved Wishlist">
+    <div class="drawer-header">
+      <div class="drawer-title-wrap">
+        <h3 class="drawer-title">Saved Wishlist</h3>
+        <span class="item-count-badge" id="wishlistBadgeCount">(0 items)</span>
+      </div>
+      <button class="drawer-close-btn" id="closeWishlistBtn" aria-label="Close Wishlist">✕</button>
+    </div>
+
+    <div class="wishlist-items-container" id="wishlistItemsList">
+      <!-- Items dynamically populated -->
+    </div>
+  </aside>
+
+  <!-- Product Quick View Modal (Properly hidden by default with .quickview-modal) -->
+  <div class="quickview-modal" id="productModal">
+    <div class="modal-window">
+      <button class="modal-close-btn" id="closeModalBtn" aria-label="Close modal">✕</button>
+      <div class="modal-body" id="modalProductContent">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 4-Step Checkout Modal (Properly hidden by default with .checkout-modal-backdrop) -->
+  <div class="checkout-modal-backdrop" id="checkoutModal">
+    <div class="modal-window checkout-modal-window">
+      <button class="modal-close-btn" id="closeCheckoutBtn" aria-label="Close checkout">✕</button>
+      
+      <div class="checkout-header">
+        <h2 class="checkout-title" style="font-size: 1.15rem;">Secure Checkout</h2>
+        <div class="checkout-stepper">
+          <div class="step active" data-step="1"><span>1</span><label>Contact</label></div>
+          <div class="step-line"></div>
+          <div class="step" data-step="2"><span>2</span><label>Delivery</label></div>
+          <div class="step-line"></div>
+          <div class="step" data-step="3"><span>3</span><label>Payment</label></div>
+          <div class="step-line"></div>
+          <div class="step" data-step="4"><span>4</span><label>Receipt</label></div>
+        </div>
+      </div>
+
+      <div class="checkout-body">
+        <!-- Step 1: Customer Details -->
+        <div class="checkout-step-panel active" id="step1">
+          <h3 class="step-heading" style="font-size: 0.95rem;">Client Identity &amp; Contact</h3>
+          <form class="checkout-form" id="contactForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="checkoutFname">First Name *</label>
+                <input type="text" id="checkoutFname" required placeholder="Lord Alistair">
+              </div>
+              <div class="form-group">
+                <label for="checkoutLname">Last Name *</label>
+                <input type="text" id="checkoutLname" required placeholder="Vance">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="checkoutEmail">Email *</label>
+              <input type="email" id="checkoutEmail" required placeholder="vance@sovereign-holdings.ch">
+            </div>
+            <div class="form-group">
+              <label for="checkoutPhone">Mobile *</label>
+              <input type="tel" id="checkoutPhone" required placeholder="+41 22 819 0000">
+            </div>
+            <div class="step-actions">
+              <button type="button" class="btn btn-primary" id="toStep2Btn">Continue to Delivery</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2: Shipping -->
+        <div class="checkout-step-panel" id="step2">
+          <h3 class="step-heading" style="font-size: 0.95rem;">Delivery Address</h3>
+          <form class="checkout-form" id="shippingForm">
+            <div class="form-group">
+              <label for="shipAddress">Address *</label>
+              <input type="text" id="shipAddress" required placeholder="74 Rue du Rhône, Suite 400">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="shipCity">City *</label>
+                <input type="text" id="shipCity" required placeholder="Geneva">
+              </div>
+              <div class="form-group">
+                <label for="shipZip">Postal Code *</label>
+                <input type="text" id="shipZip" required placeholder="1204">
+              </div>
+            </div>
+            <div class="step-actions dual-actions">
+              <button type="button" class="btn btn-outline" id="backToStep1Btn">Back</button>
+              <button type="button" class="btn btn-primary" id="toStep3Btn">Continue to Payment</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 3: Payment -->
+        <div class="checkout-step-panel" id="step3">
+          <h3 class="step-heading" style="font-size: 0.95rem;">Payment</h3>
+          <form class="checkout-form" id="paymentForm">
+            <div class="form-group">
+              <label for="cardNum">Card Number *</label>
+              <input type="text" id="cardNum" required placeholder="•••• •••• •••• 8492" maxlength="19">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cardExp">Expiry *</label>
+                <input type="text" id="cardExp" required placeholder="12/28" maxlength="5">
+              </div>
+              <div class="form-group">
+                <label for="cardCvv">CVV *</label>
+                <input type="password" id="cardCvv" required placeholder="•••" maxlength="4">
+              </div>
+            </div>
+            <div class="order-summary-box">
+              <div class="order-line"><span>Total</span><strong id="checkoutFinalTotal">$0.00</strong></div>
+            </div>
+            <div class="step-actions dual-actions">
+              <button type="button" class="btn btn-outline" id="backToStep2Btn">Back</button>
+              <button type="button" class="btn btn-primary" id="completeOrderBtn">Pay &amp; Complete</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 4: Receipt -->
+        <div class="checkout-step-panel" id="step4">
+          <div class="order-success-card">
+            <div class="success-icon">✓</div>
+            <h3 class="success-title">Order Confirmed</h3>
+            <p class="order-id-label">TRANSACTION ID: <span id="receiptOrderId">#INF-84920</span></p>
+            <button type="button" class="btn btn-primary btn-sm" id="finishCheckoutBtn">Back to Store</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple Text Footer -->
+  
+      <!-- =========================================================================
+           DPDP ACT 2023 • DATA ERASURE & RIGHTS CENTER
+           ========================================================================= -->
+      <section class="bfsi-simple-card" id="dpdp-erasure">
+        <div class="card-top-header">
+          <h2 class="card-heading">DPDP Act 2023 • Petition for Data Erasure</h2>
+        </div>
+
+        <form class="bfsi-form-clean" id="dpdpRequestForm">
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="dpdpName">Full Legal Name *</label>
+              <input type="text" id="dpdpName" class="form-input" required placeholder="e.g. Rahul Sharma" autocomplete="name">
+            </div>
+            <div class="form-field-group">
+              <label for="dpdpEmail">Registered Email Address *</label>
+              <input type="email" id="dpdpEmail" class="form-input" required placeholder="e.g. rahul@example.com" autocomplete="email">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="dpdpScope">Request Scope *</label>
+              <select id="dpdpScope" class="form-input" required>
+                <option value="full_erasure" selected>Complete Account &amp; Analytics Erasure</option>
+                <option value="tracking_only">Analytics &amp; Marketing Tracking Erasure Only</option>
+                <option value="revoke_consent">Revoke All Processing Consent</option>
+              </select>
+            </div>
+            <div class="form-field-group">
+              <label for="dpdpOrderNum">Order / Account Number (Optional)</label>
+              <input type="text" id="dpdpOrderNum" class="form-input" placeholder="e.g. INF-84920">
+            </div>
+          </div>
+
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary" id="btnSubmitErasure">
+              Submit Data Erasure Petition
+            </button>
+          </div>
+        </form>
+
+        <div class="form-success-box" id="dpdpReceiptBox" style="display: none;">
+          <div class="success-icon">🔒</div>
+          <h3>Data Erasure Petition Logged</h3>
+          <p>Ticket Reference: <strong id="dpdpTicketCode">DPDP-2026-XXXXX</strong></p>
+          <p style="font-size: 0.78rem; color: #64748b;" id="dpdpTimestamp"></p>
+          <div id="receiptStatusBadge" style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #fff; margin-bottom: 10px;"></div>
+          <div>
+            <button type="button" class="btn btn-outline btn-xs" id="btnSubmitAnotherDpdp">Submit Another Request</button>
+          </div>
+        </div>
+      </section>
+
+  <footer class="simple-text-footer">
+    <div class="section-container text-center">
+      <div class="footer-inline-links">
+        <a href="index.html">🏛️ Go to BFSI Banking Portal</a>
+        <span class="sep">•</span>
+        <a href="#curations">Curated Products</a>
+      </div>
+      <p class="footer-simple-copy">© 2026 Aura &amp; Blush Atelier. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Vanilla CookieConsent v3 & DPDP Configuration -->
+  <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js"></script>
+  <script src="consent-init.js"></script>
+
+  <!-- Main JavaScript & Matomo Modules -->
+  <script src="matomo-tracker.js"></script>
+  <script src="matomo.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

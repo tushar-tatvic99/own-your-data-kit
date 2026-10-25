@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google Consent Mode v2 Default (DPDP-Ready: Denied by default) -->
+  <!-- Google Consent Mode v2 Default (DPDP Compliance: Denied by default) -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -36,1357 +36,392 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>INFINITY | Executive Luxury Curations &amp; Sovereign Assets</title>
-  <meta name="description" content="Discover curated Swiss horology, certified physical bullion, and cryptographic security vaults at Infinity House.">
+  <title>Infinity Bank | Banking, Loans &amp; Savings</title>
+  <meta name="description" content="Infinity Bank - Apply for loans, open savings accounts, and customer NetBanking login.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
-<body class="page-ecommerce">
+<body class="page-bfsi page-bfsi-simple">
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MMXM5L53"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
 
-  <!-- Top Announcement Bar Removed -->
-
   <!-- Main Navigation Header -->
-  <header class="site-header" id="siteHeader">
+  <header class="site-header bfsi-clean-header" id="siteHeader">
     <div class="header-container">
       
-      <!-- Left: Mobile Menu Toggle & Brand Logo -->
+      <!-- Left: Brand Logo -->
       <div class="header-left">
-        <button class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <a href="index.html" class="brand-link" aria-label="Infinity Bank Home">
+          <span class="brand-crest">🏛️</span>
+          <span class="brand-name">Infinity Bank</span>
+        </a>
+      </div>
+
+      <!-- Center Navigation Links: Home page, Apply loan, open savings account, about us, Login -->
+      <nav class="nav-links desktop-only" id="mainNav">
+        <a href="#apply-loan" class="nav-item">Home page</a>
+        <a href="#apply-loan" class="nav-item">Apply loan</a>
+        <a href="#open-savings" class="nav-item">open savings account</a>
+        <a href="#about-us" class="nav-item">about us</a>
+        <a href="#customer-login" class="nav-item">Login</a>
+      </nav>
+
+      <!-- Right: Hamburger Menu Button & Dropdown -->
+      <div class="header-actions">
+        <button class="hamburger-toggle-btn" id="bfsiHamburgerBtn" aria-label="Open menu" aria-expanded="false" title="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
 
-        <a href="index.html" class="brand-link" aria-label="Infinity Luxury Home">
-          <span class="brand-crest">⬡</span>
-          <span class="brand-name">Infinity</span>
-        </a>
-      </div>
-
-      <!-- Nav Links Center (Desktop) -->
-      <nav class="nav-links desktop-only" id="mainNav">
-        <a href="index.html" class="nav-item active">Home</a>
-        <a href="#curations" class="nav-item">Curations</a>
-        <a href="#about" class="nav-item">About Us</a>
-        <a href="#contact" class="nav-item">Contact</a>
-        <a href="#dpdp-erasure" class="nav-item">Privacy &amp; DPDP</a>
-      </nav>
-
-      <!-- Header Actions Right -->
-      <div class="header-actions">
-        <!-- Currency Selector -->
-        <div class="currency-selector">
-          <select id="currencySelect" aria-label="Select Currency">
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="CAD">CAD ($)</option>
-          </select>
+        <!-- Dropdown Menu Triggered by Hamburger -->
+        <div class="hamburger-menu-panel" id="hamburgerMenuPanel">
+          <div class="hamburger-panel-header">
+            <span class="hamburger-title">Navigation</span>
+            <button class="hamburger-close-btn" id="closeHamburgerBtn" aria-label="Close menu">✕</button>
+          </div>
+          <div class="hamburger-options-list">
+            <a href="ecommerce.html" class="hamburger-option-item highlight-ecom" id="switchEcommerceHamburger">
+              <span class="option-icon">🛍️</span>
+              <div class="option-text">
+                <strong>Switch to E-Commerce Account</strong>
+              </div>
+            </a>
+            <a href="#customer-login" class="hamburger-option-item" id="hamburgerOptionLogin">
+              <span class="option-icon">🔐</span>
+              <div class="option-text">
+                <strong>Login</strong>
+              </div>
+            </a>
+            <a href="#open-savings" class="hamburger-option-item" id="hamburgerOptionRegister">
+              <span class="option-icon">📝</span>
+              <div class="option-text">
+                <strong>Account Creation</strong>
+              </div>
+            </a>
+            <a href="#apply-loan" class="hamburger-option-item" id="hamburgerOptionLoan">
+              <span class="option-icon">💰</span>
+              <div class="option-text">
+                <strong>Apply for Loan</strong>
+              </div>
+            </a>
+          </div>
         </div>
-
-        <!-- Wishlist Button -->
-        <button class="action-btn" id="wishlistTrigger" aria-label="View Wishlist">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-          </svg>
-          <span class="badge-count" id="wishlistCount">0</span>
-        </button>
-
-        <!-- Cart Button -->
-        <button class="action-btn cart-btn" id="cartTrigger" aria-label="Open Shopping Bag">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <path d="M16 10a4 4 0 0 1-8 0"></path>
-          </svg>
-          <span class="badge-count" id="cartCount">0</span>
-          <span class="cart-subtotal desktop-only" id="headerCartTotal">$0.00</span>
-        </button>
       </div>
 
-    </div>
-
-    <!-- Mobile Navigation Drawer Panel -->
-    <div class="mobile-nav-panel" id="mobileNavPanel">
-      <div class="mobile-links-list">
-        <a href="index.html" class="mobile-nav-link active">Home</a>
-        <a href="#curations" class="mobile-nav-link">Curations (10 Products)</a>
-        <a href="bfsi.html" class="mobile-nav-link highlight">Explore BFSI Banking 🏛️</a>
-        <a href="#about" class="mobile-nav-link">About Us</a>
-        <a href="#contact" class="mobile-nav-link">Contact Concierge</a>
-        <a href="#dpdp-erasure" class="mobile-nav-link">DPDP Privacy &amp; Erasure</a>
-      </div>
     </div>
   </header>
 
-  <!-- Minimalist Portal Switcher Bar -->
-  <div class="portal-bar" id="portalBar">
-    <div class="portal-container">
-      <div class="portal-pills">
-        <a href="index.html" class="portal-pill active" id="switchEcommerce">
-          <span class="portal-icon">🛍️</span>
-          <span>E-Commerce</span>
-        </a>
-        <a href="bfsi.html" class="portal-pill bfsi-pill" id="switchBfsi">
-          <span class="portal-icon">🏛️</span>
-          <span>BFSI</span>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hero Section: Curated Luxury Assets & Sovereign Horology -->
-  <section class="hero-section" id="hero">
-    <div class="hero-container">
-      <div class="hero-content">
-        <div class="hero-badge">
-          <span class="badge-dot badge-dot-emerald"></span>
-          <span>Exclusive Private Client Curations</span>
-        </div>
-        <h1 class="hero-title">
-          Curated Luxury Assets &amp; <span class="highlight-serif">Fine Horology</span>
-        </h1>
-        <p class="hero-subtitle">
-          Precision Swiss chronometers, 99.99% minted LBMA gold bullion, and sovereign biometric vaults.
-        </p>
-        <div class="hero-actions">
-          <a href="#curations" class="btn btn-primary" id="heroShopBtn">
-            <span>Shop Curated Collection</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </a>
-        </div>
-
-        <!-- Trust Badges -->
-        <div class="hero-stats">
-          <div class="stat-pill">
-            <span class="stat-icon">🏛️</span>
-            <div>
-              <strong>LBMA Assayed</strong>
-              <small>Certified Purity</small>
-            </div>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-icon">🛡️</span>
-            <div>
-              <strong>Armored Courier</strong>
-              <small>Insured Escort</small>
-            </div>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-icon">🔒</span>
-            <div>
-              <strong>256-Bit SSL</strong>
-              <small>Bank Grade</small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-visual">
-        <div class="visual-card">
-          <img src="assets/images/perfume.jpg" alt="Infinite Sovereign Chronometer" class="hero-main-img" loading="eager">
-          <div class="visual-floating-tag tag-top">
-            <span class="fl-icon">⏱️</span>
-            <div class="fl-text">
-              <span class="fl-title">Swiss Chronometer</span>
-              <span class="fl-desc">Grade-5 Titanium Calibre</span>
-            </div>
-          </div>
-          <div class="visual-floating-tag tag-bottom">
-            <span class="rating-stars">★★★★★</span>
-            <span class="fl-title">4.98 Client Satisfaction</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Main Product Showcase Section -->
-  <section class="products-section" id="curations">
+  <!-- =========================================================================
+       3 SIMPLE FORMS (NO EXTRA TEXT, COMPACT REDUCED FONTS)
+       ========================================================================= -->
+  <main class="simple-forms-container">
     <div class="section-container">
-      
-      <div class="section-header">
-        <span class="section-pretitle">PRIVATE CLIENT TREASURES</span>
-        <h2 class="section-title">Executive Curations</h2>
-        <p class="section-desc">Swiss horology, physical LBMA bullion, and cryptographic security.</p>
-      </div>
 
-      <!-- Filter Tabs & Sort Controls -->
-      <div class="controls-bar">
-        <div class="category-tabs" id="categoryTabs">
-          <button class="cat-pill active" data-category="all">All Curations (20)</button>
-          <button class="cat-pill" data-category="horology">Swiss Horology (4)</button>
-          <button class="cat-pill" data-category="bullion">Precious Metals (4)</button>
-          <button class="cat-pill" data-category="security">Security &amp; Vault (4)</button>
-          <button class="cat-pill" data-category="jewelry">Bespoke Jewelry (4)</button>
-          <button class="cat-pill" data-category="lifestyle">Executive Living (4)</button>
+      <!-- FORM 1: APPLY LOAN FORM -->
+      <section class="bfsi-simple-card" id="apply-loan">
+        <div class="card-top-header">
+          <h2 class="card-heading">1. Apply for a Loan</h2>
         </div>
 
-        <div class="sort-wrapper">
-          <label for="sortSelect" class="sort-label">Sort by:</label>
-          <select id="sortSelect" class="sort-select">
-            <option value="featured">Featured Curations</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="rating">Highest Rated</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Product Grid (Populated dynamically via app.js and with fallback) -->
-      <div class="products-grid" id="productsGrid">
-        <!-- Product 1 -->
-        <div class="product-card">
-          <div class="product-media">
-            <span class="product-tag tag-bestseller">Sovereign Tier</span>
-            <div class="card-overlay-actions">
-              <button class="icon-btn-circle" data-wishlist-id="p1" title="Save to Wishlist" aria-label="Wishlist">♡</button>
-              <button class="icon-btn-circle" data-quickview-id="p1" title="Quick View" aria-label="Quick View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
+        <form class="bfsi-form-clean" id="applyLoanForm" onsubmit="submitLoanForm(event)">
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="loanTypeSelect">Loan Type *</label>
+              <select id="loanTypeSelect" class="form-input" required onchange="handleFormFieldInteraction('apply_loan', 'loan_type', 'change')">
+                <option value="Prime Home Mortgage" selected>Prime Home Mortgage (7.65% APR)</option>
+                <option value="Executive Personal Loan">Executive Personal Loan (9.85% APR)</option>
+                <option value="Business Line of Credit">Business Line of Credit (8.95% APR)</option>
+                <option value="Auto / Vehicle Loan">Auto / Vehicle Loan (6.90% APR)</option>
+              </select>
             </div>
-            <img src="assets/images/perfume.jpg" alt="Infinite Sovereign Chronometer" class="product-img" loading="lazy">
-          </div>
-          <div class="product-info">
-            <span class="product-category">SWISS HOROLOGY</span>
-            <h3 class="product-title" data-quickview-id="p1">Infinite Sovereign Chronometer</h3>
-            <div class="product-rating-row"><span class="rating-star-text">★★★★★</span><span class="review-count-text">4.98 (142)</span></div>
-            <p class="product-desc">Precision automatic movement, sapphire crystal, and brushed titanium case.</p>
-            <div class="product-footer-row">
-              <div class="product-price">$450.00</div>
-              <button class="btn-add-card" data-add-id="p1"><span>Add to Bag</span><span>+</span></button>
-            </div>
-          </div>
-        </div>
 
-        <!-- Product 2 -->
-        <div class="product-card">
-          <div class="product-media">
-            <span class="product-tag">AAA Minted</span>
-            <div class="card-overlay-actions">
-              <button class="icon-btn-circle" data-wishlist-id="p2" title="Save to Wishlist" aria-label="Wishlist">♡</button>
-              <button class="icon-btn-circle" data-quickview-id="p2" title="Quick View" aria-label="Quick View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
-            </div>
-            <img src="assets/images/serum.jpg" alt="Certified 24K Mint Gold Bullion (100g)" class="product-img" loading="lazy">
-          </div>
-          <div class="product-info">
-            <span class="product-category">PRECIOUS METALS</span>
-            <h3 class="product-title" data-quickview-id="p2">Certified 24K Mint Gold Bullion (100g)</h3>
-            <div class="product-rating-row"><span class="rating-star-text">★★★★★</span><span class="review-count-text">4.99 (218)</span></div>
-            <p class="product-desc">99.99% pure investment gold bar with LBMA assay certificate.</p>
-            <div class="product-footer-row">
-              <div class="product-price">$680.00</div>
-              <button class="btn-add-card" data-add-id="p2"><span>Add to Bag</span><span>+</span></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Product 3 -->
-        <div class="product-card">
-          <div class="product-media">
-            <span class="product-tag">EAL6+ Security</span>
-            <div class="card-overlay-actions">
-              <button class="icon-btn-circle" data-wishlist-id="p3" title="Save to Wishlist" aria-label="Wishlist">♡</button>
-              <button class="icon-btn-circle" data-quickview-id="p3" title="Quick View" aria-label="Quick View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
-            </div>
-            <img src="assets/images/silk.jpg" alt="Titanium Cryptographic Vault Key" class="product-img" loading="lazy">
-          </div>
-          <div class="product-info">
-            <span class="product-category">SECURITY &amp; VAULT</span>
-            <h3 class="product-title" data-quickview-id="p3">Titanium Cryptographic Vault Key</h3>
-            <div class="product-rating-row"><span class="rating-star-text">★★★★★</span><span class="review-count-text">4.95 (96)</span></div>
-            <p class="product-desc">Hardware security key with biometric touch and zero-leakage memory.</p>
-            <div class="product-footer-row">
-              <div class="product-price">$185.00</div>
-              <button class="btn-add-card" data-add-id="p3"><span>Add to Bag</span><span>+</span></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Product 4 -->
-        <div class="product-card">
-          <div class="product-media">
-            <span class="product-tag">Private Edition</span>
-            <div class="card-overlay-actions">
-              <button class="icon-btn-circle" data-wishlist-id="p4" title="Save to Wishlist" aria-label="Wishlist">♡</button>
-              <button class="icon-btn-circle" data-quickview-id="p4" title="Quick View" aria-label="Quick View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
-            </div>
-            <img src="assets/images/pearl.jpg" alt="18k Solid Gold Sovereign Signet" class="product-img" loading="lazy">
-          </div>
-          <div class="product-info">
-            <span class="product-category">BESPOKE JEWELRY</span>
-            <h3 class="product-title" data-quickview-id="p4">18k Solid Gold Sovereign Signet</h3>
-            <div class="product-rating-row"><span class="rating-star-text">★★★★★</span><span class="review-count-text">4.91 (84)</span></div>
-            <p class="product-desc">Hand-engraved 18k solid gold ring forged with Infinity Bank crest.</p>
-            <div class="product-footer-row">
-              <div class="product-price">$320.00</div>
-              <button class="btn-add-card" data-add-id="p4"><span>Add to Bag</span><span>+</span></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Product 5 -->
-        <div class="product-card">
-          <div class="product-media">
-            <span class="product-tag">First Class Edit</span>
-            <div class="card-overlay-actions">
-              <button class="icon-btn-circle" data-wishlist-id="p5" title="Save to Wishlist" aria-label="Wishlist">♡</button>
-              <button class="icon-btn-circle" data-quickview-id="p5" title="Quick View" aria-label="Quick View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
-            </div>
-            <img src="assets/images/souffle.jpg" alt="Executive Cashmere Travel Collection" class="product-img" loading="lazy">
-          </div>
-          <div class="product-info">
-            <span class="product-category">EXECUTIVE LIVING</span>
-            <h3 class="product-title" data-quickview-id="p5">Executive Cashmere Travel Collection</h3>
-            <div class="product-rating-row"><span class="rating-star-text">★★★★★</span><span class="review-count-text">4.89 (130)</span></div>
-            <p class="product-desc">100% Mongolian combed cashmere travel wrap with silk eye mask.</p>
-            <div class="product-footer-row">
-              <div class="product-price">$160.00</div>
-              <button class="btn-add-card" data-add-id="p5"><span>Add to Bag</span><span>+</span></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Product 6 -->
-        <div class="product-card">
-          <div class="product-media">
-            <span class="product-tag">Hand-Carved</span>
-            <div class="card-overlay-actions">
-              <button class="icon-btn-circle" data-wishlist-id="p6" title="Save to Wishlist" aria-label="Wishlist">♡</button>
-              <button class="icon-btn-circle" data-quickview-id="p6" title="Quick View" aria-label="Quick View">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
-            </div>
-            <img src="assets/images/candle.jpg" alt="Obsidian &amp; Cedar Executive Desk Vessel" class="product-img" loading="lazy">
-          </div>
-          <div class="product-info">
-            <span class="product-category">EXECUTIVE LIVING</span>
-            <h3 class="product-title" data-quickview-id="p6">Obsidian &amp; Cedar Executive Desk Vessel</h3>
-            <div class="product-rating-row"><span class="rating-star-text">★★★★★</span><span class="review-count-text">4.94 (77)</span></div>
-            <p class="product-desc">Solid obsidian stone vessel infused with Atlantic cedarwood accords.</p>
-            <div class="product-footer-row">
-              <div class="product-price">$95.00</div>
-              <button class="btn-add-card" data-add-id="p6"><span>Add to Bag</span><span>+</span></button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- About Us Section -->
-  <section class="about-section" id="about">
-    <div class="section-container">
-      <div class="section-header">
-        <span class="section-pretitle">HERITAGE &amp; EXCELLENCE</span>
-        <h2 class="section-title">About Infinity House</h2>
-        <p class="section-desc">Uncompromising standards in luxury horology, physical bullion, and private wealth.</p>
-      </div>
-
-      <div class="about-grid">
-        <div class="about-card">
-          <span class="about-icon">🏛️</span>
-          <h3 class="about-card-title">Archival Provenance</h3>
-          <p class="about-card-desc">Every luxury horology piece and bullion bar carries individual assay certificates and LBMA guarantee.</p>
-        </div>
-        <div class="about-card">
-          <span class="about-icon">🛡️</span>
-          <h3 class="about-card-title">Armored Courier Escort</h3>
-          <p class="about-card-desc">Tamper-evident, insured diplomatic transit to over 120 countries with real-time GPS custody tracking.</p>
-        </div>
-        <div class="about-card">
-          <span class="about-icon">📈</span>
-          <h3 class="about-card-title">Integrated BFSI Banking</h3>
-          <p class="about-card-desc">Backed by Infinity Bank private wealth solutions, high-yield treasury FDs, and titanium credit facilities.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Contact Us Section -->
-  <section class="contact-section" id="contact">
-    <div class="section-container">
-      <div class="section-header">
-        <span class="section-pretitle">PRIVATE CONCIERGE</span>
-        <h2 class="section-title">Salons &amp; Concierge Desks</h2>
-        <p class="section-desc">Connect with our dedicated client advisors across Zurich, London, Mumbai, and New York.</p>
-      </div>
-
-      <div class="contact-grid">
-        <div class="contact-card">
-          <span class="contact-icon">📞</span>
-          <h3 class="contact-title">24/7 Concierge Hotline</h3>
-          <p class="contact-detail">+1 (800) 849-2000</p>
-          <span class="contact-sub">Direct Line for Private Clients</span>
-        </div>
-        <div class="contact-card">
-          <span class="contact-icon">✉️</span>
-          <h3 class="contact-title">Executive Inquiries</h3>
-          <p class="contact-detail">concierge@infinitybank.com</p>
-          <span class="contact-sub">Response within 2 business hours</span>
-        </div>
-        <div class="contact-card">
-          <span class="contact-icon">🏛️</span>
-          <h3 class="contact-title">Flagship Salons</h3>
-          <p class="contact-detail">Zurich • London • Mumbai • New York</p>
-          <span class="contact-sub">By Appointment Only</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================== -->
-  <!-- DPDP ACT COMPLIANCE & DATA ERASURE CENTER -->
-  <!-- ============================================== -->
-  <section class="dpdp-section" id="dpdp-erasure">
-    <div class="dpdp-container">
-      
-      <!-- Section Header -->
-      <div class="dpdp-header">
-        <div class="dpdp-badge">
-          <span class="dpdp-badge-dot"></span>
-          <span>Digital Personal Data Protection Act, 2023 / 2026 Compliance</span>
-        </div>
-        <h2 class="dpdp-title">Data Privacy &amp; Statutory Erasure Center</h2>
-        <p class="dpdp-subtitle">
-          Exercise your statutory right to complete data erasure and privacy under Section 12 of the DPDP Act.
-        </p>
-      </div>
-
-      <div class="dpdp-grid">
-        
-        <!-- Left: Interactive Data Deletion Request Form -->
-        <div class="dpdp-card dpdp-form-card">
-          <div class="card-head">
-            <div class="card-icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              </svg>
-            </div>
-            <div>
-              <h3 class="card-title">Petition for Data Erasure</h3>
-              <p class="card-desc">Exercise your statutory right to erasure under Section 12(1).</p>
+            <div class="form-field-group">
+              <label for="loanAmountInput">Loan Amount ($) *</label>
+              <input type="number" id="loanAmountInput" class="form-input" min="5000" max="2500000" step="5000" value="50000" required oninput="handleFormFieldInteraction('apply_loan', 'loan_amount', 'input')" onfocus="handleFormFieldInteraction('apply_loan', 'loan_amount', 'focus')">
             </div>
           </div>
 
-          <!-- Dynamic Disclosure Matrix -->
-          <div class="dpdp-matrix-box">
-            <div class="matrix-column will-delete">
-              <span class="matrix-heading">
-                <span class="dot-status green"></span> Personal Data Deleted
-              </span>
-              <ul class="matrix-list">
-                <li>Account profile, name &amp; saved addresses</li>
-                <li>Browsing telemetry &amp; tracking cookies</li>
-                <li>Marketing consent &amp; personalization logs</li>
-                <li>Cart sessions &amp; saved wishlists</li>
-                <li>Notice sent to all 3rd-party processors</li>
-              </ul>
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="loanTenureSelect">Tenure *</label>
+              <select id="loanTenureSelect" class="form-input" required onchange="handleFormFieldInteraction('apply_loan', 'loan_tenure', 'change')">
+                <option value="1">1 Year</option>
+                <option value="3">3 Years</option>
+                <option value="5" selected>5 Years</option>
+                <option value="10">10 Years</option>
+                <option value="15">15 Years</option>
+                <option value="20">20 Years</option>
+              </select>
             </div>
-            
-            <div class="matrix-column will-retain">
-              <span class="matrix-heading">
-                <span class="dot-status amber"></span> Statutory Exceptions
-              </span>
-              <ul class="matrix-list">
-                <li><strong>Tax Invoices:</strong> Retained for 6 years per Sec 36, CGST Act</li>
-                <li><strong>Active In-Transit Orders:</strong> Retained until delivery completion</li>
-                <li><strong>Payment Records:</strong> Retained per statutory banking guidelines</li>
-              </ul>
+
+            <div class="form-field-group">
+              <label for="loanAnnualIncome">Annual Income *</label>
+              <select id="loanAnnualIncome" class="form-input" required onchange="handleFormFieldInteraction('apply_loan', 'annual_income', 'change')">
+                <option value="under_50k">Under $50,000</option>
+                <option value="50k_100k" selected>$50,000 – $100,000</option>
+                <option value="100k_250k">$100,000 – $250,000</option>
+                <option value="250k_plus">$250,000+</option>
+              </select>
             </div>
           </div>
 
-          <!-- The Form -->
-          <form class="dpdp-request-form" id="dpdpRequestForm">
-            <div class="form-row-2">
-              <div class="dpdp-field">
-                <label for="dpdpName">Full Legal Name *</label>
-                <input type="text" id="dpdpName" required placeholder="e.g. Camille Laurent" autocomplete="name">
-              </div>
-              <div class="dpdp-field">
-                <label for="dpdpEmail">Registered Email Address *</label>
-                <input type="email" id="dpdpEmail" required placeholder="e.g. camille@atelier.com" autocomplete="email">
-              </div>
+          <div class="form-grid-3">
+            <div class="form-field-group">
+              <label for="loanFullName">Full Name *</label>
+              <input type="text" id="loanFullName" class="form-input" placeholder="e.g. Rahul Sharma" required oninput="handleFormFieldInteraction('apply_loan', 'full_name', 'input')" onfocus="handleFormFieldInteraction('apply_loan', 'full_name', 'focus')">
             </div>
 
-            <div class="form-row-2">
-              <div class="dpdp-field">
-                <label for="dpdpScope">Request Scope *</label>
-                <select id="dpdpScope" required>
-                  <option value="full_erasure">Complete Account &amp; Analytics Erasure</option>
-                  <option value="tracking_only">Analytics &amp; Marketing Tracking Erasure Only</option>
-                  <option value="access_inquiry">Request Detailed Summary of Stored Data</option>
-                </select>
-              </div>
-              <div class="dpdp-field">
-                <label for="dpdpOrderNum">Order Reference Number <small>(If applicable)</small></label>
-                <input type="text" id="dpdpOrderNum" placeholder="e.g. AB-2026-891">
-              </div>
+            <div class="form-field-group">
+              <label for="loanEmail">Email *</label>
+              <input type="email" id="loanEmail" class="form-input" placeholder="e.g. rahul@example.com" required oninput="handleFormFieldInteraction('apply_loan', 'email', 'input')" onfocus="handleFormFieldInteraction('apply_loan', 'email', 'focus')">
             </div>
 
-            <div class="dpdp-field">
-              <label for="dpdpNotes">Specific Instructions or Exclusions <small>(Optional)</small></label>
-              <textarea id="dpdpNotes" rows="2" placeholder="Specify any specific third-party processors, accounts, or details..."></textarea>
+            <div class="form-field-group">
+              <label for="loanPhone">Mobile *</label>
+              <input type="tel" id="loanPhone" class="form-input" placeholder="e.g. +91 98765 43210" required oninput="handleFormFieldInteraction('apply_loan', 'phone', 'input')" onfocus="handleFormFieldInteraction('apply_loan', 'phone', 'focus')">
             </div>
+          </div>
 
-            <div class="dpdp-consent-ack">
-              <label class="dpdp-checkbox-label">
-                <input type="checkbox" id="dpdpConsentCheck" required>
-                <span>I confirm that I am the authorized Data Principal. I acknowledge that tax invoices and active in-transit fulfillment records must be retained pursuant to applicable Indian statutory laws.</span>
-              </label>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-dpdp-submit" id="dpdpSubmitBtn">
-              <span>Submit Statutory Deletion Request</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
+          <!-- Buttons: Load Apply Button Loan Fill, and Apply Loan -->
+          <div class="form-actions-row">
+            <button type="button" class="btn btn-secondary" id="btnLoanFill" onclick="fillLoanDemo()">
+              ⚡ Load / Fill Demo Details
             </button>
-          </form>
-
-          <!-- Form Receipt / Comprehensive Statutory Audit Decision State -->
-          <div class="dpdp-receipt-box" id="dpdpReceiptBox" style="display: none;">
-            <div class="receipt-header">
-              <span class="receipt-badge" id="receiptStatusBadge">AUDIT COMPLETE • PARTIALLY APPROVED</span>
-              <span class="receipt-time" id="dpdpTimestamp"></span>
-            </div>
-            
-            <h4 class="receipt-title" id="receiptDecisionTitle">Statutory Erasure Decision &amp; Audit Breakdown</h4>
-            <p class="receipt-msg" id="receiptDecisionMsg">
-              Your petition under Section 12(1) of the DPDP Act has been registered. Below is the statutory breakdown of which personal data categories are approved for deletion, and which must be retained by law.
-            </p>
-
-            <!-- Statutory Decision Audit Table -->
-            <div class="audit-decision-table-wrap">
-              <table class="audit-decision-table">
-                <thead>
-                  <tr>
-                    <th>Data Category</th>
-                    <th>Audit Status</th>
-                    <th>Reason / Statutory Basis</th>
-                  </tr>
-                </thead>
-                <tbody id="auditTableBody">
-                  <tr>
-                    <td><strong>Account Profile &amp; Identifiers</strong></td>
-                    <td><span class="status-chip chip-approved">✓ APPROVED</span></td>
-                    <td>Full name, email &amp; saved shipping addresses queued for permanent destruction.</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Marketing &amp; Ad Telemetry</strong></td>
-                    <td><span class="status-chip chip-approved">✓ APPROVED</span></td>
-                    <td>Advertising consent revoked; tracking tokens invalidated across processors.</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Analytics Identifiers (Matomo / GA4)</strong></td>
-                    <td><span class="status-chip chip-approved">✓ APPROVED</span></td>
-                    <td>Pseudonymous user tracking purged; local session cookies cleared immediately.</td>
-                  </tr>
-                  <tr class="row-warning" id="auditInvoiceRow">
-                    <td><strong>Tax Invoices &amp; Accounts</strong></td>
-                    <td><span class="status-chip chip-held">⚖️ NOT APPROVED (LEGAL HOLD)</span></td>
-                    <td><strong>Section 36, CGST Act 2017:</strong> Sales invoices &amp; GST accounts must be preserved for <strong>6 years (72 months)</strong>. Statutory exemption under DPDP Sec 12(3).</td>
-                  </tr>
-                  <tr class="row-conditional" id="auditPendingOrderRow" style="display: none;">
-                    <td><strong>Active In-Transit Orders</strong></td>
-                    <td><span class="status-chip chip-conditional">⏳ CONDITIONAL HOLD</span></td>
-                    <td><strong>Contractual Fulfillment:</strong> Data held until courier delivery and 30-day consumer return/dispute window conclude, after which it is auto-erased.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Live Browser Action Notice -->
-            <div class="browser-purged-box">
-              <div class="purge-icon">✨</div>
-              <div class="purge-text">
-                <strong>Immediate Action Executed On This Device:</strong>
-                <span>Tracking cookies purged, <code>localStorage</code> wiped, and Matomo consent token revoked right now.</span>
-              </div>
-            </div>
-
-            <div class="receipt-ticket-pill">
-              <span class="ticket-label">Statutory Reference ID:</span>
-              <code class="ticket-code" id="dpdpTicketCode">DPDP-2026-XXXXX</code>
-              <button type="button" class="btn-copy-ticket" id="copyTicketBtn">Copy ID</button>
-            </div>
-
-            <div class="receipt-actions-row">
-              <button type="button" class="btn btn-outline btn-sm" id="btnSubmitAnotherDpdp">
-                <span>Submit Another Request</span>
-              </button>
-              <button type="button" class="btn btn-primary btn-sm" id="btnPrintReceiptBtn">
-                <span>Print Audit Summary</span>
-              </button>
-            </div>
-
-            <div class="receipt-footer">
-              <span>Data Protection Officer: <code>dpo@infinitybank.com</code></span>
-              <span>Statutory Fulfillment Deadline: <code>30 Calendar Days</code></span>
-            </div>
+            <button type="submit" class="btn btn-primary" id="btnApplyLoanSubmit">
+              Apply Loan
+            </button>
           </div>
+        </form>
+
+        <!-- Loan Result Box -->
+        <div class="form-success-box" id="loanSuccessBox" style="display: none;">
+          <div class="success-icon">✓</div>
+          <h3>Application Submitted</h3>
+          <p>Reference Ticket: <strong id="loanRefCode">INF-LOAN-2026-89412</strong></p>
+          <p class="estimated-detail" id="loanEstimatedEmiText">Estimated Monthly EMI: <strong>$1,010 / month</strong></p>
+          <button type="button" class="btn btn-outline btn-xs" onclick="resetLoanForm()">Apply Again</button>
+        </div>
+      </section>
+
+
+      <!-- FORM 2: OPEN SAVINGS ACCOUNT FORM -->
+      <section class="bfsi-simple-card" id="open-savings">
+        <div class="card-top-header">
+          <h2 class="card-heading">2. Open Savings Account</h2>
         </div>
 
-        <!-- Right: Executive FAQ Accordion -->
-        <div class="dpdp-card dpdp-faq-card">
-          <div class="card-head">
-            <div class="card-icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
+        <form class="bfsi-form-clean" id="openSavingsForm" onsubmit="submitSavingsForm(event)">
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="savingsAccountType">Account Type *</label>
+              <select id="savingsAccountType" class="form-input" required onchange="handleFormFieldInteraction('open_savings', 'account_type', 'change')">
+                <option value="High-Yield Multiplier Savings (8.45% APY)" selected>High-Yield Multiplier Savings (8.45% APY)</option>
+                <option value="Classic Digital Savings (6.50% APY)">Classic Digital Savings (6.50% APY)</option>
+                <option value="Institutional Treasury Account">Institutional Treasury Account (8.90% APY)</option>
+              </select>
             </div>
-            <div>
-              <h3 class="card-title">Statutory Compliance FAQs</h3>
-              <p class="card-desc">Authoritative guidance on your legal rights, exemptions, and timelines.</p>
+
+            <div class="form-field-group">
+              <label for="savingsDepositAmount">Initial Deposit ($) *</label>
+              <input type="number" id="savingsDepositAmount" class="form-input" min="100" max="1000000" step="500" value="10000" required oninput="handleFormFieldInteraction('open_savings', 'initial_deposit', 'input')" onfocus="handleFormFieldInteraction('open_savings', 'initial_deposit', 'focus')">
             </div>
           </div>
 
-          <div class="dpdp-accordion" id="dpdpAccordion">
-            
-            <div class="faq-item active">
-              <button type="button" class="faq-trigger" aria-expanded="true">
-                <span class="faq-q">What is my Right to Erasure under Section 12?</span>
-                <span class="faq-chevron">▾</span>
-              </button>
-              <div class="faq-body">
-                <p>Section 12 empowers you to demand complete deletion of personal data when consent is withdrawn or purpose is fulfilled. All downstream processors are notified immediately.</p>
-              </div>
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="savingsFullName">Full Name *</label>
+              <input type="text" id="savingsFullName" class="form-input" placeholder="e.g. Priya Sharma" required oninput="handleFormFieldInteraction('open_savings', 'full_name', 'input')" onfocus="handleFormFieldInteraction('open_savings', 'full_name', 'focus')">
             </div>
 
-            <div class="faq-item">
-              <button type="button" class="faq-trigger" aria-expanded="false">
-                <span class="faq-q">Which personal data is permanently wiped?</span>
-                <span class="faq-chevron">▾</span>
-              </button>
-              <div class="faq-body">
-                <p>All direct identifiers (name, email, shipping addresses) and pseudonymous telemetry (Matomo profiles, GA4 analytics, ad cookies) are permanently destroyed.</p>
-              </div>
+            <div class="form-field-group">
+              <label for="savingsEmail">Email *</label>
+              <input type="email" id="savingsEmail" class="form-input" placeholder="e.g. priya@example.com" required oninput="handleFormFieldInteraction('open_savings', 'email', 'input')" onfocus="handleFormFieldInteraction('open_savings', 'email', 'focus')">
             </div>
-
-            <div class="faq-item">
-              <button type="button" class="faq-trigger" aria-expanded="false">
-                <span class="faq-q">What happens with pending orders or in-transit shipments?</span>
-                <span class="faq-chevron">▾</span>
-              </button>
-              <div class="faq-body">
-                <p>Under Section 12(3), data required for delivery and warranty protection is retained until fulfillment is complete, after which it is automatically erased.</p>
-              </div>
-            </div>
-
-            <div class="faq-item">
-              <button type="button" class="faq-trigger" aria-expanded="false">
-                <span class="faq-q">Why must invoice records be retained for 6 years?</span>
-                <span class="faq-chevron">▾</span>
-              </button>
-              <div class="faq-body">
-                <p>Section 36 of the CGST Act mandates preserving tax invoices for 72 months in an isolated, encrypted accounting vault with zero access for marketing.</p>
-              </div>
-            </div>
-
-            <div class="faq-item">
-              <button type="button" class="faq-trigger" aria-expanded="false">
-                <span class="faq-q">What is the mandatory statutory timeframe?</span>
-                <span class="faq-chevron">▾</span>
-              </button>
-              <div class="faq-body">
-                <p>Identity verification and statutory erasure must be completed within 30 calendar days, accompanied by an official audit certificate.</p>
-              </div>
-            </div>
-
-            <div class="faq-item">
-              <button type="button" class="faq-trigger" aria-expanded="false">
-                <span class="faq-q">How do I reach your Data Protection Officer (DPO)?</span>
-                <span class="faq-chevron">▾</span>
-              </button>
-              <div class="faq-body">
-                <p>Contact our DPO at <strong>dpo@infinitybank.com</strong>. Grievances unresolved within 30 days can be escalated to the Data Protection Board of India.</p>
-              </div>
-            </div>
-
           </div>
+
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="savingsPhone">Mobile *</label>
+              <input type="tel" id="savingsPhone" class="form-input" placeholder="e.g. +91 98111 22334" required oninput="handleFormFieldInteraction('open_savings', 'phone', 'input')" onfocus="handleFormFieldInteraction('open_savings', 'phone', 'focus')">
+            </div>
+
+            <div class="form-field-group">
+              <label for="savingsSourceFunds">Source of Funds *</label>
+              <select id="savingsSourceFunds" class="form-input" required onchange="handleFormFieldInteraction('open_savings', 'source_of_funds', 'change')">
+                <option value="Salaried Employment" selected>Salaried Employment</option>
+                <option value="Business Revenue">Business Revenue</option>
+                <option value="Investment Returns">Investment Returns</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions-row">
+            <button type="button" class="btn btn-secondary" id="btnSavingsFill" onclick="fillSavingsDemo()">
+              ⚡ Fill Demo Details
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnOpenSavingsSubmit">
+              Open Savings Account
+            </button>
+          </div>
+        </form>
+
+        <!-- Savings Result Box -->
+        <div class="form-success-box" id="savingsSuccessBox" style="display: none;">
+          <div class="success-icon">✓</div>
+          <h3>Account Created</h3>
+          <p>Registration Ticket: <strong id="savingsRefCode">INF-ACC-2026-55102</strong></p>
+          <button type="button" class="btn btn-outline btn-xs" onclick="resetSavingsForm()">Open Another</button>
+        </div>
+      </section>
+
+
+      <!-- FORM 3: CUSTOMER LOGIN FORM -->
+      <section class="bfsi-simple-card" id="customer-login">
+        <div class="card-top-header">
+          <h2 class="card-heading">3. Customer Login</h2>
         </div>
 
-      </div>
+        <form class="bfsi-form-clean" id="customerLoginForm" onsubmit="submitLoginForm(event)">
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="loginCustomerId">Customer ID / User ID *</label>
+              <input type="text" id="loginCustomerId" class="form-input" placeholder="e.g. INF-984210" required oninput="handleFormFieldInteraction('customer_login', 'customer_id', 'input')" onfocus="handleFormFieldInteraction('customer_login', 'customer_id', 'focus')">
+            </div>
+
+            <div class="form-field-group">
+              <label for="loginPassword">Password / PIN *</label>
+              <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required oninput="handleFormFieldInteraction('customer_login', 'password', 'input')" onfocus="handleFormFieldInteraction('customer_login', 'password', 'focus')">
+            </div>
+          </div>
+
+          <div class="checkbox-row" style="margin: 8px 0 12px;">
+            <label class="remember-label" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #475569; cursor: pointer;">
+              <input type="checkbox" id="loginRememberMe" checked>
+              <span>Remember Customer ID</span>
+            </label>
+          </div>
+
+          <div class="form-actions-row">
+            <button type="button" class="btn btn-secondary" id="btnLoginFill" onclick="fillLoginDemo()">
+              ⚡ Fill Demo Login
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnLoginSubmit">
+              Login to NetBanking
+            </button>
+          </div>
+        </form>
+
+        <!-- Logged In State Box -->
+        <div class="form-success-box" id="loginSuccessBox" style="display: none;">
+          <div class="success-icon">✓</div>
+          <h3>NetBanking Active</h3>
+          <p>Welcome back, <strong id="loggedInUserName">Lord Alistair Vance</strong> (Account: ••••8492)</p>
+          <button type="button" class="btn btn-outline btn-xs" onclick="logoutCustomer()">Logout</button>
+        </div>
+      </section>
+
+      <!-- ABOUT US: COMPACT & SIMPLE -->
+      <section class="bfsi-simple-card about-us-card" id="about-us">
+        <div class="card-top-header">
+          <h2 class="card-heading">About Infinity Bank</h2>
+        </div>
+        <div class="about-points-simple">
+          <span>🏛️ Licensed Banking Institution</span>
+          <span>•</span>
+          <span>🔒 256-Bit SSL &amp; DPDP Compliant</span>
+          <span>•</span>
+          <span>⚡ 24/7 Priority Support</span>
+        </div>
+      </section>
 
     </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-container">
-      <div class="footer-col brand-col">
-        <span class="brand-name footer-logo"><span class="brand-crest">⬡</span> Infinity House</span>
-        <p class="footer-bio">Curated luxury assets, Swiss chronometers, physical bullion, and sovereign cryptographic security.</p>
-        <div class="social-links">
-          <a href="#" aria-label="LinkedIn">LinkedIn</a>
-          <a href="#" aria-label="Bloomberg">Bloomberg</a>
-          <a href="#" aria-label="Reuters">Reuters</a>
+  
+      <!-- =========================================================================
+           DPDP ACT 2023 • DATA ERASURE & RIGHTS CENTER
+           ========================================================================= -->
+      <section class="bfsi-simple-card" id="dpdp-erasure">
+        <div class="card-top-header">
+          <h2 class="card-heading">DPDP Act 2023 • Petition for Data Erasure</h2>
         </div>
-      </div>
 
-      <div class="footer-col">
-        <h4 class="footer-heading">Executive Assets</h4>
-        <ul class="footer-list">
-          <li><a href="#curations" data-filter="horology">Swiss Horology</a></li>
-          <li><a href="#curations" data-filter="bullion">LBMA Gold Bullion</a></li>
-          <li><a href="#curations" data-filter="security">Cryptographic Vaults</a></li>
-          <li><a href="#curations" data-filter="jewelry">Bespoke Jewelry</a></li>
-          <li><a href="bfsi.html">Explore BFSI Banking →</a></li>
-        </ul>
-      </div>
+        <form class="bfsi-form-clean" id="dpdpRequestForm">
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="dpdpName">Full Legal Name *</label>
+              <input type="text" id="dpdpName" class="form-input" required placeholder="e.g. Rahul Sharma" autocomplete="name">
+            </div>
+            <div class="form-field-group">
+              <label for="dpdpEmail">Registered Email Address *</label>
+              <input type="email" id="dpdpEmail" class="form-input" required placeholder="e.g. rahul@example.com" autocomplete="email">
+            </div>
+          </div>
 
-      <div class="footer-col">
-        <h4 class="footer-heading">Private Concierge</h4>
-        <ul class="footer-list">
-          <li><a href="#" id="footerTrackOrderBtn">Track Insured Dispatch</a></li>
-          <li><a href="#" id="footerGiftWrapBtn">Diplomatic Vault Delivery</a></li>
-          <li><a href="#" id="footerShippingBtn">Armored Escort Courier</a></li>
-          <li><a href="#" id="footerReturnsBtn">Assay &amp; Custody Guarantee</a></li>
-          <li><a href="#dpdp-erasure" id="footerDataErasureBtn">Data Deletion &amp; DPDP Rights</a></li>
-        </ul>
-      </div>
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label for="dpdpScope">Request Scope *</label>
+              <select id="dpdpScope" class="form-input" required>
+                <option value="full_erasure" selected>Complete Account &amp; Analytics Erasure</option>
+                <option value="tracking_only">Analytics &amp; Marketing Tracking Erasure Only</option>
+                <option value="revoke_consent">Revoke All Processing Consent</option>
+              </select>
+            </div>
+            <div class="form-field-group">
+              <label for="dpdpOrderNum">Order / Account Number (Optional)</label>
+              <input type="text" id="dpdpOrderNum" class="form-input" placeholder="e.g. INF-84920">
+            </div>
+          </div>
 
-      <div class="footer-col">
-        <h4 class="footer-heading">Payment &amp; Security</h4>
-        <p class="security-text">256-Bit Bank-Grade SSL Encryption. Regulated under Statutory Banking &amp; Financial Authorities.</p>
-        <div class="payment-badges">
-          <span class="pay-chip">VISA</span>
-          <span class="pay-chip">Mastercard</span>
-          <span class="pay-chip">Apple Pay</span>
-          <span class="pay-chip">Google Pay</span>
-          <span class="pay-chip">Amex</span>
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary" id="btnSubmitErasure">
+              Submit Data Erasure Petition
+            </button>
+          </div>
+        </form>
+
+        <div class="form-success-box" id="dpdpReceiptBox" style="display: none;">
+          <div class="success-icon">🔒</div>
+          <h3>Data Erasure Petition Logged</h3>
+          <p>Ticket Reference: <strong id="dpdpTicketCode">DPDP-2026-XXXXX</strong></p>
+          <p style="font-size: 0.78rem; color: #64748b;" id="dpdpTimestamp"></p>
+          <div id="receiptStatusBadge" style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #fff; margin-bottom: 10px;"></div>
+          <div>
+            <button type="button" class="btn btn-outline btn-xs" id="btnSubmitAnotherDpdp">Submit Another Request</button>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <div class="footer-bottom">
-      <p>&copy; 2026 Infinity International Ltd. Regulated under Statutory Banking &amp; Financial Authorities. All rights reserved.</p>
-      <div class="footer-privacy-links">
-        <button type="button" class="btn-cookie-preferences" data-cc="show-preferencesModal">
-          <span>🛡️ Privacy &amp; Cookie Choices</span>
-        </button>
+  </main>
+
+  <!-- =========================================================================
+       FOOTER: SIMPLE TEXT WITH HYPERLINKS (NO BOXES, REDUCED COMPACT FONTS)
+       ========================================================================= -->
+  <footer class="simple-text-footer">
+    <div class="section-container text-center">
+      <div class="footer-inline-links">
+        <a href="ecommerce.html" id="footerSwitchEcom">Switch to E-Commerce Store</a>
+        <span class="sep">•</span>
+        <a href="#apply-loan">Apply Loan</a>
+        <span class="sep">•</span>
+        <a href="#open-savings">Open Savings Account</a>
+        <span class="sep">•</span>
+        <a href="#customer-login">Customer Login</a>
+        <span class="sep">•</span>
+        <a href="tel:+18005550199" id="footerHelpCta">Helpline: +1 (800) 555-0199</a>
       </div>
+      <p class="footer-simple-copy">© 2026 Infinity Bank. All rights reserved.</p>
     </div>
   </footer>
 
-  <!-- ============================================== -->
-  <!-- CART SLIDEOVER DRAWER -->
-  <!-- ============================================== -->
-  <div class="drawer-overlay" id="cartOverlay"></div>
-  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping Bag">
-    <div class="drawer-header">
-      <div class="drawer-title-wrap">
-        <h3 class="drawer-title">Executive Acquisitions</h3>
-        <span class="item-count-badge" id="cartBadgeCount">(0 items)</span>
-      </div>
-      <button class="drawer-close-btn" id="closeCartBtn" aria-label="Close Shopping Bag">✕</button>
-    </div>
-
-    <!-- Free Shipping Progress Bar -->
-    <div class="shipping-progress-box">
-      <div class="progress-message" id="shippingProgressMsg">
-        Acquire <strong>$75.00</strong> more to unlock <strong>Complimentary Armored Courier &amp; Vault Escrow</strong>!
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="shippingProgressBar" style="width: 0%;"></div>
-      </div>
-    </div>
-
-    <!-- Cart Items Scroll Area -->
-    <div class="cart-items-container" id="cartItemsList">
-      <!-- Items dynamically populated -->
-      <div class="cart-empty-state" id="cartEmptyState">
-        <span class="empty-icon">🛍️</span>
-        <h4>Your Bag is Whispering for Beauty</h4>
-        <p>Explore our curated treasures and treat yourself or someone cherished.</p>
-        <button class="btn btn-primary" id="emptyCartShopBtn">Explore Collection</button>
-      </div>
-    </div>
-
-    <!-- Cart Footer with Totals and Gift Message -->
-    <div class="drawer-footer" id="cartDrawerFooter">
-      <!-- Gift Wrap & Message Toggle -->
-      <div class="gift-option-card">
-        <label class="gift-toggle-label">
-          <input type="checkbox" id="giftWrapToggle">
-          <span class="custom-checkbox"></span>
-          <span class="gift-toggle-text">
-            <strong>Diplomatic Armored Box &amp; Archival Certificate</strong>
-            <small>Includes wax seal, insured custody tracking &amp; provenance certificate</small>
-          </span>
-        </label>
-        <div class="gift-message-field" id="giftMessageField" style="display: none;">
-          <textarea id="giftMessageInput" placeholder="Executive dispatch instructions or custody recipient notes..." maxlength="200" rows="2"></textarea>
-          <small class="char-limit"><span id="giftCharCount">0</span>/200 characters</small>
-        </div>
-      </div>
-
-      <!-- Coupon Code Form -->
-      <div class="coupon-box">
-        <div class="coupon-input-group">
-          <input type="text" id="couponInput" placeholder="Promo code (e.g. GIRLGLOW15)" class="coupon-input" uppercase>
-          <button class="btn-coupon" id="applyCouponBtn">Apply</button>
-        </div>
-        <div class="coupon-feedback" id="couponFeedback"></div>
-      </div>
-
-      <!-- Price Breakdown -->
-      <div class="price-breakdown">
-        <div class="price-row">
-          <span>Subtotal</span>
-          <span id="cartSubtotal">$0.00</span>
-        </div>
-        <div class="price-row discount-row" id="cartDiscountRow" style="display: none;">
-          <span id="cartDiscountLabel">Promo Discount</span>
-          <span id="cartDiscountAmount">-$0.00</span>
-        </div>
-        <div class="price-row">
-          <span>White-Glove Shipping</span>
-          <span id="cartShippingCost">Calculated at checkout</span>
-        </div>
-        <div class="price-row grand-total-row">
-          <strong>Estimated Total</strong>
-          <strong class="total-amount" id="cartGrandTotal">$0.00</strong>
-        </div>
-      </div>
-
-      <!-- Direct Checkout Trigger -->
-      <button class="btn btn-primary btn-checkout" id="proceedCheckoutBtn">
-        <span>Proceed to Checkout</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      </button>
-
-      <div class="secure-guarantee">
-        <span>🔒 256-Bit SSL Encrypted • 30-Day Custody Guarantee</span>
-      </div>
-    </div>
-  </aside>
-
-  <!-- ============================================== -->
-  <!-- FULL MULTI-STEP CHECKOUT JOURNEY MODAL -->
-  <!-- ============================================== -->
-  <div class="checkout-modal-backdrop" id="checkoutModal">
-    <div class="checkout-modal-window">
-      
-      <!-- Checkout Header -->
-      <div class="checkout-header">
-        <div class="checkout-brand">
-          <span class="checkout-brand-sub">INSTITUTIONAL CLIENT CHECKOUT</span>
-          <span class="checkout-brand-title">Infinity</span>
-        </div>
-        
-        <!-- Multi-Step Indicator -->
-        <div class="checkout-stepper">
-          <div class="step-node active" id="stepNode1">
-            <span class="step-num">1</span>
-            <span class="step-text">Details</span>
-          </div>
-          <div class="step-line" id="stepLine1"></div>
-          <div class="step-node" id="stepNode2">
-            <span class="step-num">2</span>
-            <span class="step-text">Shipping</span>
-          </div>
-          <div class="step-line" id="stepLine2"></div>
-          <div class="step-node" id="stepNode3">
-            <span class="step-num">3</span>
-            <span class="step-text">Payment</span>
-          </div>
-          <div class="step-line" id="stepLine3"></div>
-          <div class="step-node" id="stepNode4">
-            <span class="step-num">4</span>
-            <span class="step-text">Confirmation</span>
-          </div>
-        </div>
-
-        <button class="checkout-close-btn" id="closeCheckoutBtn" aria-label="Close Checkout">✕</button>
-      </div>
-
-      <!-- Checkout Body (Split Grid: Left Form, Right Order Summary) -->
-      <div class="checkout-body">
-        
-        <!-- Left: Dynamic Steps Form -->
-        <div class="checkout-form-container">
-
-          <!-- ================= STEP 1: CONTACT & DELIVERY ================= -->
-          <div class="checkout-step-panel active" id="checkoutStep1">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <h3>Customer &amp; Shipping Details</h3>
-                <p>Where shall our courier deliver your luxury parcel?</p>
-              </div>
-              <button type="button" class="btn-demo-fill" id="fillDemoAddressBtn" title="Fill with demo test address">
-                ✨ Fill Demo Details
-              </button>
-            </div>
-
-            <form id="step1Form" class="step-form">
-              <div class="form-group">
-                <label for="custEmail">Email Address *</label>
-                <input type="email" id="custEmail" required placeholder="claire.dupont@vogue.com">
-                <small class="field-hint">We'll send your tracking updates and digital receipt here.</small>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="custFirstName">First Name *</label>
-                  <input type="text" id="custFirstName" required placeholder="Claire">
-                </div>
-                <div class="form-group">
-                  <label for="custLastName">Last Name *</label>
-                  <input type="text" id="custLastName" required placeholder="Dupont">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="custStreet">Street Address *</label>
-                <input type="text" id="custStreet" required placeholder="24 Rue de Rivoli, Apt 4B">
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="custCity">City *</label>
-                  <input type="text" id="custCity" required placeholder="Paris / New York">
-                </div>
-                <div class="form-group">
-                  <label for="custState">State / Region *</label>
-                  <input type="text" id="custState" required placeholder="Île-de-France / NY">
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="custZip">Postal / ZIP Code *</label>
-                  <input type="text" id="custZip" required placeholder="75001">
-                </div>
-                <div class="form-group">
-                  <label for="custCountry">Country *</label>
-                  <select id="custCountry" required>
-                    <option value="United States">United States</option>
-                    <option value="France">France</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Canada">Canada</option>
-                    <option value="Australia">Australia</option>
-                    <option value="Germany">Germany</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="custPhone">Mobile Phone (for courier notifications)</label>
-                <input type="tel" id="custPhone" placeholder="+1 (555) 234-5678">
-              </div>
-
-              <div class="step-navigation">
-                <button type="button" class="btn btn-outline" id="backToBagBtn">Return to Bag</button>
-                <button type="submit" class="btn btn-primary">
-                  <span>Continue to Shipping</span>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- ================= STEP 2: SHIPPING METHODS ================= -->
-          <div class="checkout-step-panel" id="checkoutStep2">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <h3>Select Delivery Method</h3>
-                <p>Choose your preferred white-glove courier experience</p>
-              </div>
-            </div>
-
-            <!-- Recipient Summary Card -->
-            <div class="summary-pill-card">
-              <div class="summary-pill-line">
-                <span class="sp-label">Ship to:</span>
-                <span class="sp-value" id="shipToPreview">24 Rue de Rivoli, Paris, 75001</span>
-                <button type="button" class="sp-edit" id="editStep1Btn">Change</button>
-              </div>
-            </div>
-
-            <form id="step2Form" class="step-form">
-              <div class="shipping-methods-list">
-                
-                <label class="shipping-option selected" id="shipOptStandard">
-                  <input type="radio" name="shippingMethod" value="standard" checked>
-                  <div class="ship-details">
-                    <div class="ship-title-row">
-                      <strong class="ship-name">Standard Insured Custody Dispatch</strong>
-                      <span class="ship-price" id="rateStandard">$0.00 (Free)</span>
-                    </div>
-                    <p class="ship-desc">3–5 Business Days • Delivered via armored, tamper-evident security courier.</p>
-                  </div>
-                </label>
-
-                <label class="shipping-option" id="shipOptExpress">
-                  <input type="radio" name="shippingMethod" value="express">
-                  <div class="ship-details">
-                    <div class="ship-title-row">
-                      <strong class="ship-name">Priority Armored Diplomatic Courier 🛡️</strong>
-                      <span class="ship-price" id="rateExpress">$12.00</span>
-                    </div>
-                    <p class="ship-desc">1–2 Business Days • Armored escort + Diplomatic priority clearance.</p>
-                  </div>
-                </label>
-
-                <label class="shipping-option" id="shipOptParisian">
-                  <input type="radio" name="shippingMethod" value="parisian">
-                  <div class="ship-details">
-                    <div class="ship-title-row">
-                      <strong class="ship-name">Parisian Rose Express 🌹</strong>
-                      <span class="ship-price" id="rateParisian">$24.00</span>
-                    </div>
-                    <p class="ship-desc">Next Morning White-Glove • Hand-delivered with a fresh real Ecuadorian rose.</p>
-                  </div>
-                </label>
-
-              </div>
-
-              <div class="step-navigation">
-                <button type="button" class="btn btn-outline" id="backToStep1Btn">Back to Details</button>
-                <button type="submit" class="btn btn-primary">
-                  <span>Continue to Payment</span>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- ================= STEP 3: LUXURY PAYMENT ================= -->
-          <div class="checkout-step-panel" id="checkoutStep3">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <h3>Payment &amp; Security</h3>
-                <p>All transactions are 256-bit encrypted and bank-grade secure.</p>
-              </div>
-            </div>
-
-            <!-- Express Checkout Buttons -->
-            <div class="express-checkout-block">
-              <span class="express-label">Express Instant Checkout:</span>
-              <div class="express-btn-group">
-                <button type="button" class="btn-express apple-pay" id="expressApplePayBtn">
-                  <span>Pay</span>
-                </button>
-                <button type="button" class="btn-express gpay" id="expressGPayBtn">
-                  <span>G Pay</span>
-                </button>
-                <button type="button" class="btn-express paypal" id="expressPayPalBtn">
-                  <span>PayPal</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="divider-text">
-              <span>OR PAY WITH CREDIT / DEBIT CARD</span>
-            </div>
-
-            <!-- Interactive 3D Card Preview -->
-            <div class="credit-card-preview-container">
-              <div class="card-visual" id="cardVisual">
-                <div class="card-front">
-                  <div class="card-top-row">
-                    <span class="card-chip"></span>
-                    <span class="card-brand-logo" id="cardBrandLogo">VISA</span>
-                  </div>
-                  <div class="card-number-display" id="cardDisplayNumber">•••• •••• •••• ••••</div>
-                  <div class="card-bottom-row">
-                    <div class="card-holder-col">
-                      <span class="card-label">CARD HOLDER</span>
-                      <span class="card-val" id="cardDisplayName">CLAIRE DUPONT</span>
-                    </div>
-                    <div class="card-expiry-col">
-                      <span class="card-label">EXPIRES</span>
-                      <span class="card-val" id="cardDisplayExpiry">MM/YY</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Card Inputs Form -->
-            <form id="step3Form" class="step-form">
-              <div class="form-group">
-                <label for="cardNumber">Card Number *</label>
-                <input type="text" id="cardNumber" required placeholder="4242 •••• •••• 4242" maxlength="19">
-              </div>
-
-              <div class="form-group">
-                <label for="cardName">Name on Card *</label>
-                <input type="text" id="cardName" required placeholder="Claire Dupont">
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="cardExpiry">Expiration Date (MM/YY) *</label>
-                  <input type="text" id="cardExpiry" required placeholder="08/28" maxlength="5">
-                </div>
-                <div class="form-group">
-                  <label for="cardCvv">CVV / CVC *</label>
-                  <input type="password" id="cardCvv" required placeholder="•••" maxlength="4">
-                </div>
-              </div>
-
-              <div class="security-lock-note">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <span>Encrypted with bank-level SSL 256-bit protocol. You will not be charged in demo mode.</span>
-              </div>
-
-              <div class="step-navigation">
-                <button type="button" class="btn btn-outline" id="backToStep2Btn">Back to Shipping</button>
-                <button type="submit" class="btn btn-primary btn-pay-now" id="payNowBtn">
-                  <span id="payBtnText">Authorize &amp; Complete Order</span>
-                  <div class="spinner" id="paySpinner" style="display: none;"></div>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- ================= STEP 4: ORDER CONFIRMATION & CELEBRATION ================= -->
-          <div class="checkout-step-panel" id="checkoutStep4">
-            <div class="confirmation-container">
-              <div class="celebration-badge">
-                <span class="sparkle-circle">🌸</span>
-              </div>
-              <h2 class="confirm-title">Merci Beaucoup! Your Order is Confirmed</h2>
-              <p class="confirm-subtitle">
-                We are preparing your exquisite keepsakes with utmost delicacy. A confirmation email has been dispatched to <strong id="confirmEmail">claire.dupont@vogue.com</strong>.
-              </p>
-
-              <!-- Order Reference Box -->
-              <div class="order-ref-box">
-                <div class="ref-col">
-                  <small>ORDER NUMBER</small>
-                  <strong class="order-id-highlight" id="confirmedOrderId">#AB-84920</strong>
-                </div>
-                <div class="ref-col">
-                  <small>ESTIMATED ARRIVAL</small>
-                  <strong id="confirmedDeliveryDate">Friday, Oct 27</strong>
-                </div>
-                <div class="ref-col">
-                  <small>DELIVERY STATUS</small>
-                  <strong class="status-badge">Preparing In Atelier 🎀</strong>
-                </div>
-              </div>
-
-              <!-- Live Order Tracking Timeline -->
-              <div class="tracking-timeline-card">
-                <h4>Order Journey Tracker</h4>
-                <div class="timeline-steps">
-                  <div class="t-step active done">
-                    <div class="t-dot">✓</div>
-                    <div class="t-info">
-                      <strong>Order Placed</strong>
-                      <small>Payment authorized &amp; confirmed</small>
-                    </div>
-                  </div>
-                  <div class="t-step active current">
-                    <div class="t-dot">🎀</div>
-                    <div class="t-info">
-                      <strong>Atelier Packaging</strong>
-                      <small>Scented French tissue &amp; gold seal</small>
-                    </div>
-                  </div>
-                  <div class="t-step">
-                    <div class="t-dot">🕊️</div>
-                    <div class="t-info">
-                      <strong>Dispatched with Courier</strong>
-                      <small>Real-time GPS tracking enabled</small>
-                    </div>
-                  </div>
-                  <div class="t-step">
-                    <div class="t-dot">✨</div>
-                    <div class="t-info">
-                      <strong>Delivered to You</strong>
-                      <small>White-glove doorstep delivery</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Gift Note Preview if present -->
-              <div class="confirmed-gift-card" id="confirmedGiftSection" style="display: none;">
-                <div class="gift-card-inner">
-                  <span class="gift-calligraphy-title">Your Handwritten Gold Card Message:</span>
-                  <p class="gift-calligraphy-text" id="confirmedGiftMessageText">"To my darling, with all my love."</p>
-                </div>
-              </div>
-
-              <!-- Action buttons -->
-              <div class="confirmation-actions">
-                <button class="btn btn-outline" id="printReceiptBtn">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                    <rect x="6" y="14" width="12" height="8"></rect>
-                  </svg>
-                  <span>Print Receipt / Invoice</span>
-                </button>
-                <button class="btn btn-primary" id="finishShoppingBtn">
-                  <span>Continue Shopping</span>
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Right: Fixed Order Summary Column -->
-        <div class="checkout-summary-column">
-          <div class="summary-card">
-            <h4 class="summary-title">Order Summary</h4>
-            
-            <div class="summary-items-list" id="checkoutItemsList">
-              <!-- Rendered dynamically -->
-            </div>
-
-            <div class="summary-breakdown">
-              <div class="summary-row">
-                <span>Subtotal</span>
-                <span id="checkoutSubtotal">$0.00</span>
-              </div>
-              <div class="summary-row discount-row" id="checkoutDiscountRow" style="display: none;">
-                <span id="checkoutDiscountLabel">Promo Discount</span>
-                <span id="checkoutDiscountAmount">-$0.00</span>
-              </div>
-              <div class="summary-row">
-                <span>Courier Delivery</span>
-                <span id="checkoutShippingCost">$0.00</span>
-              </div>
-              <div class="summary-row" id="checkoutGiftRow" style="display: none;">
-                <span>Gift Packaging</span>
-                <span class="free-tag">Complimentary</span>
-              </div>
-              <div class="summary-row grand-total">
-                <strong>Total Amount</strong>
-                <strong class="summary-total-val" id="checkoutGrandTotal">$0.00</strong>
-              </div>
-            </div>
-
-            <!-- Customer Service note -->
-            <div class="concierge-badge">
-              <span class="concierge-icon">📞</span>
-              <div>
-                <strong>Concierge Helpline</strong>
-                <small>24/7 Priority Support for your order</small>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ============================================== -->
-  <!-- PRODUCT QUICK VIEW MODAL -->
-  <!-- ============================================== -->
-  <div class="quickview-backdrop" id="quickViewModal">
-    <div class="quickview-modal">
-      <button class="quickview-close-btn" id="closeQuickViewBtn" aria-label="Close product preview">✕</button>
-      <div class="quickview-grid">
-        <div class="quickview-image-container">
-          <img src="assets/images/perfume.jpg" alt="Product Image" id="qvProductImg" class="quickview-main-img">
-          <span class="quickview-badge" id="qvProductBadge">Sovereign Tier</span>
-        </div>
-        <div class="quickview-details">
-          <div class="qv-category" id="qvCategory">SWISS HOROLOGY</div>
-          <h2 class="qv-title" id="qvTitle">Infinite Sovereign Chronometer</h2>
-          <div class="qv-rating">
-            <span class="qv-stars" id="qvStars">★★★★★</span>
-            <span class="qv-reviews" id="qvReviews">4.98 (142 reviews)</span>
-          </div>
-          <div class="qv-price" id="qvPrice">$450.00</div>
-          <p class="qv-description" id="qvDescription">
-            Precision automatic movement with sapphire crystal face, dual-timezone complication, and brushed titanium case engineered in Geneva.
-          </p>
-
-          <div class="qv-highlights" id="qvHighlights">
-            <!-- Highlights bullets -->
-          </div>
-
-          <div class="qv-controls">
-            <div class="quantity-selector">
-              <button class="qty-btn" id="qvQtyMinus">-</button>
-              <input type="number" id="qvQtyInput" value="1" min="1" max="10" readonly>
-              <button class="qty-btn" id="qvQtyPlus">+</button>
-            </div>
-            <button class="btn btn-primary btn-qv-add" id="qvAddToCartBtn">
-              <span>Add to Shopping Bag</span>
-            </button>
-            <button class="btn-wishlist-qv" id="qvWishlistBtn" aria-label="Save to Wishlist">
-              ♡
-            </button>
-          </div>
-
-          <div class="qv-perks">
-            <span>✨ Swiss chronometer certified</span>
-            <span>🎀 Complimentary diplomatic packaging</span>
-            <span>🕊️ Express armored delivery</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================== -->
-  <!-- WISHLIST DRAWER -->
-  <!-- ============================================== -->
-  <div class="drawer-overlay" id="wishlistOverlay"></div>
-  <aside class="wishlist-drawer" id="wishlistDrawer" aria-label="Saved Wishlist">
-    <div class="drawer-header">
-      <div class="drawer-title-wrap">
-        <h3 class="drawer-title">Your Saved Curations</h3>
-        <span class="item-count-badge" id="wishlistBadgeCount">(0 items)</span>
-      </div>
-      <button class="drawer-close-btn" id="closeWishlistBtn" aria-label="Close Wishlist">✕</button>
-    </div>
-
-    <div class="wishlist-items-container" id="wishlistItemsList">
-      <!-- Items dynamically populated -->
-    </div>
-  </aside>
-
-  <!-- Toast Notifications Container -->
+  <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Vanilla CookieConsent v3 & DPDP Configuration -->

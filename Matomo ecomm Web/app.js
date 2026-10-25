@@ -173,240 +173,6 @@ const PRODUCTS = [
       "Integrated RFID electromagnetic blocker"
     ],
     "details": "Florentine Calfskin • YKK Excella Zips"
-  },
-  {
-    "id": "p8",
-    "name": "Tahitian South Sea Pearl Cufflinks",
-    "category": "jewelry",
-    "categoryLabel": "BESPOKE JEWELRY",
-    "price": 195,
-    "rating": 4.92,
-    "reviews": 115,
-    "badge": "AAA Luster",
-    "image": "assets/images/pearl.jpg",
-    "description": "Natural black Tahitian cultured pearls mounted on rhodium-plated sterling silver stems.",
-    "highlights": [
-      "11mm round natural Tahitian cultured pearls",
-      "Solid 925 sterling silver with mirror rhodium finish",
-      "Signature swivel-back whale closure mechanism"
-    ],
-    "details": "Pair of 2 • Tahitian Pearl & 925 Silver"
-  },
-  {
-    "id": "p9",
-    "name": "Certified 1kg Fine Silver Ingot",
-    "category": "bullion",
-    "categoryLabel": "PRECIOUS METALS",
-    "price": 210,
-    "rating": 4.97,
-    "reviews": 58,
-    "badge": "999 Fine Silver",
-    "image": "assets/images/serum.jpg",
-    "description": "99.9% pure investment-grade physical silver bar cast by Swiss LBMA accredited refinery.",
-    "highlights": [
-      "999 fine investment-grade bullion purity",
-      "Serialized Swiss refinery stamp and certificate",
-      "Immediate allocated vault delivery eligibility"
-    ],
-    "details": "1 Kilogram • 99.9% Pure Silver Bar"
-  },
-  {
-    "id": "p10",
-    "name": "Titanium Tourbillon Desk Calibre",
-    "category": "horology",
-    "categoryLabel": "SWISS HOROLOGY",
-    "price": 340,
-    "rating": 4.93,
-    "reviews": 89,
-    "badge": "Manual Wind",
-    "image": "assets/images/perfume.jpg",
-    "description": "Skeletonized manual-wind mechanical desk timepiece with exposed gyroscopic balance wheel.",
-    "highlights": [
-      "Precision CNC-machined from solid titanium bar",
-      "8-day power reserve mechanical desk movement",
-      "Anti-magnetic mineral glass display dome"
-    ],
-    "details": "Grade-5 Titanium • 8-Day Reserve"
-  },
-  {
-    "id": "p11",
-    "name": "Geneva Perpetual Calendar Chronograph",
-    "category": "horology",
-    "categoryLabel": "SWISS HOROLOGY",
-    "price": 780,
-    "rating": 4.99,
-    "reviews": 64,
-    "badge": "Heritage Tier",
-    "image": "assets/images/perfume.jpg",
-    "description": "Hand-assembled Swiss chronograph with perpetual moonphase dial and alligator strap.",
-    "highlights": [
-      "Perpetual calendar complication accurate to 2100",
-      "Hand-polished 18k rose gold bezel",
-      "Sapphire exhibition case back with engraved rotor"
-    ],
-    "details": "42mm Rose Gold • 28,800 vph Calibre"
-  },
-  {
-    "id": "p12",
-    "name": "Zurich Dual-Time Aviator Calibre",
-    "category": "horology",
-    "categoryLabel": "SWISS HOROLOGY",
-    "price": 520,
-    "rating": 4.96,
-    "reviews": 112,
-    "badge": "Aviator Edition",
-    "image": "assets/images/perfume.jpg",
-    "description": "Anti-magnetic pilot chronometer featuring dual-time timezone complication and luminescent dial.",
-    "highlights": [
-      "Independently adjustable 24-hour GMT hour hand",
-      "Brushed ceramic bi-directional rotatable bezel",
-      "Water resistant to 150 meters with screw-down crown"
-    ],
-    "details": "40mm Matte Titanium • Calibre 3285"
-  },
-  {
-    "id": "p13",
-    "name": "1 oz Pure Platinum Sovereign Ingot",
-    "category": "bullion",
-    "categoryLabel": "PRECIOUS METALS",
-    "price": 490,
-    "rating": 4.98,
-    "reviews": 83,
-    "badge": "999.5 Platinum",
-    "image": "assets/images/serum.jpg",
-    "description": "One troy ounce investment-grade 99.95% pure platinum bar struck by LBMA certified refiner.",
-    "highlights": [
-      "Certified 999.5 pure physical platinum ingot",
-      "Tamper-evident security blister with serial assay card",
-      "Allocated Zurich and London bullion vault eligibility"
-    ],
-    "details": "31.1g (1 oz) • 99.95% Pure Platinum"
-  },
-  {
-    "id": "p14",
-    "name": "Allocated 50g Fine Minted Gold Bar",
-    "category": "bullion",
-    "categoryLabel": "PRECIOUS METALS",
-    "price": 360,
-    "rating": 4.99,
-    "reviews": 147,
-    "badge": "LBMA Certified",
-    "image": "assets/images/serum.jpg",
-    "description": "50 grams of 99.99% fine 24-karat investment gold with laser-etched holographic security.",
-    "highlights": [
-      "999.9 fine investment-grade bullion purity",
-      "Laser-etched micro-security verifiable via QR",
-      "Direct allocated depository delivery ready"
-    ],
-    "details": "50g • 99.99% 24K Fine Gold"
-  },
-  {
-    "id": "p15",
-    "name": "Sovereign Cold-Storage Ledger",
-    "category": "security",
-    "categoryLabel": "SECURITY & VAULT",
-    "price": 275,
-    "rating": 4.97,
-    "reviews": 92,
-    "badge": "Air-Gapped",
-    "image": "assets/images/silk.jpg",
-    "description": "Air-gapped cryptographic signing device with dual OLED screens and optic QR transmission.",
-    "highlights": [
-      "100% air-gapped architecture with zero wireless radios",
-      "Dual secure elements (CC EAL6+) for asset isolation",
-      "Tamper-proof brushed aerospace aluminum chassis"
-    ],
-    "details": "Aerospace Alloy • Optical QR Airgap"
-  },
-  {
-    "id": "p16",
-    "name": "Hardened Aerospace Alloy Lockbox",
-    "category": "security",
-    "categoryLabel": "SECURITY & VAULT",
-    "price": 390,
-    "rating": 4.94,
-    "reviews": 51,
-    "badge": "Ballistic Grade",
-    "image": "assets/images/silk.jpg",
-    "description": "Heavy-duty biometric vault box with dual optical sensors and emergency mechanical keyway.",
-    "highlights": [
-      "Solid milled CNC 7075 aircraft aluminum housing",
-      "Dual capacitive fingerprint recognition system",
-      "Integrated accelerometer anti-tamper alarm siren"
-    ],
-    "details": "7075 Aluminum • Sub-0.2s Unlock"
-  },
-  {
-    "id": "p17",
-    "name": "Florentine Diamond Pavé Solitaire Pin",
-    "category": "jewelry",
-    "categoryLabel": "BESPOKE JEWELRY",
-    "price": 540,
-    "rating": 4.96,
-    "reviews": 73,
-    "badge": "VVS1 Diamond",
-    "image": "assets/images/pearl.jpg",
-    "description": "Artisan lapel pin handcrafted in Florence featuring brilliant-cut conflict-free diamonds.",
-    "highlights": [
-      "Hand-set VVS1 clarity pavé diamonds in 18k white gold",
-      "Traditional Florentine hand-engraved satin border",
-      "Secure double-locking clutch mechanism"
-    ],
-    "details": "18k White Gold • 0.85ct Diamond Pavé"
-  },
-  {
-    "id": "p18",
-    "name": "Handcrafted Platinum Cable Bracelet",
-    "category": "jewelry",
-    "categoryLabel": "BESPOKE JEWELRY",
-    "price": 430,
-    "rating": 4.93,
-    "reviews": 68,
-    "badge": "950 Platinum",
-    "image": "assets/images/pearl.jpg",
-    "description": "Twisted cable cuff bracelet forged from solid 950 platinum with brushed micro-texture.",
-    "highlights": [
-      "Solid forged 950 investment-grade platinum",
-      "Concealed magnetic clasp with security latch",
-      "Hypoallergenic and highly resistant to oxidation"
-    ],
-    "details": "950 Solid Platinum • 28g Net Weight"
-  },
-  {
-    "id": "p19",
-    "name": "Florentine Full-Grain Leather Briefcase",
-    "category": "lifestyle",
-    "categoryLabel": "EXECUTIVE LIVING",
-    "price": 480,
-    "rating": 4.97,
-    "reviews": 110,
-    "badge": "Hand-Stitched",
-    "image": "assets/images/hero_banner.jpg",
-    "description": "Tuscan vegetable-tanned calfskin executive attaché with padded laptop compartment and brass hardware.",
-    "highlights": [
-      "Full-grain Tuscan vegetable-tanned leather that patinas beautifully",
-      "Swiss-engineered solid brass key lock and hardware",
-      "Tailored internal organizer with pen slots and tablet pocket"
-    ],
-    "details": "Florentine Calfskin • Solid Brass Locks"
-  },
-  {
-    "id": "p20",
-    "name": "Mulberry Silk Ergonomic Sleep Suite",
-    "category": "lifestyle",
-    "categoryLabel": "EXECUTIVE LIVING",
-    "price": 140,
-    "rating": 4.92,
-    "reviews": 154,
-    "badge": "22-Momme Silk",
-    "image": "assets/images/souffle.jpg",
-    "description": "Pure 22-Momme Grade-6A mulberry silk pillowcases and contoured blackout eye mask set.",
-    "highlights": [
-      "100% pure Grade-6A long-strand mulberry silk",
-      "Natural hypoallergenic amino-acid skin protection",
-      "Includes silk travel pouch and gentle laundering bag"
-    ],
-    "details": "Pair of King Pillowcases + Mask"
   }
 ];
 
@@ -2336,7 +2102,430 @@ function initMobileNav() {
   }
 }
 
+
+// ============================================================================
+// BFSI LANDING PAGE: 3 SIMPLE FORMS INTERACTION & ANALYTICS ENGINE
+// ============================================================================
+const formTouchedMap = {};
+
+window.handleFormFieldInteraction = function(formName, fieldName, interactionType) {
+  // 1. Trigger form_start on first interaction
+  if (!formTouchedMap[formName]) {
+    formTouchedMap[formName] = true;
+    const formStartPayload = {
+      event: 'form_start',
+      form_name: formName,
+      form_id: formName === 'apply_loan' ? 'applyLoanForm' : (formName === 'open_savings' ? 'openSavingsForm' : 'customerLoginForm'),
+      timestamp: new Date().toISOString()
+    };
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(formStartPayload);
+    window._mtm = window._mtm || [];
+    window._mtm.push(formStartPayload);
+    if (window._paq && Array.isArray(window._paq)) {
+      window._paq.push(['trackEvent', 'BFSI_Forms', 'form_start', formName]);
+    }
+  }
+
+  // 2. Trigger form_interaction
+  const interactionPayload = {
+    event: 'form_interaction',
+    form_name: formName,
+    form_id: formName === 'apply_loan' ? 'applyLoanForm' : (formName === 'open_savings' ? 'openSavingsForm' : 'customerLoginForm'),
+    field_name: fieldName,
+    interaction_type: interactionType,
+    timestamp: new Date().toISOString()
+  };
+
+  // If customer login, attach user details to interaction and URL
+  if (formName === 'customer_login') {
+    const enteredUser = document.getElementById('loginCustomerId')?.value.trim();
+    if (enteredUser) {
+      interactionPayload.user_id = enteredUser;
+      interactionPayload.user_email = enteredUser.includes('@') ? enteredUser : enteredUser + '@infinitybank.com';
+      try {
+        if (typeof window !== 'undefined' && window.location) {
+          const url = new URL(window.location.href);
+          url.searchParams.set('user_id', enteredUser);
+          url.searchParams.set('user_email', interactionPayload.user_email);
+          window.history.replaceState({}, '', url.toString());
+        }
+      } catch (e) {}
+    }
+  }
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(interactionPayload);
+  console.log('%c[GA4 dataLayer.push 📊]%c form_interaction', 'background: #0284c7; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 3px;', 'color: #0f172a; font-weight: bold;', interactionPayload);
+  window._mtm = window._mtm || [];
+  window._mtm.push(interactionPayload);
+  if (window._paq && Array.isArray(window._paq)) {
+    window._paq.push(['trackEvent', 'BFSI_Forms', 'form_interaction', formName + '_' + fieldName + '_' + interactionType]);
+  }
+};
+
+window.fillLoanDemo = function() {
+  const nameEl = document.getElementById('loanFullName');
+  const emailEl = document.getElementById('loanEmail');
+  const phoneEl = document.getElementById('loanPhone');
+  const amountEl = document.getElementById('loanAmountInput');
+  const typeEl = document.getElementById('loanTypeSelect');
+  const tenureEl = document.getElementById('loanTenureSelect');
+  const incomeEl = document.getElementById('loanAnnualIncome');
+
+  if (nameEl) nameEl.value = 'Rahul Sharma';
+  if (emailEl) emailEl.value = 'rahul.sharma@example.com';
+  if (phoneEl) phoneEl.value = '+91 98765 43210';
+  if (amountEl) amountEl.value = '50000';
+  if (typeEl) typeEl.value = 'Prime Home Mortgage';
+  if (tenureEl) tenureEl.value = '5';
+  if (incomeEl) incomeEl.value = '50k_100k';
+
+  window.handleFormFieldInteraction('apply_loan', 'demo_autofill', 'autofill');
+
+  if (typeof showToast === 'function') {
+    showToast('⚡', 'Demo Loan Details Loaded', 'Sample loan details auto-filled.');
+  }
+};
+
+window.submitLoanForm = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const loanType = document.getElementById('loanTypeSelect')?.value || 'Prime Home Mortgage';
+  const loanAmount = parseFloat(document.getElementById('loanAmountInput')?.value) || 50000;
+  const tenureYears = parseInt(document.getElementById('loanTenureSelect')?.value, 10) || 5;
+  const annualIncome = document.getElementById('loanAnnualIncome')?.value || '50k_100k';
+  const fullName = document.getElementById('loanFullName')?.value.trim() || 'Valued Applicant';
+  const email = document.getElementById('loanEmail')?.value.trim() || '';
+  const phone = document.getElementById('loanPhone')?.value.trim() || '';
+
+  const rate = 7.65;
+  const monthlyRate = (rate / 100) / 12;
+  const months = tenureYears * 12;
+  const emi = Math.round((loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1));
+
+  const refId = 'INF-LOAN-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+
+  const formEl = document.getElementById('applyLoanForm');
+  const successBox = document.getElementById('loanSuccessBox');
+  const refCodeEl = document.getElementById('loanRefCode');
+  const emiTextEl = document.getElementById('loanEstimatedEmiText');
+
+  if (formEl) formEl.style.display = 'none';
+  if (successBox) successBox.style.display = 'block';
+  if (refCodeEl) refCodeEl.textContent = refId;
+  if (emiTextEl) emiTextEl.innerHTML = 'Estimated Monthly EMI: <strong>$' + emi.toLocaleString() + ' / month</strong> (Tenure: ' + tenureYears + ' Years)';
+
+  const ga4Payload = {
+    event: 'loan_application_submit',
+    form_name: 'apply_loan',
+    form_id: 'applyLoanForm',
+    loan_type: loanType,
+    loan_amount: loanAmount,
+    loan_tenure_years: tenureYears,
+    annual_income: annualIncome,
+    estimated_monthly_emi: emi,
+    application_reference_id: refId,
+    timestamp: new Date().toISOString()
+  };
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(ga4Payload);
+  console.log('%c[GA4 dataLayer.push 📊]%c ' + ga4Payload.event, 'background: #16a34a; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 3px;', 'color: #0f172a; font-weight: bold;', ga4Payload);
+  window.dataLayer.push({
+    event: 'form_submit',
+    form_name: 'apply_loan',
+    form_id: 'applyLoanForm',
+    application_reference_id: refId
+  });
+
+  window._mtm = window._mtm || [];
+  window._mtm.push(ga4Payload);
+
+  if (window._paq && Array.isArray(window._paq)) {
+    window._paq.push(['trackEvent', 'BFSI_Lead', 'loan_application_submit', loanType, loanAmount]);
+  }
+
+  fetch('/api/bfsi/submit-lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      clientName: fullName,
+      clientEmail: email,
+      clientPhone: phone,
+      incomeBracket: annualIncome,
+      purpose: 'loan_application',
+      productName: loanType,
+      requestedAmount: '$' + loanAmount.toLocaleString()
+    })
+  }).catch(() => {});
+
+  if (typeof showToast === 'function') {
+    showToast('🎉', 'Loan Application Pre-Approved', 'Reference: ' + refId);
+  }
+};
+
+window.resetLoanForm = function() {
+  const formEl = document.getElementById('applyLoanForm');
+  const successBox = document.getElementById('loanSuccessBox');
+  if (formEl) {
+    formEl.reset();
+    formEl.style.display = 'block';
+  }
+  if (successBox) successBox.style.display = 'none';
+};
+
+window.fillSavingsDemo = function() {
+  const nameEl = document.getElementById('savingsFullName');
+  const emailEl = document.getElementById('savingsEmail');
+  const phoneEl = document.getElementById('savingsPhone');
+  const amountEl = document.getElementById('savingsDepositAmount');
+  const typeEl = document.getElementById('savingsAccountType');
+  const sourceEl = document.getElementById('savingsSourceFunds');
+
+  if (nameEl) nameEl.value = 'Priya Sharma';
+  if (emailEl) emailEl.value = 'priya.sharma@example.com';
+  if (phoneEl) phoneEl.value = '+91 98111 22334';
+  if (amountEl) amountEl.value = '10000';
+  if (typeEl) typeEl.value = 'High-Yield Multiplier Savings (8.45% APY)';
+  if (sourceEl) sourceEl.value = 'Salaried Employment';
+
+  window.handleFormFieldInteraction('open_savings', 'demo_autofill', 'autofill');
+
+  if (typeof showToast === 'function') {
+    showToast('⚡', 'Demo Savings Details Loaded', 'Sample savings details auto-filled.');
+  }
+};
+
+window.submitSavingsForm = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const accountType = document.getElementById('savingsAccountType')?.value || 'High-Yield Multiplier Savings';
+  const depositAmount = parseFloat(document.getElementById('savingsDepositAmount')?.value) || 10000;
+  const fullName = document.getElementById('savingsFullName')?.value.trim() || 'Valued Saver';
+  const email = document.getElementById('savingsEmail')?.value.trim() || '';
+  const phone = document.getElementById('savingsPhone')?.value.trim() || '';
+  const sourceOfFunds = document.getElementById('savingsSourceFunds')?.value || 'Salaried Employment';
+
+  const refId = 'INF-ACC-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+
+  const formEl = document.getElementById('openSavingsForm');
+  const successBox = document.getElementById('savingsSuccessBox');
+  const refCodeEl = document.getElementById('savingsRefCode');
+
+  if (formEl) formEl.style.display = 'none';
+  if (successBox) successBox.style.display = 'block';
+  if (refCodeEl) refCodeEl.textContent = refId;
+
+  const ga4Payload = {
+    event: 'savings_account_submit',
+    form_name: 'open_savings',
+    form_id: 'openSavingsForm',
+    account_type: accountType,
+    initial_deposit: depositAmount,
+    source_of_funds: sourceOfFunds,
+    application_reference_id: refId,
+    timestamp: new Date().toISOString()
+  };
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(ga4Payload);
+  window.dataLayer.push({
+    event: 'form_submit',
+    form_name: 'open_savings',
+    form_id: 'openSavingsForm',
+    application_reference_id: refId
+  });
+
+  window._mtm = window._mtm || [];
+  window._mtm.push(ga4Payload);
+
+  if (window._paq && Array.isArray(window._paq)) {
+    window._paq.push(['trackEvent', 'BFSI_Lead', 'savings_account_submit', accountType, depositAmount]);
+  }
+
+  fetch('/api/bfsi/submit-lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      clientName: fullName,
+      clientEmail: email,
+      clientPhone: phone,
+      incomeBracket: '250k-500k',
+      purpose: 'savings_account_opening',
+      productName: accountType,
+      requestedAmount: '$' + depositAmount.toLocaleString()
+    })
+  }).catch(() => {});
+
+  if (typeof showToast === 'function') {
+    showToast('🏛️', 'Savings Account Registered', 'Dossier: ' + refId);
+  }
+};
+
+window.resetSavingsForm = function() {
+  const formEl = document.getElementById('openSavingsForm');
+  const successBox = document.getElementById('savingsSuccessBox');
+  if (formEl) {
+    formEl.reset();
+    formEl.style.display = 'block';
+  }
+  if (successBox) successBox.style.display = 'none';
+};
+
+window.fillLoginDemo = function() {
+  const idEl = document.getElementById('loginCustomerId');
+  const pwdEl = document.getElementById('loginPassword');
+  if (idEl) idEl.value = 'INF-984210';
+  if (pwdEl) pwdEl.value = 'SecurityPass#2026';
+
+  window.handleFormFieldInteraction('customer_login', 'demo_autofill', 'autofill');
+
+  if (typeof showToast === 'function') {
+    showToast('⚡', 'Demo Credentials Loaded', 'Verified client credentials filled.');
+  }
+};
+
+window.submitLoginForm = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const customerId = document.getElementById('loginCustomerId')?.value.trim() || 'INF-984210';
+  const customerEmail = customerId.includes('@') ? customerId : customerId + '@infinitybank.com';
+  const formEl = document.getElementById('customerLoginForm');
+  const successBox = document.getElementById('loginSuccessBox');
+
+  if (formEl) formEl.style.display = 'none';
+  if (successBox) successBox.style.display = 'block';
+
+  // Update URL query string with login user identifier
+  try {
+    if (typeof window !== 'undefined' && window.location) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('user_id', customerId);
+      url.searchParams.set('user_email', customerEmail);
+      window.history.replaceState({}, '', url.toString());
+    }
+  } catch (err) {}
+
+  const ga4Payload = {
+    event: 'login',
+    method: 'netbanking_credentials',
+    form_name: 'customer_login',
+    form_id: 'customerLoginForm',
+    user_id: customerId,
+    user_email: customerEmail,
+    timestamp: new Date().toISOString()
+  };
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(ga4Payload);
+  window.dataLayer.push({
+    event: 'login_submit',
+    form_name: 'customer_login',
+    form_id: 'customerLoginForm',
+    user_id: customerId,
+    user_email: customerEmail,
+    login_status: 'success'
+  });
+  window.dataLayer.push({
+    event: 'form_submit',
+    form_name: 'customer_login',
+    form_id: 'customerLoginForm'
+  });
+
+  window._mtm = window._mtm || [];
+  window._mtm.push(ga4Payload);
+
+  if (window._paq && Array.isArray(window._paq)) {
+    window._paq.push(['setUserId', customerId]);
+    window._paq.push(['trackEvent', 'BFSI_Auth', 'login_submit', customerId]);
+  }
+
+  if (typeof showToast === 'function') {
+    showToast('🔐', 'NetBanking Login Successful', 'Welcome back, Lord Alistair Vance');
+  }
+};
+
+window.logoutCustomer = function() {
+  const formEl = document.getElementById('customerLoginForm');
+  const successBox = document.getElementById('loginSuccessBox');
+  if (formEl) {
+    formEl.reset();
+    formEl.style.display = 'block';
+  }
+  if (successBox) successBox.style.display = 'none';
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: 'logout', method: 'netbanking' });
+  if (window._paq && Array.isArray(window._paq)) {
+    window._paq.push(['trackEvent', 'BFSI_Auth', 'logout', 'netbanking']);
+  }
+
+  if (typeof showToast === 'function') {
+    showToast('🔒', 'Session Ended', 'You have been securely logged out.');
+  }
+};
+
+function initBfsiHamburgerAndNav() {
+  const hamburgerBtn = document.getElementById('bfsiHamburgerBtn');
+  const menuPanel = document.getElementById('hamburgerMenuPanel');
+  const closeBtn = document.getElementById('closeHamburgerBtn');
+
+  if (hamburgerBtn && menuPanel) {
+    hamburgerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const isOpen = menuPanel.classList.toggle('active');
+      hamburgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'hamburger_toggle',
+        menu_state: isOpen ? 'open' : 'closed',
+        timestamp: new Date().toISOString()
+      });
+      if (window._paq && Array.isArray(window._paq)) {
+        window._paq.push(['trackEvent', 'Navigation', 'hamburger_toggle', isOpen ? 'open' : 'closed']);
+      }
+    });
+
+    closeBtn?.addEventListener('click', function() {
+      menuPanel.classList.remove('active');
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!menuPanel.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+        menuPanel.classList.remove('active');
+        hamburgerBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    menuPanel.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', function() {
+        menuPanel.classList.remove('active');
+        hamburgerBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  const ecomSwitchLinks = document.querySelectorAll('#switchEcommerceHamburger, #footerSwitchEcom');
+  ecomSwitchLinks.forEach(link => {
+    link.addEventListener('click', function() {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'portal_switch',
+        source_portal: 'bfsi',
+        destination_portal: 'ecommerce',
+        timestamp: new Date().toISOString()
+      });
+      if (window._paq && Array.isArray(window._paq)) {
+        window._paq.push(['trackEvent', 'Navigation', 'portal_switch', 'to_ecommerce']);
+      }
+    });
+  });
+}
+
 function initApp() {
+  try { initBfsiHamburgerAndNav(); } catch(e) { console.error(e); }
   try { initMobileNav(); } catch (e) { console.error(e); }
   try { initBfsiEngine(); } catch (e) { console.error('Error initializing BFSI:', e); }
   try { renderProducts(); } catch (e) { console.error('Error rendering products:', e); }

@@ -3474,19 +3474,6 @@ button {
   font-weight: 600;
 }
 
-.dpdp-email-preview {
-  margin: 10px 0 0;
-  padding: 12px;
-  background: #f8f6f2;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  font-size: 0.72rem;
-  line-height: 1.45;
-  white-space: pre-wrap;
-  max-height: 220px;
-  overflow-y: auto;
-}
-
 /* ================= DPDP FAQ ACCORDION ================= */
 .dpdp-accordion {
   display: flex;
@@ -3711,7 +3698,7 @@ button {
 }
 
 /* ==========================================================================
-   INFINITE BANK - BFSI ARCHITECTURE & 1/3RD DEEP OBSIDIAN THEME
+   INFINITY BANK - BFSI ARCHITECTURE & 1/3RD DEEP OBSIDIAN THEME
    ========================================================================== */
 
 /* Brand Crest */
@@ -3949,6 +3936,10 @@ button {
   font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  position: relative;
+  z-index: 10;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: var(--transition);
 }
@@ -4564,6 +4555,7 @@ button {
   color: #64748B;
   margin-bottom: 24px;
 }
+
 
 
 
@@ -8570,4 +8562,789 @@ body.page-bfsi .ins-rate {
   color: #64748B !important;
   display: block !important;
   margin-top: 2px !important;
+}
+
+
+/* =========================================================================
+   CLEAN BFSI LANDING PAGE, HAMBURGER & 3 SIMPLE FORMS STYLES
+   ========================================================================= */
+
+.bfsi-clean-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.hamburger-toggle-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  transition: all 0.2s ease;
+}
+
+.hamburger-toggle-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.hamburger-menu-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 16px;
+  width: 290px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  overflow: hidden;
+}
+
+.hamburger-menu-panel.active {
+  display: block;
+  animation: fadeInDownMenu 0.2s ease;
+}
+
+@keyframes fadeInDownMenu {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hamburger-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.hamburger-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.hamburger-close-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.hamburger-options-list {
+  padding: 8px 0;
+}
+
+.hamburger-option-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #1e293b;
+  transition: background 0.15s ease;
+}
+
+.hamburger-option-item:hover {
+  background: #f1f5f9;
+}
+
+.hamburger-option-item.highlight-ecom {
+  background: #f0fdf4;
+  border-left: 3px solid #10b981;
+}
+
+.hamburger-option-item.highlight-ecom:hover {
+  background: #dcfce7;
+}
+
+.option-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.option-text strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.option-text small {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.simple-bfsi-hero {
+  padding: 44px 16px 28px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.simple-hero-badge {
+  display: inline-block;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.simple-hero-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.simple-hero-subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  max-width: 680px;
+  margin: 0 auto 20px;
+  line-height: 1.5;
+}
+
+.simple-hero-quicklinks {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.simple-forms-container {
+  padding: 40px 16px;
+  background: #f8fafc;
+}
+
+.bfsi-simple-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  scroll-margin-top: 80px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.card-top-header {
+  margin-bottom: 20px;
+}
+
+.card-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.card-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.card-subtext {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.bfsi-form-clean {
+  margin-top: 16px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #ffffff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.form-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.form-actions-row .btn {
+  flex: 1;
+  min-width: 160px;
+  height: 44px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.form-success-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.form-success-box .success-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.form-success-box h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 6px;
+}
+
+.form-success-box p {
+  font-size: 0.88rem;
+  color: #15803d;
+  margin-bottom: 12px;
+}
+
+.ref-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #86efac;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #166534;
+  margin-bottom: 14px;
+}
+
+.ref-pill strong {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #047857;
+}
+
+.estimated-detail {
+  font-size: 0.95rem;
+  color: #1e293b;
+  margin-bottom: 14px;
+}
+
+.about-points-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.about-point-item {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.about-point-item .about-icon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.about-point-item h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.about-point-item p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.simple-bfsi-footer {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 40px 16px 24px;
+}
+
+.footer-3-ctas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-cta-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 16px;
+  text-decoration: none;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.footer-cta-card:hover {
+  background: #334155;
+  transform: translateY(-2px);
+}
+
+.footer-cta-card.highlight-ecom-cta {
+  background: #064e3b;
+  border-color: #059669;
+}
+
+.footer-cta-card.highlight-ecom-cta:hover {
+  background: #047857;
+}
+
+.cta-emoji {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.cta-info {
+  flex: 1;
+}
+
+.cta-info strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.cta-info span {
+  display: block;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.cta-arrow {
+  font-size: 1.2rem;
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+}
+
+.footer-cta-card:hover .cta-arrow {
+  transform: translateX(4px);
+  color: #ffffff;
+}
+
+.footer-bottom-line {
+  text-align: center;
+  border-top: 1px solid #334155;
+  padding-top: 20px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-bottom-line p {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+}
+
+
+/* =========================================================================
+   REFINED COMPACT BFSI & E-COMMERCE STYLES (REDUCED FONTS, NO BOX FOOTER)
+   ========================================================================= */
+
+/* Header */
+.bfsi-clean-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  height: 60px !important;
+}
+
+.site-header .nav-links .nav-item {
+  font-size: 0.82rem !important;
+  font-weight: 500;
+  color: #334155;
+}
+
+.hamburger-toggle-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  transition: all 0.15s ease;
+}
+
+.hamburger-toggle-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.hamburger-menu-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 16px;
+  width: 260px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12);
+  z-index: 1100;
+  overflow: hidden;
+}
+
+.hamburger-menu-panel.active {
+  display: block;
+}
+
+.hamburger-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.hamburger-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.hamburger-close-btn {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.hamburger-options-list {
+  padding: 4px 0;
+}
+
+.hamburger-option-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  text-decoration: none;
+  color: #1e293b;
+  font-size: 0.82rem;
+  transition: background 0.15s ease;
+}
+
+.hamburger-option-item:hover {
+  background: #f1f5f9;
+}
+
+.hamburger-option-item.highlight-ecom {
+  background: #f0fdf4;
+  border-left: 3px solid #10b981;
+}
+
+/* Reduced Container & Compact Forms */
+.simple-forms-container {
+  padding: 24px 16px 40px;
+  background: #f8fafc;
+}
+
+.bfsi-simple-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  scroll-margin-top: 70px;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.card-top-header {
+  margin-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+}
+
+.card-heading {
+  font-size: 1.12rem !important;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.bfsi-form-clean {
+  margin-top: 10px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field-group label {
+  font-size: 0.78rem !important;
+  font-weight: 600;
+  color: #475569;
+}
+
+.form-input {
+  width: 100%;
+  height: 36px !important;
+  padding: 6px 10px !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.85rem !important;
+  font-family: inherit;
+  color: #0f172a;
+  background: #ffffff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
+}
+
+.form-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.form-actions-row .btn {
+  flex: 1;
+  min-width: 140px;
+  height: 38px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  padding: 0 14px;
+  border-radius: 6px;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn-primary {
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #1e293b;
+}
+
+.btn-xs {
+  height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 0.75rem !important;
+}
+
+/* Success Box */
+.form-success-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.form-success-box .success-icon {
+  font-size: 1.3rem;
+  color: #16a34a;
+  font-weight: bold;
+}
+
+.form-success-box h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #166534;
+  margin: 4px 0;
+}
+
+.form-success-box p {
+  font-size: 0.82rem;
+  color: #15803d;
+  margin: 4px 0 8px;
+}
+
+/* About Us Simple Line */
+.about-points-simple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: #64748b;
+  padding: 8px 0;
+}
+
+/* =========================================================================
+   SIMPLE TEXT FOOTER (NO BOXES, REDUCED COMPACT FONTS)
+   ========================================================================= */
+.simple-text-footer {
+  background: #0f172a;
+  color: #94a3b8;
+  padding: 24px 16px 20px;
+  border-top: 1px solid #1e293b;
+}
+
+.footer-inline-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.footer-inline-links a {
+  font-size: 0.82rem !important;
+  color: #cbd5e1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.footer-inline-links a:hover {
+  color: #ffffff;
+}
+
+.footer-inline-links .sep {
+  color: #475569;
+  font-size: 0.75rem;
+}
+
+.footer-simple-copy {
+  font-size: 0.74rem !important;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Hidden Modal State Guards */
+.checkout-modal-backdrop,
+.quickview-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.checkout-modal-backdrop.active,
+.quickview-modal.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
