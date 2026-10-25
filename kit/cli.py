@@ -135,11 +135,14 @@ def migrate(config: str):
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--date", "-d", default=None, help="Date to check (YYYY-MM-DD, default yesterday)")
 @click.option("--simulate-break", default=None, help="Simulate a broken tag for this event name (e.g. purchase)")
-def parity(config: str, date: str | None, simulate_break: str | None):
-    """Run parity check between GA4 and target analytics stack."""
+@click.option("--mode", "-m", type=click.Choice(["migration", "crm"]), default="migration", help="Parity mode: 'migration' (GA4 dual-run) or 'crm' (client backend CRM records)")
+@click.option("--crm", is_flag=True, default=False, help="Shortcut to verify parity against client CRM / backend records (post-migration mode)")
+def parity(config: str, date: str | None, simulate_break: str | None, mode: str, crm: bool):
+    """Run continuous parity check (GA4 dual-run or post-migration CRM ground truth)."""
     from agents.parity.run import run_parity
 
-    run_parity(config, date, simulate_break_event=simulate_break)
+    actual_mode = "crm" if crm else mode
+    run_parity(config, date, simulate_break_event=simulate_break, mode=actual_mode)
 
 
 @main.command("simulate-tag-break")

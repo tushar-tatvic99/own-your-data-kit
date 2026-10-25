@@ -50,6 +50,25 @@ DIAGNOSIS_RULES = [
         "confidence": "low",
         "fix": "Compare bot filtering: GA4 excludes known bots by default. Enable Matomo's bot filtering (Settings > Websites > Exclude visits by bots).",
     },
+    # --- Steady-State CRM & Backend Ground Truth Rules ---
+    {
+        "condition": lambda gaps: any(g["metric"] == "backend_orders" and g["gap_percent"] > 5 for g in gaps),
+        "cause": "Analytics purchase tracking is lagging behind backend ERP/CRM order ledger (common cause: ad blockers or script-blocking extensions blocking client-side browser JavaScript before order completion redirect)",
+        "confidence": "high",
+        "fix": "1. Deploy server-side conversion webhook or HTTP Tracking API call from the backend order checkout worker. 2. Verify order deduplication using unique order_id.",
+    },
+    {
+        "condition": lambda gaps: any(g["metric"] == "order_revenue" and g["gap_percent"] > 5 for g in gaps),
+        "cause": "Analytics revenue differs from settled accounting revenue (common cause: tax, shipping, discount codes, or currency conversion handling)",
+        "confidence": "medium",
+        "fix": "Align revenue calculation formula in GTM tag: verify if GA4/Matomo tags pass net subtotal vs gross total including GST and courier shipping.",
+    },
+    {
+        "condition": lambda gaps: any(g["metric"] == "crm_leads" and g["gap_percent"] > 5 for g in gaps),
+        "cause": "Analytics lead form submissions diverge from CRM database (common cause: form validation drop-offs firing tags prior to API validation or vice-versa)",
+        "confidence": "high",
+        "fix": "Ensure the GTM custom event trigger fires only inside the promise resolution of a successful 200 HTTP response from the backend lead submission API.",
+    },
 ]
 
 
