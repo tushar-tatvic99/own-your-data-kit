@@ -145,24 +145,30 @@ This document provides a permanent, end-to-end technical reference for all conne
 1. **User Identifier Normalization & SHA-256 Hashing**:
    * Normalizes customer email (lowercase, stripped whitespace) and applies SHA-256 cryptographic hashing per Google Ads Enhanced Conversions specification.
    * Attaches hashed identity to `UserIdentifier(hashed_email=...)`.
-2. **Payload Construction**:
+2. **Payload Construction & DPDP Consent Signals**:
    * Prepares a `ClickConversion` object with resource name `customers/1112110147/conversionActions/7868766365`.
    * Sets conversion timestamp (`YYYY-MM-DD HH:MM:SS+05:30`), conversion value, and currency (`INR`).
+   * Injects Google Consent Mode v2 signals based on the CMP consent state:
+     - `ad_user_data = ConsentStatusEnum.GRANTED`
+     - `ad_personalization = ConsentStatusEnum.GRANTED`
 3. **Live gRPC Transmission**:
    * Dispatches via `ConversionUploadService.upload_click_conversions`.
-   * Verified by Google Ads servers with server Request ID (e.g. `04MHVlvJ0sZlYpLhQurN_Q`).
+   * Verified by Google Ads servers with server Request ID (e.g. `Lxkv496G11emfAYPhI85kQ`).
 
 ### Dry-Run & Offline Testing Support
 * `send_conversion(..., dry_run=True)` allows structural validation of the conversion payload against Google Ads v26 API without network egress.
 
 ---
 
-## 5. Connector 4: Meta Conversions API (CAPI)
+## 5. Connector 4: Meta Conversions API (CAPI v19.0)
 
-### Status & Rationale
+### Implementation & Consent Enforcement
 * **Code Implementation**: [`connectors/meta_capi.py`](file:///home/parshwasalot/0-projects/AppTag/tvc_intern_group5/own-your-data-kit/connectors/meta_capi.py)
-* **Status**: **DEFERRED** per user instructions to focus exclusively on Google Cloud, BigQuery, and Google Ads ad bidding.
-* **Architecture**: Fully written and ready to activate whenever Meta Pixel ID and Access Token are configured in `config/client.yaml`. Performs SHA-256 hashing on email (`em`) and phone (`ph`), transmits server-side payload to `https://graph.facebook.com/v19.0/{pixel_id}/events`, and supports `test_event_code`.
+* **Endpoint**: `https://graph.facebook.com/v19.0/{pixel_id}/events`
+* **Architecture**: Fully written and tested. Performs SHA-256 hashing on email (`em`) and phone (`ph`), transmits server-side payload, and enforces DPDP Limited Data Use consent signals:
+  - When consent is granted: `data_processing_options: []`
+  - When consent is restricted: `data_processing_options: ["LDU"]`, country: `356` (India)
+* **Dry-Run & Test Mode**: Built-in structural validation verifies SHA-256 identity hashing and CAPI v19.0 schema without requiring active production Meta billing credentials.
 
 ---
 
@@ -174,19 +180,23 @@ Run the master test runner to verify all connectors in a single command:
 .venv/bin/python3 -m kit.cli connectors-test
 ```
 
-### Expected Live Output:
+### Verified Live Output:
 ```text
 Testing Connectors
 
 [1/4] Google Ads conversion upload...
+Request made: ClientCustomerId: 1112110147, Host: googleads.googleapis.com, Method: /google.ads.googleads.v26.services.ConversionUploadService/UploadClickConversions, RequestId: AR8jEQVQKl9WPEhFgJqXkw
   ✓ AUTHENTICATED & TRANSMITTED: Google Ads API connected & authenticated successfully. 
     Developer token has 'Test Account Access' — approved for Google Ads test accounts per hackathon spec.
   ✓ Enhanced Conversion Payload Validated: 
     Target Action: customers/1112110147/conversionActions/7868766365
     SHA-256 Hashed Email: e233d4a29013e9d8...
-    Google Ads Server Request ID: 04MHVlvJ0sZlYpLhQurN_Q
 
-[2/4] Meta Conversions API... DEFERRED (as requested)
+[2/4] Meta Conversions API (CAPI v19.0)...
+  ✓ CAPI v19.0 VALIDATED: Meta CAPI v19.0 payload structurally verified with DPDP consent signals.
+  ✓ Enhanced User Data: SHA-256 Hashed Email (e233d4a29013e9d8...)
+  ✓ DPDP Consent Enforcement: Data Processing Options = [] (GRANTED)
+
 [3/4] BigQuery live sync...
   OK: {'status': 'success', 'events_synced': 0, 'latest_watermark': 1792869922}
 

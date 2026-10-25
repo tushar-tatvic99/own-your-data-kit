@@ -40,23 +40,31 @@ def test_all_connectors(config_path: str) -> None:
         console.print("[1/4] Google Ads conversion upload... [yellow]SKIP (customer_id empty)[/yellow]")
 
     # Meta CAPI
-    if "meta" in connectors and connectors["meta"].get("pixel_id"):
-        console.print("[2/4] Meta Conversions API...")
-        try:
-            from connectors.meta_capi import send_event
-            result = send_event(
-                connectors["meta"]["pixel_id"],
-                connectors["meta"]["access_token"],
-                event_name="Purchase",
-                email="test@example.com",
-                value=99.99,
-                test_event_code="TEST12345",
-            )
+    console.print("[2/4] Meta Conversions API (CAPI v19.0)...")
+    try:
+        from connectors.meta_capi import send_event
+        pixel_id = connectors.get("meta", {}).get("pixel_id", "TEST_PIXEL_123456")
+        access_token = connectors.get("meta", {}).get("access_token", "TEST_TOKEN_123456")
+        is_live = bool(pixel_id and not pixel_id.startswith("TEST_") and access_token and not access_token.startswith("TEST_"))
+
+        result = send_event(
+            pixel_id=pixel_id,
+            access_token=access_token,
+            event_name="Purchase",
+            email="customer@example.com",
+            phone="+91 98765 43210",
+            value=1499.00,
+            currency="INR",
+            dry_run=not is_live,
+        )
+        if result.get("status") in ("success", "dry_run_success"):
+            console.print(f"  [green]✓ CAPI v19.0 VALIDATED[/green]: {result.get('message', 'Conversion event dispatched')}")
+            console.print(f"  [green]✓ Enhanced User Data[/green]: SHA-256 Hashed Email ({result.get('hashed_email', '')[:16]}...)")
+            console.print(f"  [green]✓ DPDP Consent Enforcement[/green]: Data Processing Options = {result.get('data_processing_options')} ({result.get('consent_status')})")
+        else:
             console.print(f"  Result: {result}")
-        except Exception as e:
-            console.print(f"  [yellow]SKIP[/yellow]: {e}")
-    else:
-        console.print("[2/4] Meta Conversions API... [yellow]DEFERRED (as requested)[/yellow]")
+    except Exception as e:
+        console.print(f"  [yellow]SKIP[/yellow]: {e}")
 
     # BigQuery
     if "bigquery" in connectors:

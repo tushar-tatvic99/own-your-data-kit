@@ -13,9 +13,10 @@ def send_conversion(
     conversion_value: float = 0.0,
     currency: str = "INR",
     credentials_path: str = "credentials/google-ads.yaml",
+    consent_granted: bool = True,
     dry_run: bool = False,
 ) -> dict[str, Any]:
-    """Upload an offline conversion or enhanced conversion to Google Ads."""
+    """Upload an offline conversion or enhanced conversion to Google Ads with DPDP consent signals."""
     # Clean customer ID (remove hyphens)
     clean_cid = str(customer_id).replace("-", "").strip()
 
@@ -39,8 +40,9 @@ def send_conversion(
             "currency_code": currency,
             "gclid": gclid,
             "hashed_email": hashed_email,
+            "consent_status": "GRANTED" if consent_granted else "DENIED",
             "payload_valid": True,
-            "note": "Payload structurally validated against Google Ads ConversionUploadService specification.",
+            "note": "Payload structurally validated against Google Ads ConversionUploadService specification with DPDP consent.",
         }
 
     try:
@@ -56,6 +58,16 @@ def send_conversion(
         click_conversion.conversion_date_time = conversion_time
         click_conversion.conversion_value = conversion_value
         click_conversion.currency_code = currency
+
+        # Inject DPDP Consent Signals (Requirement 5)
+        consent_obj = client.get_type("Consent")
+        if consent_granted:
+            consent_obj.ad_user_data = client.enums.ConsentStatusEnum.GRANTED
+            consent_obj.ad_personalization = client.enums.ConsentStatusEnum.GRANTED
+        else:
+            consent_obj.ad_user_data = client.enums.ConsentStatusEnum.DENIED
+            consent_obj.ad_personalization = client.enums.ConsentStatusEnum.DENIED
+        click_conversion.consent = consent_obj
 
         if gclid:
             click_conversion.gclid = gclid
