@@ -8,11 +8,11 @@ stack:
   site_id: 1
   api_token: 5f18309ca2e10e1c1ff5c5b2cc760842
 ga4:
-  property_id: '61760469326'
+  property_id: '560630351'
   credentials_file: credentials/ga-service-account.json
 gtm:
-  account_id: '6000000000'
-  container_id: GTM-MMXM5L53
+  account_id: '6399646488'
+  container_id: '283402441'
   # workspace_id: '14'  # Optional: numeric workspace ID (auto-detected if omitted)
   credentials_file: credentials/ga-service-account.json
 dpdp:
