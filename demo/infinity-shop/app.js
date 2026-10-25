@@ -49,112 +49,184 @@ window.switchBfsiTab = function(target) {
 // ================= PRODUCT DATA =================
 const PRODUCTS = [
   {
-    id: 'p1',
-    name: 'Infinity Sovereign Chronometer',
-    category: 'horology',
-    categoryLabel: 'SWISS HOROLOGY',
-    price: 450.00,
-    rating: 4.98,
-    reviews: 142,
-    badge: 'Sovereign Tier',
-    image: 'assets/images/perfume.jpg',
-    description: 'Precision automatic movement with sapphire crystal face, dual-timezone complication, and brushed titanium case engineered in Geneva.',
-    highlights: [
-      'Chronometer-grade precision with 72-hour power reserve',
-      'Scratch-resistant anti-reflective sapphire crystal',
-      'Brushed titanium grade-5 case with alligator leather strap'
+    "id": "p1",
+    "name": "Infinity Sovereign Chronometer",
+    "category": "horology",
+    "categoryLabel": "SWISS HOROLOGY",
+    "price": 450,
+    "rating": 4.98,
+    "reviews": 142,
+    "badge": "Sovereign Tier",
+    "image": "assets/images/perfume.jpg",
+    "description": "Swiss automatic calibre with dual-timezone complication and grade-5 titanium case.",
+    "highlights": [
+      "Chronometer precision with 72-hour power reserve",
+      "Anti-reflective sapphire crystal face",
+      "Grade-5 titanium case & alligator leather strap"
     ],
-    details: '41mm Titanium Case • Automatic Calibre'
+    "details": "41mm Titanium • Automatic Calibre"
   },
   {
-    id: 'p2',
-    name: 'Certified 24K Mint Gold Bullion (100g)',
-    category: 'bullion',
-    categoryLabel: 'PRECIOUS METALS',
-    price: 680.00,
-    rating: 4.99,
-    reviews: 218,
-    badge: 'AAA Minted',
-    image: 'assets/images/serum.jpg',
-    description: '99.99% pure investment-grade physical gold bullion bar, individually numbered with an official London Bullion Market (LBMA) assay certificate.',
-    highlights: [
-      'Guaranteed 999.9 fine investment-grade bullion purity',
-      'Tamper-evident serial numbered security blister seal',
-      'Allocated physical depository storage eligibility'
+    "id": "p2",
+    "name": "Certified 24K Mint Gold Bullion (100g)",
+    "category": "bullion",
+    "categoryLabel": "PRECIOUS METALS",
+    "price": 680,
+    "rating": 4.99,
+    "reviews": 218,
+    "badge": "LBMA Certified",
+    "image": "assets/images/serum.jpg",
+    "description": "99.99% pure investment-grade physical gold bullion bar with security blister seal.",
+    "highlights": [
+      "999.9 fine investment-grade bullion purity",
+      "Serialized London Bullion Market assay certificate",
+      "Allocated depository storage eligibility"
     ],
-    details: '100 Grams • 99.99% Pure Gold • LBMA Certified'
+    "details": "100g • 99.99% Pure Gold • LBMA Assay"
   },
   {
-    id: 'p3',
-    name: 'Titanium Cryptographic Vault Key',
-    category: 'security',
-    categoryLabel: 'SECURITY & VAULT',
-    price: 185.00,
-    rating: 4.95,
-    reviews: 96,
-    badge: 'EAL6+ Security',
-    image: 'assets/images/silk.jpg',
-    description: 'Sovereign hardware cryptographic security key with biometric touch verification, zero-leakage memory, and titanium shell.',
-    highlights: [
-      'Military-grade EAL6+ certified secure execution enclave',
-      'Biometric fingerprint match in sub-100 milliseconds',
-      'Universal FIDO2, WebAuthn & multi-chain ledger standard'
+    "id": "p3",
+    "name": "Titanium Cryptographic Vault Key",
+    "category": "security",
+    "categoryLabel": "SECURITY & VAULT",
+    "price": 185,
+    "rating": 4.95,
+    "reviews": 96,
+    "badge": "EAL6+ Enclave",
+    "image": "assets/images/silk.jpg",
+    "description": "Hardware cryptographic security key with biometric touch and zero-leakage memory.",
+    "highlights": [
+      "Military EAL6+ certified hardware security enclave",
+      "Sub-100ms biometric fingerprint sensor",
+      "Universal FIDO2 and multi-chain ledger standard"
     ],
-    details: 'Titanium Shell • USB-C / NFC • Biometric Key'
+    "details": "Grade-5 Titanium • USB-C / NFC"
   },
   {
-    id: 'p4',
-    name: '18k Solid Gold Sovereign Signet',
-    category: 'jewelry',
-    categoryLabel: 'BESPOKE JEWELRY',
-    price: 320.00,
-    rating: 4.91,
-    reviews: 84,
-    badge: 'Private Edition',
-    image: 'assets/images/pearl.jpg',
-    description: 'Hand-engraved 18k solid gold signet ring engraved with the Infinity Bank hexagonal crest, forged in Zurich from conflict-free recycled bullion.',
-    highlights: [
-      'Solid 18k yellow gold forged with satin brushed finish',
-      'Hand-engraved archival heritage crest of Infinity Bank',
-      'Custom laser-engraved personal monogram included'
+    "id": "p4",
+    "name": "18k Sovereign Crest Signet",
+    "category": "jewelry",
+    "categoryLabel": "BESPOKE JEWELRY",
+    "price": 320,
+    "rating": 4.91,
+    "reviews": 84,
+    "badge": "Hand-Forged",
+    "image": "assets/images/pearl.jpg",
+    "description": "Hand-engraved 18k solid gold signet ring cast in Zurich from ethical recycled bullion.",
+    "highlights": [
+      "Solid 18k yellow gold with satin brushed finish",
+      "Hand-engraved archival heritage crest",
+      "Bespoke laser inner monogram included"
     ],
-    details: '18k Solid Gold • 14.2g Net Weight'
+    "details": "18k Solid Gold • 14.2g Net Weight"
   },
   {
-    id: 'p5',
-    name: 'Executive Cashmere Travel Collection',
-    category: 'lifestyle',
-    categoryLabel: 'EXECUTIVE LIVING',
-    price: 160.00,
-    rating: 4.89,
-    reviews: 130,
-    badge: 'First Class Edit',
-    image: 'assets/images/souffle.jpg',
-    description: 'Pure 100% Mongolian combed cashmere travel wrap and contoured silk blackout eye mask, engineered for seamless transatlantic journeys.',
-    highlights: [
-      'Ethically sourced Grade-A Mongolian cashmere fiber',
-      'Ultra-lightweight yet delivers superior thermal insulation',
-      'Includes water-repellent ballistic nylon travel pouch'
+    "id": "p5",
+    "name": "Mongolian Cashmere Travel Set",
+    "category": "lifestyle",
+    "categoryLabel": "EXECUTIVE LIVING",
+    "price": 160,
+    "rating": 4.89,
+    "reviews": 130,
+    "badge": "First Class",
+    "image": "assets/images/souffle.jpg",
+    "description": "Combed Grade-A Mongolian cashmere travel wrap paired with a mulberry silk blackout mask.",
+    "highlights": [
+      "100% ethically sourced Grade-A Mongolian cashmere",
+      "Featherweight luxury with superior thermal warmth",
+      "Includes compact water-repellent travel case"
     ],
-    details: '200cm x 70cm Wrap + Mulberry Silk Eye Mask'
+    "details": "200x70cm Wrap + Mulberry Silk Eye Mask"
   },
   {
-    id: 'p6',
-    name: 'Obsidian & Cedar Executive Desk Vessel',
-    category: 'lifestyle',
-    categoryLabel: 'EXECUTIVE LIVING',
-    price: 95.00,
-    rating: 4.94,
-    reviews: 77,
-    badge: 'Hand-Carved',
-    image: 'assets/images/candle.jpg',
-    description: 'Solid obsidian stone desk vessel with natural Atlantic cedarwood and dark amber accords, handcrafted for modern executive suites.',
-    highlights: [
-      'Monolithic block of polished natural obsidian stone',
-      'Subtle woody aromatics of Atlas cedar and smoky vetiver',
-      'Substantial weighted desk presence and timeless silhouette'
+    "id": "p6",
+    "name": "Obsidian & Cedar Desk Vessel",
+    "category": "lifestyle",
+    "categoryLabel": "EXECUTIVE LIVING",
+    "price": 95,
+    "rating": 4.94,
+    "reviews": 77,
+    "badge": "Artisan Carved",
+    "image": "assets/images/candle.jpg",
+    "description": "Solid natural obsidian desk vessel infused with aged Atlas cedar and smoky vetiver.",
+    "highlights": [
+      "Monolithic block of polished natural obsidian",
+      "Slow-cured aromatic cedarwood and dark amber",
+      "Weighted architectural silhouette"
     ],
-    details: 'Solid Obsidian Stone • 450g Net Weight'
+    "details": "Solid Obsidian Stone • 450g Net Weight"
+  },
+  {
+    "id": "p7",
+    "name": "Biometric Faraday Security Folio",
+    "category": "security",
+    "categoryLabel": "SECURITY & VAULT",
+    "price": 240,
+    "rating": 4.96,
+    "reviews": 63,
+    "badge": "RFID Shielded",
+    "image": "assets/images/hero_banner.jpg",
+    "description": "Full-grain Italian calfskin document folio with integrated electromagnetic RFID cage.",
+    "highlights": [
+      "Hand-stitched Tuscan vegetable-tanned calfskin",
+      "Internal document organizer & tablet sleeve",
+      "Integrated RFID electromagnetic blocker"
+    ],
+    "details": "Florentine Calfskin • YKK Excella Zips"
+  },
+  {
+    "id": "p8",
+    "name": "Tahitian South Sea Pearl Cufflinks",
+    "category": "jewelry",
+    "categoryLabel": "BESPOKE JEWELRY",
+    "price": 195,
+    "rating": 4.92,
+    "reviews": 115,
+    "badge": "AAA Luster",
+    "image": "assets/images/pearl.jpg",
+    "description": "Natural black Tahitian cultured pearls mounted on rhodium-plated sterling silver stems.",
+    "highlights": [
+      "11mm round natural Tahitian cultured pearls",
+      "Solid 925 sterling silver with mirror rhodium finish",
+      "Signature swivel-back whale closure mechanism"
+    ],
+    "details": "Pair of 2 • Tahitian Pearl & 925 Silver"
+  },
+  {
+    "id": "p9",
+    "name": "Certified 1kg Fine Silver Ingot",
+    "category": "bullion",
+    "categoryLabel": "PRECIOUS METALS",
+    "price": 210,
+    "rating": 4.97,
+    "reviews": 58,
+    "badge": "999 Fine Silver",
+    "image": "assets/images/serum.jpg",
+    "description": "99.9% pure investment-grade physical silver bar cast by Swiss LBMA accredited refinery.",
+    "highlights": [
+      "999 fine investment-grade bullion purity",
+      "Serialized Swiss refinery stamp and certificate",
+      "Immediate allocated vault delivery eligibility"
+    ],
+    "details": "1 Kilogram • 99.9% Pure Silver Bar"
+  },
+  {
+    "id": "p10",
+    "name": "Titanium Tourbillon Desk Calibre",
+    "category": "horology",
+    "categoryLabel": "SWISS HOROLOGY",
+    "price": 340,
+    "rating": 4.93,
+    "reviews": 89,
+    "badge": "Manual Wind",
+    "image": "assets/images/perfume.jpg",
+    "description": "Skeletonized manual-wind mechanical desk timepiece with exposed gyroscopic balance wheel.",
+    "highlights": [
+      "Precision CNC-machined from solid titanium bar",
+      "8-day power reserve mechanical desk movement",
+      "Anti-magnetic mineral glass display dome"
+    ],
+    "details": "Grade-5 Titanium • 8-Day Reserve"
   }
 ];
 
@@ -334,24 +406,26 @@ function formatPrice(amountInUSD) {
 }
 
 function showToast(icon, title, message) {
+  if (!toastContainer) return;
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.innerHTML = `
     <span class="toast-icon">${icon}</span>
     <div class="toast-msg">
       <strong>${title}</strong>
-      <small>${message}</small>
     </div>
   `;
   toastContainer.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
+    toast.style.transform = 'translateY(8px)';
+    setTimeout(() => toast.remove(), 250);
+  }, 1800);
 }
 
 // ================= PRODUCT RENDERING =================
 function renderProducts() {
+  if (!productsGrid) return;
   let filtered = [...PRODUCTS];
 
   // Category Filter
@@ -477,6 +551,7 @@ function calculateCartTotals() {
 }
 
 function renderCart() {
+  if (!cartCount && !cartItemsList) return;
   const totals = calculateCartTotals();
 
   // Badges and counts
@@ -626,6 +701,7 @@ function toggleWishlist(productId) {
 }
 
 function renderWishlist() {
+  if (!wishlistCount && !wishlistItemsList) return;
   wishlistCount.textContent = state.wishlist.length;
   wishlistBadgeCount.textContent = `(${state.wishlist.length} item${state.wishlist.length === 1 ? '' : 's'})`;
 
@@ -1148,19 +1224,26 @@ giftMessageInput.addEventListener('change', (e) => {
 
 // Category Filter Tabs
 categoryTabs.addEventListener('click', (e) => {
-  if (e.target.classList.contains('cat-pill')) {
-    document.querySelectorAll('.cat-pill').forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
-    state.activeCategory = e.target.getAttribute('data-category');
+  const btn = e.target.closest('.cat-pill');
+  if (btn) {
+    document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.activeCategory = btn.getAttribute('data-category');
 
     // Matomo Category View & Filter Tracking
     if (typeof MatomoTracker !== 'undefined') {
-      const catLabel = e.target.textContent.trim();
+      const catLabel = btn.textContent.trim();
       MatomoTracker.trackCategoryView(catLabel);
       MatomoTracker.trackCustomEvent('Catalog', 'Category Filter Applied', state.activeCategory);
     }
 
     renderProducts();
+
+    // Auto-scroll slightly so filtered items are immediately in clear view
+    const curationsEl = document.getElementById('curations');
+    if (curationsEl) {
+      curationsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 });
 
@@ -1586,7 +1669,7 @@ function initDpdpCenter() {
       }
 
       if (typeof MatomoTracker !== 'undefined' && typeof MatomoTracker.trackCustomEvent === 'function') {
-        MatomoTracker.trackCustomEvent('DPDP Compliance', 'Erasure Petition Submitted', scope, 1);
+        MatomoTracker.trackCustomEvent('DPDP Rights', 'Erasure Petition Submitted', scope, 1);
       }
 
       const matomoDeleted = kitErasure && typeof kitErasure.matomoVisitsDeleted === 'number'
@@ -1665,6 +1748,7 @@ function initDpdpCenter() {
 // INFINITY BANK - EXPLORE BFSI INTERACTIVE ENGINE & GA4 CD EVENT DISPATCHER
 // ============================================================================
 function initBfsiEngine() {
+  if (!document.getElementById('explore-bfsi') && !document.getElementById('bfsiCategoryTabs')) return;
   // Helper to determine income/amount tiers for GA4 Custom Dimensions
   function getAmountTier(num) {
     if (num < 50000) return 'under_50k';
@@ -2065,7 +2149,7 @@ function initBfsiEngine() {
 function initMobileNav() {
   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
   const siteHeader = document.getElementById('siteHeader');
-  const mainNavLinks = document.querySelectorAll('#mainNav a');
+  const mainNavLinks = document.querySelectorAll('#mainNav a, #mobileNavPanel a');
 
   if (mobileMenuBtn && siteHeader) {
     mobileMenuBtn.addEventListener('click', (e) => {
