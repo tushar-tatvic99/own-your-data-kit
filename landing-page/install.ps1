@@ -274,18 +274,25 @@ if ($Target -eq "on-premise") {
         Write-Error "Google Cloud SDK (gcloud) is not installed or not in PATH."
         exit 1
     }
+    $LocalTfDir = Join-Path "$RootDir" ".tools\bin"
+    $LocalTf = Join-Path $LocalTfDir "terraform.exe"
+    if (Test-Path $LocalTf) {
+        $env:PATH = "$LocalTfDir;$env:PATH"
+    }
+
     if (-not (Get-Command terraform -ErrorAction SilentlyContinue)) {
         # Bootstrap a local Terraform binary (mirrors install.sh behaviour)
-        $LocalTfDir = Join-Path $RootDir ".tools\bin"
-        $LocalTf = Join-Path $LocalTfDir "terraform.exe"
         if (-not (Test-Path $LocalTf)) {
-            Write-Host "        Terraform not found - downloading Terraform 1.8.5 to $LocalTfDir..." -ForegroundColor Yellow
+            Write-Host "        Terraform not found in PATH - downloading Terraform 1.8.5 to $LocalTfDir..." -ForegroundColor Yellow
             $TfArch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "amd64" }
             $TfZip = Join-Path $env:TEMP "terraform_windows_$TfArch.zip"
             try {
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
                 New-Item -ItemType Directory -Force -Path $LocalTfDir | Out-Null
+                $prevProgress = $ProgressPreference
+                $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest -UseBasicParsing -Uri "https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_windows_$TfArch.zip" -OutFile $TfZip
+                $ProgressPreference = $prevProgress
                 Expand-Archive -Path $TfZip -DestinationPath $LocalTfDir -Force
                 Remove-Item $TfZip -Force -ErrorAction SilentlyContinue
             } catch {

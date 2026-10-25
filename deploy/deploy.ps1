@@ -15,6 +15,34 @@ $Zone = "asia-south1-a"
 $RootDir = Split-Path -Parent $PSScriptRoot
 $KitRemote = "/opt/own-your-data-kit"
 
+# Ensure Terraform is available (system PATH or bootstrapped in .tools\bin)
+$LocalTfDir = Join-Path "$RootDir" ".tools\bin"
+if (Test-Path (Join-Path $LocalTfDir "terraform.exe")) {
+    $env:PATH = "$LocalTfDir;$env:PATH"
+}
+if (-not (Get-Command terraform -ErrorAction SilentlyContinue)) {
+    $LocalTf = Join-Path $LocalTfDir "terraform.exe"
+    if (-not (Test-Path $LocalTf)) {
+        Write-Host "Terraform not found in PATH - downloading Terraform 1.8.5 to $LocalTfDir..." -ForegroundColor Yellow
+        $TfArch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "amd64" }
+        $TfZip = Join-Path $env:TEMP "terraform_windows_$TfArch.zip"
+        try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            New-Item -ItemType Directory -Force -Path $LocalTfDir | Out-Null
+            $prevProgress = $ProgressPreference
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest -UseBasicParsing -Uri "https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_windows_$TfArch.zip" -OutFile $TfZip
+            $ProgressPreference = $prevProgress
+            Expand-Archive -Path $TfZip -DestinationPath $LocalTfDir -Force
+            Remove-Item $TfZip -Force -ErrorAction SilentlyContinue
+        } catch {
+            throw "Failed to download Terraform automatically: $_. Please install Terraform 1.5+ manually."
+        }
+    }
+    $env:PATH = "$LocalTfDir;$env:PATH"
+    Write-Host "✓ Using Terraform at $LocalTf" -ForegroundColor Green
+}
+
 Write-Host "========================================"
 Write-Host " Own-Your-Data Analytics Kit - Deploy"
 Write-Host " Project: $ProjectId"
