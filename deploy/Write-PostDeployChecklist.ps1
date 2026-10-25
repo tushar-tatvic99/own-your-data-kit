@@ -17,9 +17,9 @@ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $path = Join-Path $outDir "$ClientName-post-deploy-checklist.md"
 
 $body = @"
-# $ClientName — deploy complete
+# $ClientName - deploy complete
 
-**One-command deploy finished** $(Get-Date -Format "yyyy-MM-dd HH:mm") — platform is up.
+**One-command deploy finished** $(Get-Date -Format "yyyy-MM-dd HH:mm") - platform is up.
 
 | | |
 |--|--|
@@ -30,9 +30,9 @@ $body = @"
 
 ## Client onboarding only (3 steps)
 
-1. **Matomo wizard** at $MatomoUrl → API token → VM ``deploy/docker/.env`` → restart kit-api
+1. **Matomo wizard** at $MatomoUrl -> API token -> VM ``deploy/docker/.env`` -> restart kit-api
 2. **``config/client.yaml``** + ``credentials/ga-service-account.json`` (client GA4/GTM)
-3. **Site tags** + consent → ``py -3 -m kit.cli migrate`` / ``parity``
+3. **Site tags** + consent -> ``py -3 -m kit.cli migrate`` / ``parity``
 
 Details: [docs/post-deploy-checklist.md](../docs/post-deploy-checklist.md)
 "@

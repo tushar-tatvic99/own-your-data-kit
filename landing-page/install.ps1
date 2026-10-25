@@ -1,5 +1,5 @@
 # ==============================================================================
-# TATVIC OWN-YOUR-DATA ANALYTICS KIT (OYDK) — WINDOWS ENTERPRISE INSTALLER
+# TATVIC OWN-YOUR-DATA ANALYTICS KIT (OYDK) - WINDOWS ENTERPRISE INSTALLER
 # ==============================================================================
 # One-command automated deployment for GCP (India region) and On-Premise on Windows.
 # Usage:
@@ -43,7 +43,7 @@ if (Test-Path "deploy\deploy.ps1") {
         if (Test-Path "own-your-data-kit") {
             Set-Location "own-your-data-kit"
             $RootDir = Get-Location
-            Write-Host "✓ Repository cloned successfully." -ForegroundColor Green
+            Write-Host "[OK] Repository cloned successfully." -ForegroundColor Green
         }
     } catch {
         Write-Warning "Could not clone repository automatically via git. If in dry-run mode, simulation will proceed."
@@ -53,13 +53,13 @@ if (Test-Path "deploy\deploy.ps1") {
 # Display Banner
 Clear-Host
 Write-Host @"
-  ██████╗ ██╗   ██╗██████╗ ██╗  ██╗    ███████╗██╗   ██╗██╗████████╗███████╗
- ██╔═══██╗╚██╗ ██╔╝██╔══██╗██║ ██╔╝    ██╔════╝██║   ██║██║╚══██╔══╝██╔════╝
- ██║   ██║ ╚████╔╝ ██║  ██║█████╔╝     ███████╗██║   ██║██║   ██║   █████╗  
- ██║   ██║  ╚██╔╝  ██║  ██║██╔═██╗     ╚════██║██║   ██║██║   ██║   ██╔══╝  
- ╚██████╔╝   ██║   ██████╔╝██║  ██╗    ███████║╚██████╔╝██║   ██║   ███████╗
-  ╚═════╝    ╚═╝   ╚═════╝ ╚═╝  ╚═╝    ╚══════╝ ╚═════╝ ╚═╝   ╚═╝   ╚══════╝
-      Enterprise Open-Source Analytics Kit — Tatvic Analytics (Windows)
+  ######  ##    ## ######  ##   ##     ####### ##    ## ## ######## ####### 
+ ##    ##  ##  ##  ##   ## ##  ##      ##      ##    ## ##    ##    ##      
+ ##    ##   ####   ##   ## #####       ####### ##    ## ##    ##    #####   
+ ##    ##    ##    ##   ## ##  ##           ## ##    ## ##    ##    ##      
+  ######     ##    ######  ##   ##     #######  ######  ##    ##    ####### 
+                                                                            
+      Enterprise Open-Source Analytics Kit - Tatvic Analytics (Windows)
 "@ -ForegroundColor Cyan
 
 Write-Host "One-Command Enterprise Deployment & Architecture Provisioner (PowerShell)" -ForegroundColor White
@@ -157,11 +157,11 @@ if ($DryRun) {
 
     if ($Target -eq "gcp") {
         Write-Host "  [1/5] [SIMULATED] Verifying GCP Project '$ProjectId' & APIs:"
-        Write-Host "        ✓ compute.googleapis.com (VPC & VM)" -ForegroundColor Green
-        Write-Host "        ✓ storage.googleapis.com (Backups Bucket)" -ForegroundColor Green
-        Write-Host "        ✓ bigquery.googleapis.com (Warehouse Export)" -ForegroundColor Green
-        Write-Host "        ✓ cloudscheduler.googleapis.com (Automated Backups)" -ForegroundColor Green
-        Write-Host "        ✓ monitoring.googleapis.com (Uptime Health Check)" -ForegroundColor Green
+        Write-Host "        [OK] compute.googleapis.com (VPC & VM)" -ForegroundColor Green
+        Write-Host "        [OK] storage.googleapis.com (Backups Bucket)" -ForegroundColor Green
+        Write-Host "        [OK] bigquery.googleapis.com (Warehouse Export)" -ForegroundColor Green
+        Write-Host "        [OK] cloudscheduler.googleapis.com (Automated Backups)" -ForegroundColor Green
+        Write-Host "        [OK] monitoring.googleapis.com (Uptime Health Check)" -ForegroundColor Green
         Start-Sleep -Milliseconds 600
 
         Write-Host "  [2/5] [SIMULATED] Planning Terraform Resource Graph in $Region ($Profile profile):"
@@ -176,12 +176,12 @@ if ($DryRun) {
         $SimIp = "35.234.210.199"
         $SimUrl = "https://matomo.$($SimIp.Replace('.', '-')).nip.io"
         Write-Host "  [3/5] [SIMULATED] Inspecting SSL & Automated Caddy Edge Proxy:"
-        Write-Host "        ✓ Ingress SSL Endpoint: $SimUrl" -ForegroundColor Green
+        Write-Host "        [OK] Ingress SSL Endpoint: $SimUrl" -ForegroundColor Green
         Start-Sleep -Milliseconds 500
     } else {
         Write-Host "  [1/5] [SIMULATED] Verifying Local Container Runtime:"
-        Write-Host "        ✓ Docker Engine online" -ForegroundColor Green
-        Write-Host "        ✓ Docker Compose v2 active" -ForegroundColor Green
+        Write-Host "        [OK] Docker Engine online" -ForegroundColor Green
+        Write-Host "        [OK] Docker Compose v2 active" -ForegroundColor Green
         Start-Sleep -Milliseconds 600
 
         Write-Host "  [2/5] [SIMULATED] Container Topology Planning:"
@@ -193,9 +193,9 @@ if ($DryRun) {
     }
 
     Write-Host "  [4/5] [SIMULATED] Ingesting GA4 & GTM Migration Targets:"
-    Write-Host "        • GA4 Property ID  : $Ga4PropertyId"
-    Write-Host "        • GTM Container ID : $GtmContainerId"
-    Write-Host "        • Tolerance Limit  : ±$ParityTargetGap%"
+    Write-Host "        * GA4 Property ID  : $Ga4PropertyId"
+    Write-Host "        * GTM Container ID : $GtmContainerId"
+    Write-Host "        * Tolerance Limit  : +/-$ParityTargetGap%"
     Start-Sleep -Milliseconds 500
 
     Write-Host "  [5/5] [SIMULATED] Synthesizing client.yaml Configuration:"
@@ -241,10 +241,10 @@ connectors:
     table: "events"
 "@
     Set-Content -Path $SimConfigFile -Value $simYaml -Encoding UTF8
-    Write-Host "        ✓ Preview config written to $SimConfigFile" -ForegroundColor Green
+    Write-Host "        [OK] Preview config written to $SimConfigFile" -ForegroundColor Green
 
     Write-Host "`n================================================================================" -ForegroundColor Green
-    Write-Host " ✓ DRY-RUN SIMULATION COMPLETE — VALIDATION PASSED!" -ForegroundColor Green
+    Write-Host " [OK] DRY-RUN SIMULATION COMPLETE - VALIDATION PASSED!" -ForegroundColor Green
     Write-Host "================================================================================" -ForegroundColor Green
     Write-Host "  Simulated Target : $($Target.ToUpper())"
     Write-Host "  Analytics Stack  : $($Engine.ToUpper())"
@@ -301,7 +301,7 @@ if ($Target -eq "on-premise") {
             }
         }
         $env:PATH = "$LocalTfDir;$env:PATH"
-        Write-Host "        ✓ Using Terraform at $LocalTf" -ForegroundColor Green
+        Write-Host "        [OK] Using Terraform at $LocalTf" -ForegroundColor Green
     }
 
     & "$RootDir\deploy\deploy.ps1" -ProjectId $ProjectId -ClientName $ClientName -Profile $Profile

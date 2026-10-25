@@ -146,7 +146,7 @@ for ($i = 1; $i -le 36; $i++) {
         Start-Sleep -Seconds 10
     }
 }
-if (-not $ok) { Write-Host "[yellow]Matomo HTTPS not ready yet — complete setup wizard in browser[/yellow]" }
+if (-not $ok) { Write-Host "[yellow]Matomo HTTPS not ready yet - complete setup wizard in browser[/yellow]" }
 
 Write-Host "[6/7] Smoke test Kit API..."
 try {
