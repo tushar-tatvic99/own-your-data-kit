@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OYDK Analytics Kit</title>
-  <link rel="stylesheet" href="/styles.css?v=20261025m" />
+  <link rel="stylesheet" href="/styles.css?v=20261025z12" />
 </head>
 <body>
   <div class="shell">
@@ -13,11 +13,10 @@
         <span class="logo">OYDK</span>
         <div>
           <strong>Analytics Kit</strong>
-          <small id="client-name">…</small>
         </div>
       </div>
       <nav class="nav-items">
-        <button type="button" class="nav-btn active demo-nav" data-panel="demo">Demo mode</button>
+        <button type="button" class="nav-btn active" data-panel="demo" aria-current="page">Demo mode</button>
         <button type="button" class="nav-btn" data-panel="deploy">1 · Deploy</button>
         <button type="button" class="nav-btn" data-panel="migration">2 · Migration</button>
         <button type="button" class="nav-btn" data-panel="parity">3 · Parity</button>
@@ -32,19 +31,15 @@
       <div class="nav-footer">
         <div class="kit-pill" id="kit-pill">Kit API …</div>
         <button type="button" class="link-dl" data-dl="/api/download/last-run" data-filename="oydk-last-run.log">Last run log</button>
-        <button type="button" class="link-dl" data-dl="/api/download/parity-sheet" data-filename="parity-daily-sheet.csv" id="dl-sheet">Parity CSV</button>
       </div>
     </aside>
 
     <main class="main">
       <section class="panel active" id="panel-demo">
         <header class="panel-head">
-          <h1>Client demo</h1>
-          <p>Pick a profile, then run the full connection suite. Step outputs appear below and on each tab (Migration, DPDP, Parity).</p>
+          <h1>Client setup</h1>
         </header>
-        <div class="deploy-banner ok" id="judge-browser-banner" role="status">
-          <strong>Browser only</strong> — run tests, Matomo setup, and deploy steps from this page. No command window needed.
-        </div>
+        <div class="deploy-banner ok hidden" id="judge-browser-banner" role="status"></div>
         <div class="mode-cta-row">
           <button type="button" class="mode-cta active" id="btn-mode-default" data-mode="default">
             <strong>Default demo</strong>
@@ -56,27 +51,11 @@
           </button>
         </div>
         <input type="hidden" name="demo-mode" id="demo-mode-value" value="default" />
-        <div id="session-badge" class="session-badge">Loading session…</div>
-        <div class="cred-grid" id="cred-grid"></div>
         <div class="btn-row">
-          <button type="button" class="btn primary lg" id="btn-run-default-suite">Run all default connection tests</button>
-          <button type="button" class="btn secondary" id="btn-run-fixture-suite">Run safe suite (fixture only)</button>
+          <button type="button" class="btn primary lg" id="btn-run-default-suite">Run default</button>
+          <button type="button" class="btn secondary" id="btn-gcloud-login">Sign in to Google Cloud</button>
         </div>
-        <p class="hint" id="suite-plan-hint"></p>
-        <details class="prereq-box" id="google-auth-guide-box">
-          <summary>Google auth — what each user needs</summary>
-          <p class="hint" id="google-auth-summary"></p>
-          <ul class="prereq-list" id="google-auth-needs"></ul>
-        </details>
-        <div class="btn-row gcloud-row">
-          <label class="gcloud-project">GCP project for deploy
-            <input type="text" id="gcloud-project-input" placeholder="your-gcp-project-id" />
-          </label>
-          <button type="button" class="btn secondary" id="btn-gcloud-login">Sign in to Google Cloud (gcloud)</button>
-          <button type="button" class="btn ghost" id="btn-gcloud-set-project">Set project</button>
-          <button type="button" class="btn ghost" id="btn-gcloud-refresh">Refresh status</button>
-        </div>
-        <pre class="code-block" id="gcloud-status">gcloud status…</pre>
+        <input type="hidden" id="gcloud-project-input" value="" />
         <h3>Combined suite output</h3>
         <pre class="panel-output" id="output-demo">Run the suite to see step-by-step results here.</pre>
       </section>
@@ -84,20 +63,16 @@
       <!-- 1 Deploy -->
       <section class="panel" id="panel-deploy">
         <header class="panel-head">
-          <h1>One-command deploy</h1>
+          <h1>Deploy</h1>
         </header>
-        <details class="prereq-box matomo-provision-box" open>
-          <summary>Step 1 — Matomo on your GCP</summary>
-          <div id="matomo-gcp-own-panel" class="matomo-gcp-panel" aria-live="polite">
-            <div class="btn-row">
-              <button type="button" class="btn primary" id="btn-matomo-gcp-deploy">Deploy Matomo on my GCP</button>
-              <button type="button" class="btn ghost" id="btn-matomo-refresh-url">Refresh URL from deploy log</button>
-              <button type="button" class="btn ghost hidden" id="btn-open-matomo-own">Open Matomo</button>
-            </div>
-          </div>
-          <input type="hidden" id="matomo-provision-url" name="matomo_url" value="" />
-          <pre class="panel-output" id="matomo-provision-result">Deploy log appears here.</pre>
-        </details>
+        <div class="parity-controls deploy-controls">
+          <button type="button" class="btn primary" id="btn-matomo-gcp-deploy">Deploy Matomo on my GCP</button>
+          <button type="button" class="btn secondary" id="btn-deploy-activate">Save &amp; activate</button>
+          <button type="button" class="btn primary" id="btn-deploy-start">Deploy to GCP</button>
+          <button type="button" class="btn ghost hidden" id="btn-open-matomo-own">Open Matomo</button>
+          <button type="button" class="btn ghost hidden" id="btn-deploy-local">Local Docker only</button>
+          <button type="button" class="btn ghost hidden" id="btn-go-demo-gcloud">Open Demo → gcloud sign-in</button>
+        </div>
         <form id="deploy-form" class="form-grid">
           <label>GCP project ID <input name="gcp_project_id" required placeholder="tvc-int-matomo" /></label>
           <label>Client name <input name="client_name" value="aurablush" /></label>
@@ -117,101 +92,81 @@
           </label>
           <label>BQ dataset <input name="bq_dataset" value="matomo_export" /></label>
         </form>
-        <div class="btn-row">
-          <button type="button" class="btn secondary" id="btn-deploy-preview">Preview command & YAML</button>
-          <button type="button" class="btn secondary" id="btn-deploy-save">Save client YAML</button>
-          <button type="button" class="btn secondary" id="btn-deploy-activate">Save &amp; activate for all tests</button>
-          <button type="button" class="btn primary" id="btn-deploy-start">Deploy to GCP</button>
-          <button type="button" class="btn ghost" id="btn-deploy-local">Local Docker only</button>
-          <button type="button" class="btn ghost hidden" id="btn-go-demo-gcloud">Open Demo → gcloud sign-in</button>
-        </div>
+        <input type="hidden" id="matomo-provision-url" name="matomo_url" value="" />
+        <p class="hint" id="deploy-empty">Fill project details, then deploy or activate.</p>
+        <details class="deploy-status-fold hidden" id="deploy-log-root">
+          <summary class="deploy-status-summary">
+            <span id="deploy-status" class="deploy-status-line" role="status">No deploy yet</span>
+            <span class="deploy-status-toggle">Details</span>
+          </summary>
+          <pre class="panel-output deploy-log-body" id="matomo-provision-result"></pre>
+        </details>
         <div class="deploy-banner hidden" id="deploy-cloud-banner"></div>
-        <div class="deploy-status" id="deploy-status" role="status"></div>
+        <button type="button" class="btn secondary hidden" id="btn-deploy-preview">Preview</button>
+        <button type="button" class="btn secondary hidden" id="btn-deploy-save">Save client YAML</button>
       </section>
 
       <!-- 2 Migration -->
       <section class="panel" id="panel-migration">
         <header class="panel-head">
-          <h1>Migration agent</h1>
-          <p>Runs GA4/GTM → Matomo alignment on the <strong>linked account</strong> in <code id="migration-config">config/client.yaml</code> (credentials required for live).</p>
+          <h1>Migration</h1>
         </header>
         <div class="btn-row">
-          <button type="button" class="btn primary" data-action="migrate_linked">Start migration (live)</button>
-          <button type="button" class="btn secondary" data-action="migrate_fixture">Dry run (fixture)</button>
+          <button type="button" class="btn primary" data-action="migrate_linked">Start migration</button>
         </div>
-        <p class="hint">Artifacts under <code>output/migration/</code>. Nothing is auto-published — human approves GTM or MTM.</p>
+        <code id="migration-config" class="hidden">config/client.yaml</code>
 
-        <div class="migration-report-block" id="migration-report-root">
-          <p class="hint" id="migration-report-empty">No migration report yet — run <strong>Dry run (fixture)</strong> or <strong>Start migration (live)</strong>.</p>
+        <div class="consent-cards migration-summary-cards" id="migration-summary-cards"></div>
+        <p class="hint" id="migration-report-empty">Run <strong>Start migration</strong> to see results.</p>
+
+        <div class="migration-report-block hidden" id="migration-report-root">
+          <h3>Migrated to Matomo</h3>
+          <div class="table-wrap" id="migration-done-table"></div>
+          <h3>Needs review</h3>
+          <div class="table-wrap" id="migration-review-table"></div>
         </div>
 
-        <h3 class="migration-section-title">Tag migration paths (draft only — choose one to review)</h3>
-        <p class="hint">GA4/GTM → Matomo: either mirror tags in <strong>Matomo Tag Manager (MTM)</strong> or use a <strong>new Google GTM container</strong> with Matomo tags only.</p>
-        <div class="btn-row">
-          <button type="button" class="btn primary" id="btn-migration-mtm" disabled>MTM container draft</button>
-          <button type="button" class="btn secondary" id="btn-migration-gtm-suggested" disabled>GTM Matomo suggested container</button>
-          <button type="button" class="btn ghost sm" id="btn-migration-gtm-workspace" disabled>GTM workspace bundle</button>
-        </div>
-        <p class="hint migration-dl-label">Download JSON for import into Matomo MTM or Google Tag Manager:</p>
-        <div class="btn-row migration-dl-row">
-          <button type="button" class="btn ghost sm migration-dl-btn" id="dl-migration-mtm" disabled
-            data-kind="mtm" data-dl="/api/download/migration-mtm" data-filename="oydk-mtm-container-draft.json">↓ MTM import file</button>
-          <button type="button" class="btn ghost sm migration-dl-btn" id="dl-migration-gtm-suggested" disabled
-            data-kind="gtm_suggested" data-dl="/api/download/migration-gtm-suggested" data-filename="oydk-gtm-matomo-suggested-container.json">↓ GTM Matomo container</button>
-          <button type="button" class="btn ghost sm migration-dl-btn" id="dl-migration-gtm-workspace" disabled
-            data-kind="gtm_workspace" data-dl="/api/download/migration-gtm-workspace" data-filename="oydk-gtm-workspace-draft.json">↓ GTM workspace bundle</button>
+        <div class="migration-drafts-row" id="migration-drafts-row">
+          <h3>Download drafts</h3>
+          <div class="btn-row">
+            <button type="button" class="btn secondary" id="btn-migration-mtm" disabled>View &amp; download MTM</button>
+            <button type="button" class="btn secondary" id="btn-migration-gtm-suggested" disabled>View &amp; download GTM</button>
+            <button type="button" class="btn ghost hidden" id="btn-migration-gtm-workspace" disabled>GTM workspace</button>
+          </div>
         </div>
         <div class="migration-bundle-panel hidden" id="migration-bundle-panel">
           <div class="bundle-head">
-            <h4 id="migration-bundle-title">Bundle</h4>
+            <h4 id="migration-bundle-title">Draft</h4>
             <span class="tag draft-tag">NOT PUBLISHED</span>
-            <button type="button" class="btn ghost sm" id="btn-migration-bundle-download">Download JSON</button>
+            <button type="button" class="btn primary sm" id="btn-migration-bundle-download">Download</button>
             <button type="button" class="btn ghost sm" id="btn-migration-bundle-close">Close</button>
           </div>
           <p class="hint" id="migration-bundle-blurb"></p>
           <div class="table-wrap" id="migration-bundle-table"></div>
         </div>
-
-        <pre class="panel-output hidden" id="output-migration" aria-hidden="true">Run migration or the demo suite.</pre>
+        <pre class="panel-output hidden" id="output-migration" aria-hidden="true"></pre>
       </section>
 
       <!-- 3 Parity -->
       <section class="panel" id="panel-parity">
         <header class="panel-head">
-          <h1>Continuous parity</h1>
-          <p>Daily GA4 vs Matomo vs threshold — same table as the email report. History in one CSV.</p>
+          <h1>Parity</h1>
         </header>
-        <div class="btn-row">
-          <label>Date <input type="date" id="parity-date" /></label>
-          <button type="button" class="btn primary" data-action="parity_live">Run live parity</button>
-          <button type="button" class="btn secondary" data-action="parity_fixture_ok">Fixture OK</button>
-          <button type="button" class="btn secondary" data-action="parity_break_purchase">Demo break</button>
-          <button type="button" class="btn ghost" id="btn-refresh-parity">Refresh dashboard</button>
-        </div>
-        <div class="split parity-grid">
-          <div class="parity-stack">
-            <h3>Daily log (threshold ±<span id="parity-threshold">5</span>%)</h3>
-            <div class="table-wrap parity-daily-wrap" id="parity-daily-table"></div>
-            <h3 class="parity-fixture-head">Output <span id="parity-fixture-badge" class="tag fixture">Fixture</span></h3>
-            <p class="hint hidden" id="parity-fixture-empty">Run Fixture OK for aligned demo snapshot.</p>
-            <div class="table-wrap hidden" id="parity-fixture-metrics-table"></div>
-            <div id="parity-alert-email-section" class="parity-email-box">
-              <h4>Parity alert email</h4>
-              <p class="parity-email-status" id="parity-alert-email-status"></p>
-              <div class="table-wrap" id="parity-alert-email-table"></div>
-            </div>
+        <div class="parity-controls">
+          <div class="parity-dates">
+            <label>Start <input type="date" id="parity-start" /></label>
+            <label>End <input type="date" id="parity-end" /></label>
           </div>
-          <div class="parity-live-panel">
-            <h3>Live parity — real monitoring <span id="parity-live-badge" class="tag live">LIVE</span></h3>
-            <p class="hint" id="parity-live-hint">Run live parity for GA4 + Matomo API numbers (email-style preview).</p>
-            <div id="parity-live-subject" class="email-subject hidden"></div>
-            <p class="hint hidden" id="parity-live-empty">Run live parity to compare GA4 vs Matomo.</p>
-            <div class="table-wrap hidden" id="parity-live-metrics-table"></div>
-            <div id="parity-live-diagnosis-section" class="parity-subsection hidden">
-              <h4>Diagnosis &amp; proposed fixes</h4>
-              <p class="hint">Shown when live gap exceeds ±<span class="parity-threshold-inline">5</span>% threshold.</p>
-              <div class="table-wrap" id="parity-live-diagnosis-table"></div>
-            </div>
+          <button type="button" class="btn primary" id="btn-parity-run">Run parity check</button>
+        </div>
+        <div class="consent-cards migration-summary-cards" id="parity-summary-cards"></div>
+        <p class="hint" id="parity-empty">Pick dates and run a parity check.</p>
+        <div class="migration-report-block hidden" id="parity-report-root">
+          <h3>Results <span class="parity-thresh-note">(±<span id="parity-threshold">5</span>%)</span></h3>
+          <div class="table-wrap" id="parity-metrics-table"></div>
+          <div id="parity-diagnosis-section" class="parity-subsection hidden">
+            <h3>Needs review</h3>
+            <div class="table-wrap" id="parity-diagnosis-table"></div>
           </div>
         </div>
       </section>
@@ -224,32 +179,30 @@
         </header>
         <div class="consent-cards" id="consent-cards"></div>
         <h3>Shop rights requests</h3>
-        <p class="hint" id="dpdp-rights-hint">Deletion / access tickets from the live shop (not the Matomo lookup audit below).</p>
         <div class="table-wrap" id="shop-requests-table"></div>
-        <h3>Erasure / DSAR audit (Matomo &amp; kit)</h3>
+        <h3>Erasure / DSAR audit</h3>
         <div class="table-wrap" id="audit-requests-table"></div>
         <div class="btn-row">
           <a class="btn secondary" id="link-erasure" href="#" target="_blank" rel="noopener">Open erasure demo on shop</a>
           <button type="button" class="btn ghost" id="btn-refresh-dpdp">Refresh</button>
         </div>
-        <p class="hint" id="dpdp-consent-note"></p>
-        <h3>DPDP / verify run output</h3>
-        <pre class="panel-output" id="output-dpdp">Run verify DPDP or the demo suite. Shop deletion tickets (e.g. DR-849201) load when Shop URL is set.</pre>
       </section>
 
       <!-- 5 Connectors -->
       <section class="panel" id="panel-connectors">
         <header class="panel-head">
-          <h1>Ready connectors</h1>
-          <p>Ads, Meta, BigQuery, Looker — wired through config and consent gates.</p>
+          <h1>Connectors</h1>
         </header>
-        <div class="connector-grid" id="connector-grid"></div>
-        <div class="connector-detail" id="connector-detail">
-          <p class="hint">Click a connector above for live config, GCP/Ads links, and sample data.</p>
+        <div class="btn-row">
+          <button type="button" class="btn primary" data-action="connectors_test">Run connector test</button>
         </div>
-        <button type="button" class="btn primary" data-action="connectors_test">Run full connector test</button>
-        <h3>Output</h3>
-        <pre class="panel-output" id="output-connectors">Run full connector test for CLI output. Click a card above for the live view.</pre>
+        <div class="consent-cards migration-summary-cards" id="connectors-summary-cards"></div>
+        <div class="connector-grid" id="connector-grid"></div>
+        <p class="hint" id="connectors-empty">Click a connector for live config and sample data.</p>
+        <div class="migration-report-block" id="connectors-detail-root">
+          <div class="connector-detail" id="connector-detail"></div>
+        </div>
+        <pre class="panel-output hidden" id="output-connectors" aria-hidden="true"></pre>
       </section>
 
       <!-- Stretch BQ -->
@@ -267,7 +220,6 @@
         </div>
         <div class="table-wrap" id="bq-diff-table"></div>
         <div class="btn-row">
-          <button type="button" class="btn secondary" data-action="history_fixture_dry">Preview (fixture)</button>
           <button type="button" class="btn primary" id="btn-ga4-bq-dry">Dry-run from BigQuery</button>
           <button type="button" class="btn primary" id="btn-ga4-bq-import">Import GA4 BQ → Matomo</button>
         </div>
@@ -334,6 +286,6 @@
       </footer>
     </main>
   </div>
-  <script src="/app.js?v=20261025w"></script>
+  <script src="/app.js?v=20261025z13"></script>
 </body>
 </html>

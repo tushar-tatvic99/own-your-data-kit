@@ -77,20 +77,60 @@ def run_action(action_id: str, config_path: str, params: dict[str, Any]) -> dict
 
         from agents.parity.run import run_parity
 
-        if not date and params.get("date_offset"):
+        start = (params.get("start_date") or date or "").strip() or None
+        end = (params.get("end_date") or start or "").strip() or None
+        if not start and params.get("date_offset"):
             offset = int(params["date_offset"])
-            date = (datetime.now() - timedelta(days=offset)).strftime("%Y-%m-%d")
-        report = run_parity(config_path, date=date, fixture=fixture, break_tag=break_tag)
+            start = (datetime.now() - timedelta(days=offset)).strftime("%Y-%m-%d")
+            end = start
+        if not start:
+            start = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+            end = start
+        if not end:
+            end = start
+
+        start_dt = datetime.strptime(start, "%Y-%m-%d")
+        end_dt = datetime.strptime(end, "%Y-%m-%d")
+        if end_dt < start_dt:
+            start_dt, end_dt = end_dt, start_dt
+        days = []
+        cur = start_dt
+        while cur <= end_dt and len(days) < 14:
+            days.append(cur.strftime("%Y-%m-%d"))
+            cur += timedelta(days=1)
+
+        combined_gaps: list[dict] = []
+        diagnosis: list[dict] = []
+        all_ok = True
+        last_report: dict = {}
+        for day in days:
+            report = run_parity(config_path, date=day, fixture=fixture, break_tag=break_tag)
+            last_report = report
+            if not report.get("all_within_target", True):
+                all_ok = False
+            for g in report.get("gaps") or []:
+                row = dict(g)
+                if len(days) > 1:
+                    row["date"] = day
+                combined_gaps.append(row)
+            for d in report.get("diagnosis") or []:
+                if d not in diagnosis:
+                    diagnosis.append(d)
+
         return {
-            "date": report.get("date"),
-            "mode": report.get("mode"),
-            "simulated_break_tag": report.get("simulated_break_tag"),
-            "all_within_target": report.get("all_within_target"),
-            "gaps": report.get("gaps") or [],
-            "diagnosis": report.get("diagnosis") or [],
-            "email_sent": (report.get("email_alert") or {}).get("sent"),
-            "report_file": report.get("report_file"),
-            "report_path": report.get("report_path"),
+            "date": last_report.get("date"),
+            "start_date": days[0] if days else start,
+            "end_date": days[-1] if days else end,
+            "days_checked": len(days),
+            "mode": last_report.get("mode"),
+            "simulated_break_tag": last_report.get("simulated_break_tag"),
+            "all_within_target": all_ok,
+            "gaps": combined_gaps,
+            "diagnosis": diagnosis,
+            "email_sent": (last_report.get("email_alert") or {}).get("sent"),
+            "report_file": last_report.get("report_file"),
+            "report_path": last_report.get("report_path"),
+            "target_gap_percent": last_report.get("target_gap_percent"),
         }
 
     def connectors():

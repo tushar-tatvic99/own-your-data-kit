@@ -27,7 +27,6 @@ function panelOutputEl(panel) {
   const map = {
     demo: "output-demo",
     migration: "output-migration",
-    dpdp: "output-dpdp",
     connectors: "output-connectors",
     bq: "output-bq",
   };
@@ -57,9 +56,13 @@ function showOutput(text, isError) {
 }
 
 function activatePanel(panel) {
+  if (!panel) return;
   activePanel = panel;
   document.querySelectorAll(".nav-btn").forEach((b) => {
-    b.classList.toggle("active", b.getAttribute("data-panel") === panel);
+    const on = b.getAttribute("data-panel") === panel;
+    b.classList.toggle("active", on);
+    if (on) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
   });
   document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
   document.getElementById(`panel-${panel}`)?.classList.add("active");
@@ -75,7 +78,13 @@ function activatePanel(panel) {
   document.getElementById("output-label").textContent = labels[panel] || "Run output (active tab)";
   document.querySelector(".output-bar")?.classList.toggle(
     "hidden",
-    panel === "parity" || panel === "deploy" || panel === "migration"
+    panel === "parity" ||
+      panel === "deploy" ||
+      panel === "migration" ||
+      panel === "dpdp" ||
+      panel === "connectors" ||
+      panel === "bq" ||
+      panel === "demo"
   );
   syncFooterOutput();
   if (panel === "parity") loadParityDashboard();
@@ -88,7 +97,6 @@ function activatePanel(panel) {
   if (panel === "demo") loadSession();
   if (panel === "deploy") {
     loadMatomoProvisionStatus();
-    loadGoogleAuthGuide();
   }
 }
 
@@ -96,37 +104,94 @@ let matomoProvisionMeta = { default_matomo_url: "", hosted_matomo: true };
 let matomoDeployPollTimer = null;
 let matomoGcpDeployActive = false;
 
-function setDeployLog(text) {
+function summarizeDeployLog(text) {
+  const raw = (text || "").trim();
+  if (!raw) return "No deploy yet";
+  const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const fail = [...lines].reverse().find((l) =>
+    /deploy failed|failed|error|not recognized|CommandNotFound/i.test(l)
+  );
+  if (fail) {
+    if (/terraform/i.test(raw) && /not recognized|CommandNotFound/i.test(raw)) {
+      return "Deploy failed — Terraform is not installed (or not on PATH).";
+    }
+    return fail.length > 140 ? fail.slice(0, 137) + "…" : fail;
+  }
+  const ok = [...lines].reverse().find((l) =>
+    /deploy (script )?finished|deploy complete|profile active|✓|\[OK\]/i.test(l)
+  );
+  if (ok) return ok.length > 140 ? ok.slice(0, 137) + "…" : ok;
+  return lines[lines.length - 1].length > 140
+    ? lines[lines.length - 1].slice(0, 137) + "…"
+    : lines[lines.length - 1];
+}
+
+function showDeployLog(text, opts = {}) {
+  const root = document.getElementById("deploy-log-root");
+  const empty = document.getElementById("deploy-empty");
   const out = document.getElementById("matomo-provision-result");
-  if (out) out.textContent = text || "";
+  const status = document.getElementById("deploy-status");
+  const full = text || "";
+  if (out) out.textContent = full;
+  if (status && !opts.keepStatus) {
+    const summary = opts.summary || summarizeDeployLog(full);
+    status.textContent = summary;
+    const failed = /fail|error|not recognized|CommandNotFound/i.test(summary);
+    const ok = /complete|finished|active|\[OK\]|✓/i.test(summary) && !failed;
+    status.className = "deploy-status-line " + (failed ? "err" : ok ? "ok" : "");
+    if (root) {
+      root.classList.toggle("is-err", failed);
+      root.classList.toggle("is-ok", ok);
+    }
+  }
+  if (root) {
+    root.classList.remove("hidden");
+    if (!opts.expand) root.open = false;
+  }
+  if (empty) empty.classList.add("hidden");
+}
+
+function setDeployLog(text) {
+  showDeployLog(text);
 }
 
 function focusMatomoDeployOutput() {
-  document.querySelector(".matomo-provision-box")?.setAttribute("open", "");
-  document.getElementById("matomo-provision-result")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const root = document.getElementById("deploy-log-root");
+  document.getElementById("deploy-empty")?.classList.add("hidden");
+  if (root) {
+    root.classList.remove("hidden");
+    root.open = false;
+    root.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 }
 
 function renderDeployLogPanel(data, header) {
-  const out = document.getElementById("matomo-provision-result");
   const lines = [];
   if (header) lines.push(header, "");
+  let summary = header || "Deploy status";
   if (data?.last_error) {
-    lines.push("❌ Deploy failed:", data.last_error, "");
+    lines.push("Deploy failed:", data.last_error, "");
     if (data.last_error.includes("terraform")) {
       lines.push(
         "Fix: install Terraform on this PC and reopen the terminal, then retry.",
         "https://developer.hashicorp.com/terraform/install",
         ""
       );
+      summary = "Deploy failed — Terraform is not installed (or not on PATH).";
+    } else {
+      summary = data.last_error.length > 140 ? data.last_error.slice(0, 137) + "…" : data.last_error;
     }
   } else if (data?.deploy_complete) {
-    lines.push("✓ Deploy finished.", data.matomo_url ? `Matomo URL: ${data.matomo_url}` : "", "");
+    lines.push("Deploy finished.", data.matomo_url ? `Matomo URL: ${data.matomo_url}` : "", "");
+    summary = data.matomo_url ? `Deploy complete — ${data.matomo_url}` : "Deploy complete.";
   } else if (data?.deploy_running) {
-    lines.push("⏳ Deploy running in background (refreshing every few seconds)…", "");
+    lines.push("Deploy running in background (refreshing every few seconds)…", "");
+    summary = "GCP deploy running…";
   }
   if (data?.log_tail) lines.push("—— deploy.log (tail) ——", data.log_tail.slice(-6000));
-  const text = lines.filter((x) => x !== undefined).join("\n");
-  if (out) out.textContent = text || "Waiting for deploy.log…";
+  showDeployLog(lines.filter((x) => x !== undefined).join("\n") || "Waiting for deploy.log…", {
+    summary,
+  });
 }
 
 function matomoSourceMode() {
@@ -291,9 +356,18 @@ async function loadMatomoProvisionStatus() {
 
 function setDeployStatus(msg, ok) {
   const el = document.getElementById("deploy-status");
+  const root = document.getElementById("deploy-log-root");
+  const empty = document.getElementById("deploy-empty");
   if (!el) return;
-  el.textContent = msg;
-  el.className = "deploy-status " + (ok ? "ok" : ok === false ? "err" : "");
+  el.textContent = msg || "";
+  el.className = "deploy-status-line " + (ok ? "ok" : ok === false ? "err" : "");
+  if (root) {
+    root.classList.remove("hidden");
+    root.classList.toggle("is-ok", ok === true);
+    root.classList.toggle("is-err", ok === false);
+    root.open = false;
+  }
+  if (empty && msg) empty.classList.add("hidden");
 }
 
 function formatActionOutput(data) {
@@ -321,7 +395,7 @@ function deployFields() {
   data.connectors_demo = true;
   const emailEl = document.querySelector('input[name="provision_email"]');
   if (emailEl?.value) data.provision_email = emailEl.value;
-  const matomoUrlEl = document.querySelector('.matomo-provision-box input[name="matomo_url"]');
+  const matomoUrlEl = document.getElementById("matomo-provision-url");
   const formMatomo = form.elements.namedItem("matomo_url");
   const matomoUrl = (matomoUrlEl?.value || formMatomo?.value || "").trim();
   if (matomoUrl) data.matomo_url = matomoUrl;
@@ -344,31 +418,6 @@ function fillDeployForm(fields) {
 
 async function loadSession() {
   sessionCache = await apiGet("/api/session/status");
-  const badge = document.getElementById("session-badge");
-  badge.textContent =
-    `Mode: ${sessionCache.mode} · Config: ${sessionCache.config_path}` +
-    (sessionCache.credentials?.live_parity_ready ? " · Live GA4+Matomo ready" : " · Fixture fallback available");
-  const creds = sessionCache.credentials || {};
-  document.getElementById("cred-grid").innerHTML = [
-    ["Matomo token", creds.matomo_token],
-    ["GA credentials file", creds.ga_credentials_present],
-    ["Live migration", creds.live_migration_ready],
-    ["Live parity", creds.live_parity_ready],
-    ["SMTP (email alerts)", creds.smtp_ready],
-  ]
-    .map(
-      ([label, ok]) =>
-        `<div class="cred-chip ${ok ? "ok" : "bad"}">${label}: ${ok ? "ready" : "missing"}</div>`
-    )
-    .join("");
-  const plan = (sessionCache.suite_plan || []).map((s) => s.label).join(" → ");
-  document.getElementById("suite-plan-hint").textContent = `Default suite: ${plan}`;
-  const gc = sessionCache.gcloud || {};
-  document.getElementById("gcloud-status").textContent =
-    `Account(s): ${(gc.active_accounts || []).join(", ") || "none"}\n` +
-    `Project: ${gc.project || "—"}\n` +
-    `Token: ${gc.token_ok ? "valid" : "expired — use Sign in to Google Cloud"}\n` +
-    (gc.token_error || "");
   const formFields =
     sessionCache.mode === "custom"
       ? sessionCache.active_fields_preview || sessionCache.default_fields
@@ -380,7 +429,6 @@ async function loadSession() {
   }
   setModeUI(sessionCache.mode || "default", false);
   await loadLinks();
-  await loadGoogleAuthGuide();
 }
 
 async function loadGoogleAuthGuide() {
@@ -559,18 +607,11 @@ function wireDemoMode() {
     );
     fillDeployForm(sessionCache.default_fields);
   });
-  document.getElementById("btn-run-default-suite").addEventListener("click", () => runDemoSuite(false));
-  document.getElementById("btn-run-fixture-suite").addEventListener("click", () => runDemoSuite(true));
-  document.getElementById("btn-gcloud-login").addEventListener("click", async () => {
+  document.getElementById("btn-run-default-suite")?.addEventListener("click", () => runDemoSuite(false));
+  document.getElementById("btn-gcloud-login")?.addEventListener("click", async () => {
     const data = await apiPost("/api/gcloud/login", { gcp_project_id: gcloudProjectId() });
     setPanelOutput("demo", data.message || JSON.stringify(data), !data.started);
   });
-  document.getElementById("btn-gcloud-set-project")?.addEventListener("click", async () => {
-    const data = await apiPost("/api/gcloud/set-project", { gcp_project_id: gcloudProjectId() });
-    setPanelOutput("demo", data.message || data.error || JSON.stringify(data), !data.ok);
-    await loadSession();
-  });
-  document.getElementById("btn-gcloud-refresh").addEventListener("click", loadSession);
 }
 
 async function parseApiResponse(res, path) {
@@ -638,6 +679,18 @@ async function runAction(action, params = {}) {
     const data = await apiPost("/api/run", { action, params });
     if (action.startsWith("parity")) {
       await loadParityDashboard();
+    } else if (action === "connectors_test") {
+      setPanelOutput(panel, formatActionOutput(data), data.status === "error");
+      await loadConnectors();
+      const cards = document.getElementById("connectors-summary-cards");
+      if (cards && data.status !== "error") {
+        const note = document.createElement("p");
+        note.className = "hint";
+        note.id = "connectors-test-note";
+        note.textContent = "Connector test finished — open a card for live detail.";
+        document.getElementById("connectors-test-note")?.remove();
+        cards.after(note);
+      }
     } else {
       setPanelOutput(panel, formatActionOutput(data), data.status === "error");
     }
@@ -652,9 +705,77 @@ async function runAction(action, params = {}) {
   }
 }
 
+function defaultParityDateRange() {
+  const end = new Date();
+  end.setUTCDate(end.getUTCDate() - 1);
+  const start = new Date(end);
+  start.setUTCDate(start.getUTCDate() - 6);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  return { start: fmt(start), end: fmt(end) };
+}
+
 function parityDateParams() {
-  const d = document.getElementById("parity-date").value;
-  return d ? { date: d } : {};
+  const startEl = document.getElementById("parity-start");
+  const endEl = document.getElementById("parity-end");
+  const start = startEl?.value || "";
+  const end = endEl?.value || start;
+  if (!start && !end) return {};
+  return { start_date: start || end, end_date: end || start, date: end || start };
+}
+
+function renderParityCheckResult(report) {
+  const empty = document.getElementById("parity-empty");
+  const root = document.getElementById("parity-report-root");
+  const table = document.getElementById("parity-metrics-table");
+  const cards = document.getElementById("parity-summary-cards");
+  const gaps = report?.gaps || [];
+  const targetGap = report?.target_gap_percent ?? 5;
+  const thr = document.getElementById("parity-threshold");
+  if (thr) thr.textContent = String(targetGap);
+
+  if (!gaps.length) {
+    if (empty) empty.classList.remove("hidden");
+    if (root) root.classList.add("hidden");
+    if (cards) cards.innerHTML = "";
+    renderParityDiagnosis(null, targetGap);
+    return;
+  }
+  if (empty) empty.classList.add("hidden");
+  if (root) root.classList.remove("hidden");
+
+  const okCount = gaps.filter((g) => g.within_target).length;
+  const missCount = gaps.length - okCount;
+  const days = report?.days_checked || (report?.start_date && report?.end_date ? "range" : 1);
+  if (cards) {
+    cards.innerHTML = `
+      <div class="stat-card"><span>Within target</span><strong>${okCount}</strong><small>OK metrics</small></div>
+      <div class="stat-card"><span>Over threshold</span><strong>${missCount}</strong><small>±${targetGap}%</small></div>
+      <div class="stat-card"><span>Days checked</span><strong>${days}</strong><small>${esc(report.start_date || report.date || "—")} → ${esc(report.end_date || report.date || "—")}</small></div>
+      <div class="stat-card"><span>Status</span><strong>${missCount ? "Review" : "OK"}</strong><small>${missCount ? "see below" : "all within target"}</small></div>`;
+  }
+
+  if (!table) return;
+  const hasDate = gaps.some((g) => g.date);
+  const headers = hasDate
+    ? ["date", "metric", "ga4", "matomo", "gap_percent", "status"]
+    : ["metric", "ga4", "matomo", "gap_percent", "status"];
+  const head = headers.map((h) => `<th>${esc(h)}</th>`).join("");
+  const body = gaps
+    .map((g) => {
+      const statusClass = g.within_target ? "parity-status-ok" : "parity-status-miss";
+      const cells = {
+        date: g.date || "",
+        metric: g.metric,
+        ga4: g.ga4,
+        matomo: g.matomo,
+        gap_percent: `${g.gap_percent}%`,
+        status: `<span class="${statusClass}">${g.within_target ? "OK" : "MISS"}</span>`,
+      };
+      return `<tr>${headers.map((h) => `<td>${h === "status" ? cells[h] : esc(cells[h])}</td>`).join("")}</tr>`;
+    })
+    .join("");
+  table.innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  renderParityDiagnosis(report, targetGap);
 }
 
 function esc(s) {
@@ -677,7 +798,8 @@ function renderTable(container, headers, rows) {
 
 async function loadLinks() {
   linksCache = await apiGet("/api/links");
-  document.getElementById("client-name").textContent = linksCache.client || "demo";
+  const clientNameEl = document.getElementById("client-name");
+  if (clientNameEl) clientNameEl.textContent = linksCache.client || "demo";
   document.getElementById("migration-config").textContent = linksCache.config_path;
   document.getElementById("parity-threshold").textContent = linksCache.parity_threshold ?? 5;
   const pill = document.getElementById("kit-pill");
@@ -685,30 +807,21 @@ async function loadLinks() {
   pill.className = "kit-pill " + (linksCache.kit_api_ok ? "ok" : "bad");
   const erasure = document.getElementById("link-erasure");
   if (linksCache.erasure_demo) erasure.href = linksCache.erasure_demo;
-  if (linksCache.parity_sheet_exists) document.getElementById("dl-sheet").classList.remove("disabled");
   const dep = linksCache.deploy || {};
   const judgeBanner = document.getElementById("judge-browser-banner");
-  if (judgeBanner && dep.host === "cloud_run" && dep.hosted_console_url) {
-    judgeBanner.innerHTML =
-      "<strong>Hosted demo</strong> — everything runs in this browser tab. " +
-      `Share this link: <a href="${esc(dep.hosted_console_url)}" target="_blank" rel="noopener">${esc(dep.hosted_console_url)}</a>`;
-  }
+  if (judgeBanner) judgeBanner.classList.add("hidden");
   const banner = document.getElementById("deploy-cloud-banner");
+  if (banner) banner.classList.add("hidden");
   const btnGcp = document.getElementById("btn-deploy-start");
   const btnLocal = document.getElementById("btn-deploy-local");
   const btnGcloud = document.getElementById("btn-go-demo-gcloud");
-  if (banner && dep.host === "cloud_run") {
-    banner.classList.remove("hidden");
-    banner.innerHTML =
-      "<strong>Hosted console</strong> — Deploy to GCP and gcloud sign-in run on <em>your laptop</em>, not in this browser tab. " +
-      "Use <strong>Save &amp; activate</strong>, then follow the steps when you click Deploy (we save YAML and show the PowerShell command).";
-    if (btnGcp) btnGcp.textContent = "Prepare GCP deploy (run on your PC)";
+  if (dep.host === "cloud_run") {
+    if (btnGcp) btnGcp.textContent = "Prepare GCP deploy";
     if (btnLocal) btnLocal.classList.add("hidden");
-    if (btnGcloud) btnGcloud.classList.remove("hidden");
-  } else if (banner) {
-    banner.classList.add("hidden");
+    if (btnGcloud) btnGcloud.classList.add("hidden");
+  } else {
     if (btnGcp) btnGcp.textContent = "Deploy to GCP";
-    if (btnLocal) btnLocal.classList.remove("hidden");
+    if (btnLocal) btnLocal.classList.add("hidden");
     if (btnGcloud) btnGcloud.classList.add("hidden");
   }
 }
@@ -850,12 +963,8 @@ function fillParityPanel(report, preview, subjectElId, tableElId, emptyElId) {
 }
 
 function renderParityDiagnosis(live, targetGap) {
-  const diagSection = document.getElementById("parity-live-diagnosis-section");
-  const diagTable = document.getElementById("parity-live-diagnosis-table");
-  document.querySelectorAll(".parity-threshold-inline").forEach((el) => {
-    el.textContent = String(targetGap ?? 5);
-  });
-
+  const diagSection = document.getElementById("parity-diagnosis-section");
+  const diagTable = document.getElementById("parity-diagnosis-table");
   const missed = live && !live.all_within_target;
   const diagnosis = live?.diagnosis || [];
   if (diagSection) {
@@ -877,74 +986,82 @@ function renderParityDiagnosis(live, targetGap) {
   }
 }
 
-function renderParityAlertEmail(live, alertEmail, targetGap) {
-  const emailSection = document.getElementById("parity-alert-email-section");
-  const emailStatus = document.getElementById("parity-alert-email-status");
-  const emailTable = document.getElementById("parity-alert-email-table");
-  const meta = alertEmail || {};
-  const recipients = meta.recipients || live?.email_alert?.recipients || [];
-  const sent = live?.email_alert?.sent === true;
-  const smtpOk = meta.smtp_ready;
-  const missed = live && !live.all_within_target;
-
-  if (emailSection) {
-    emailSection.classList.toggle("sent", !!(sent && recipients.length));
-    emailSection.classList.toggle("pending", !sent && missed && recipients.length);
+async function loadParityDashboard() {
+  const startEl = document.getElementById("parity-start");
+  const endEl = document.getElementById("parity-end");
+  if (startEl && endEl && !startEl.value && !endEl.value) {
+    const { start, end } = defaultParityDateRange();
+    startEl.value = start;
+    endEl.value = end;
   }
-  if (emailStatus) {
-    if (!live) {
-      emailStatus.textContent =
-        `Each live parity run emails the full report; when gap exceeds ±${targetGap}% the message includes diagnosis. Run live parity to send.`;
-    } else if (sent) {
-      emailStatus.textContent = `Email sent for ${live.date} (diagnosis included when over ±${targetGap}%):`;
-    } else if (missed && smtpOk) {
-      emailStatus.textContent = `Live gap over ±${targetGap}% on ${live.date}. Re-run live parity to resend, or check SMTP.`;
-    } else if (missed) {
-      emailStatus.textContent =
-        `Gap over ±${targetGap}% on ${live.date}. Set OYDK_SMTP_USER / OYDK_SMTP_PASS in .env to send (recipients below):`;
-    } else {
-      emailStatus.textContent = `Within target on ${live.date}. Daily report still goes to:`;
+  let data;
+  try {
+    data = await apiGet("/api/dashboard/parity");
+  } catch (e) {
+    const empty = document.getElementById("parity-empty");
+    if (empty) {
+      empty.classList.remove("hidden");
+      empty.textContent = String(e);
     }
+    return;
   }
-  if (emailTable) {
-    renderTable(
-      emailTable,
-      ["recipient"],
-      recipients.map((r) => ({ recipient: r }))
-    );
+  if (data.error) {
+    const empty = document.getElementById("parity-empty");
+    if (empty) {
+      empty.classList.remove("hidden");
+      empty.textContent = `Parity error: ${data.error}`;
+    }
+    return;
+  }
+  const targetGap = data.target_gap_percent ?? 5;
+  const thr = document.getElementById("parity-threshold");
+  if (thr) thr.textContent = String(targetGap);
+  const live = data.live_report;
+  if (live?.gaps?.length) {
+    renderParityCheckResult({ ...live, target_gap_percent: targetGap });
+  } else {
+    const empty = document.getElementById("parity-empty");
+    if (empty) empty.classList.remove("hidden");
+    renderParityDiagnosis(null, targetGap);
   }
 }
 
-async function loadParityDashboard() {
-  const data = await apiGet("/api/dashboard/parity");
-  const daily = data.daily_rows || [];
-  const targetGap = data.target_gap_percent ?? 5;
-  document.getElementById("parity-threshold").textContent = String(targetGap);
-  renderTable(
-    document.getElementById("parity-daily-table"),
-    ["run_at_utc", "report_date", "mode", "all_within_target", "missed_count", "missed_metrics"],
-    daily.slice().reverse()
-  );
-
-  const live = data.live_report;
-  const fixture = data.fixture_report;
-  fillParityPanel(
-    live,
-    data.live_email_preview,
-    "parity-live-subject",
-    "parity-live-metrics-table",
-    "parity-live-empty"
-  );
-  fillParityPanel(fixture, null, null, "parity-fixture-metrics-table", "parity-fixture-empty");
-  renderParityDiagnosis(live, targetGap);
-  renderParityAlertEmail(live, data.alert_email, targetGap);
-  const hintEl = document.getElementById("parity-live-hint");
-  if (hintEl) {
-    hintEl.textContent =
-      "GA4 property vs Matomo site 1 (real APIs). Large gaps usually mean consent or GTM—not the wrong site.";
+async function runParityCheck() {
+  const params = parityDateParams();
+  if (!params.start_date && !params.date) {
+    const empty = document.getElementById("parity-empty");
+    if (empty) {
+      empty.classList.remove("hidden");
+      empty.textContent = "Choose start and end dates first.";
+    }
+    return;
   }
-  delete panelOutputs.parity;
-  if (activePanel === "parity") syncFooterOutput();
+  if (busy) return;
+  busy = true;
+  const btn = document.getElementById("btn-parity-run");
+  if (btn) btn.disabled = true;
+  const empty = document.getElementById("parity-empty");
+  if (empty) {
+    empty.classList.remove("hidden");
+    empty.textContent = "Running parity check…";
+  }
+  try {
+    const data = await apiPost("/api/run", { action: "parity_live", params });
+    const report = data.result || data;
+    if (data.status === "error") {
+      if (empty) empty.textContent = data.stderr || data.error || "Parity check failed";
+      return;
+    }
+    renderParityCheckResult(report);
+  } catch (e) {
+    if (empty) {
+      empty.classList.remove("hidden");
+      empty.textContent = String(e);
+    }
+  } finally {
+    busy = false;
+    if (btn) btn.disabled = false;
+  }
 }
 
 let migrationBundlesCache = {};
@@ -972,111 +1089,63 @@ function setMigrationBundleButtons(data) {
   const on = (key) => bundleAvailable(data, key) || !!data.report;
   if (mtm) mtm.disabled = !on("mtm");
   if (gtm) gtm.disabled = !on("gtm_suggested");
-  if (ws) ws.disabled = !on("gtm_workspace");
-  ["mtm", "gtm_suggested", "gtm_workspace"].forEach((key) => {
-    const id =
-      key === "mtm"
-        ? "dl-migration-mtm"
-        : key === "gtm_suggested"
-          ? "dl-migration-gtm-suggested"
-          : "dl-migration-gtm-workspace";
-    const btn = document.getElementById(id);
-    if (btn) btn.disabled = !on(key);
-  });
+  if (ws) {
+    ws.disabled = !on("gtm_workspace");
+    ws.classList.toggle("hidden", !on("gtm_workspace"));
+  }
 }
 
 function renderMigrationReportSections(data) {
   const root = document.getElementById("migration-report-root");
   const empty = document.getElementById("migration-report-empty");
+  const cards = document.getElementById("migration-summary-cards");
   if (!root) return;
   const rep = data.report;
+  const dims = data.dimensions || [];
+  const goals = data.goals || [];
+  const unmigrated = data.unmigrated || [];
+  const mtm = data.mtm_summary;
+  const gsc = data.gtm_suggested_summary;
+
   if (!rep) {
     if (empty) empty.classList.remove("hidden");
-    root.querySelectorAll(".migration-report-section").forEach((n) => n.remove());
+    root.classList.add("hidden");
+    if (cards) cards.innerHTML = "";
     setMigrationBundleButtons(data);
     return;
   }
   if (empty) empty.classList.add("hidden");
-  root.querySelectorAll(".migration-report-section").forEach((n) => n.remove());
+  root.classList.remove("hidden");
 
-  const mk = (title, inner) => {
-    const sec = document.createElement("div");
-    sec.className = "migration-report-section";
-    sec.innerHTML = `<h3>${esc(title)}</h3>${inner}`;
-    root.appendChild(sec);
-  };
-
-  const dimRows = (data.dimensions || []).map((d) => ({
-    name: d.name,
-    scope: d.scope,
-    ga4_source: d.ga4_source,
-  }));
-  mk(
-    "Migrated in Matomo — custom dimensions (from GA4)",
-    dimRows.length
-      ? `<div class="table-wrap" id="migration-dims-table"></div>`
-      : `<p class="hint">No dimensions in this run.</p>`
-  );
-  if (dimRows.length) {
-    renderTable(root.querySelector("#migration-dims-table"), ["name", "scope", "ga4_source"], dimRows);
+  if (cards) {
+    cards.innerHTML = `
+      <div class="stat-card"><span>Dimensions</span><strong>${dims.length}</strong><small>in Matomo</small></div>
+      <div class="stat-card"><span>Goals</span><strong>${goals.length}</strong><small>in Matomo</small></div>
+      <div class="stat-card"><span>Needs review</span><strong>${unmigrated.length}</strong><small>manual follow-up</small></div>
+      <div class="stat-card"><span>Drafts</span><strong>${(mtm ? 1 : 0) + (gsc ? 1 : 0)}</strong><small>ready to download</small></div>`;
   }
 
-  const goalRows = (data.goals || []).map((g) => ({ name: g.name, ga4_source: g.ga4_source }));
-  mk(
-    "Migrated in Matomo — goals / conversions (from GA4 events)",
-    goalRows.length
-      ? `<div class="table-wrap" id="migration-goals-table"></div>`
-      : `<p class="hint">No goals in this run.</p>`
-  );
-  if (goalRows.length) {
-    renderTable(root.querySelector("#migration-goals-table"), ["name", "ga4_source"], goalRows);
+  const doneRows = [
+    ...dims.map((d) => ({ type: "Dimension", name: d.name, from: d.ga4_source || "—" })),
+    ...goals.map((g) => ({ type: "Goal", name: g.name, from: g.ga4_source || "—" })),
+  ];
+  const doneTable = document.getElementById("migration-done-table");
+  if (doneTable) {
+    if (doneRows.length) renderTable(doneTable, ["type", "name", "from"], doneRows);
+    else doneTable.innerHTML = `<p class="hint">Nothing migrated in this run.</p>`;
   }
 
-  const unmigrated = data.unmigrated || [];
-  mk(
-    "Could not auto-migrate (with reason)",
-    unmigrated.length
-      ? `<div class="table-wrap" id="migration-unmigrated-table"></div>`
-      : `<p class="hint">None listed — see MTM/GTM bundles for tag-level gaps.</p>`
-  );
-  if (unmigrated.length) {
-    renderTable(
-      root.querySelector("#migration-unmigrated-table"),
-      ["item", "reason"],
-      unmigrated.map((u) => ({ item: u.item, reason: u.reason }))
-    );
-  }
-
-  const gtmDraft = data.gtm_draft || [];
-  mk(
-    "GTM workspace draft tags (NOT published)",
-    gtmDraft.length
-      ? `<div class="table-wrap" id="migration-gtm-table"></div><p class="hint">File: <code>output/migration/gtm-draft-bundle.json</code></p>`
-      : `<p class="hint">No GTM draft changes in report.</p>`
-  );
-  if (gtmDraft.length) {
-    renderTable(
-      root.querySelector("#migration-gtm-table"),
-      ["name", "note"],
-      gtmDraft.map((c) => ({ name: c.name, note: c.note || "" }))
-    );
-  }
-
-  const mtm = data.mtm_summary;
-  const gsc = data.gtm_suggested_summary;
-  if (mtm || gsc) {
-    const lines = [];
-    if (mtm) {
-      lines.push(
-        `MTM draft: ${mtm.tag_count} tags, ${mtm.trigger_count} triggers, ${mtm.variable_count} variables → <code>${esc(mtm.path)}</code>`
+  const reviewTable = document.getElementById("migration-review-table");
+  if (reviewTable) {
+    if (unmigrated.length) {
+      renderTable(
+        reviewTable,
+        ["item", "reason"],
+        unmigrated.map((u) => ({ item: u.item, reason: u.reason }))
       );
+    } else {
+      reviewTable.innerHTML = `<p class="hint">All clear — nothing blocked.</p>`;
     }
-    if (gsc) {
-      lines.push(
-        `GTM suggested container “${esc(gsc.name)}”: ${gsc.tag_count} Matomo tags → <code>${esc(gsc.path)}</code>`
-      );
-    }
-    mk("Artifact files (same as migration-report.md)", `<ul class="prereq-list">${lines.map((l) => `<li>${l}</li>`).join("")}</ul>`);
   }
 
   setMigrationBundleButtons(data);
@@ -1236,15 +1305,6 @@ async function loadDpdpDashboard() {
     <div class="stat-card"><span>Consent granted (shop log)</span><strong>${c.granted ?? 0}</strong><small>All time · today: ${grantedToday}</small></div>
     <div class="stat-card"><span>Consent denied (shop log)</span><strong>${c.denied ?? 0}</strong><small>All time · today: ${deniedToday}</small></div>
     <div class="stat-card"><span>Matomo visits today</span><strong>${c.matomo_visits_today ?? "—"}</strong><small>${esc(data.matomo_note)}</small></div>`;
-  const rightsHint = document.getElementById("dpdp-rights-hint");
-  if (rightsHint) {
-    if (data.rights_requests_source === "aurablush_demo_seed") {
-      rightsHint.textContent =
-        "Demo tickets (shop /api/dpdp/summary offline). Includes DR-849201 retention + DPDP-2026-5YN04 erasure. Redeploy shop for live list.";
-    } else if (data.rights_requests_source === "live_shop_api") {
-      rightsHint.textContent = "Live from shop /api/dpdp/summary — submit new requests on the shop DPDP page.";
-    }
-  }
   renderTable(
     document.getElementById("shop-requests-table"),
     ["ticketId", "requestType", "status", "currentStage"],
@@ -1261,45 +1321,43 @@ async function loadDpdpDashboard() {
       visits_before: r.visits_before ?? "",
     }))
   );
-  const note = document.getElementById("dpdp-consent-note");
-  if (note) {
-    const c = data.consent || {};
-    const extra =
-      data.shop_fetch_error && c.source !== "aurablush_demo_seed" && c.source !== "live_shop_api"
-        ? ` · ${data.shop_fetch_error}`
-        : "";
-    note.textContent = (c.note || "") + extra + (c.shop_url ? ` · Shop: ${c.shop_url}` : "");
-  }
 }
 
 let activeConnectorId = null;
 
 function renderConnectorDetail(view) {
   const el = document.getElementById("connector-detail");
+  const empty = document.getElementById("connectors-empty");
   if (!el) return;
   if (!view || view.error) {
-    el.innerHTML = `<p class="hint">${esc(view?.error || "Select a connector.")}</p>`;
+    el.innerHTML = "";
+    if (empty) {
+      empty.classList.remove("hidden");
+      empty.textContent = view?.error || "Click a connector for live config and sample data.";
+    }
     return;
   }
+  if (empty) empty.classList.add("hidden");
   const lines = (view.preview_lines || []).map((l) => `<li>${esc(l)}</li>`).join("");
   let sample = "";
   if ((view.sample_rows || []).length) {
     sample =
-      "<h5>Latest rows (BigQuery)</h5>" +
+      "<h3>Latest rows</h3>" +
       renderTableHtml(
         ["event_timestamp", "event_name", "event_category", "page_url"],
         view.sample_rows
       );
   }
   const live = view.live_check;
+  const liveMsg = live?.message || "";
   const liveBit =
     live && live.status !== "not_run"
-      ? `<p class="hint"><strong>Live check:</strong> ${esc(live.status)} ${esc(live.message || JSON.stringify(live.result || ""))}</p>`
+      ? `<p class="hint"><strong>Live check:</strong> ${esc(live.status)}${liveMsg ? " — " + esc(liveMsg) : ""}</p>`
       : "";
   el.innerHTML = `
-    <h4>${esc(view.title)}</h4>
-    <p>${esc(view.summary || "")}</p>
-    <ul class="prereq-list">${lines}</ul>
+    <h3>${esc(view.title)}</h3>
+    <p class="hint">${esc(view.summary || "")}</p>
+    ${lines ? `<ul class="prereq-list">${lines}</ul>` : ""}
     ${liveBit}
     ${sample}
     <div class="btn-row">
@@ -1352,8 +1410,18 @@ async function openConnectorView(id) {
 
 async function loadConnectors() {
   const data = await apiGet("/api/dashboard/connectors");
+  const list = data.connectors || [];
+  const ready = list.filter((c) => c.ready && c.id !== "meta").length;
+  const needs = list.filter((c) => !c.ready || c.id === "meta").length;
+  const cards = document.getElementById("connectors-summary-cards");
+  if (cards) {
+    cards.innerHTML = `
+      <div class="stat-card"><span>Ready</span><strong>${ready}</strong><small>Configured for this client</small></div>
+      <div class="stat-card"><span>Needs setup</span><strong>${needs}</strong><small>Missing credentials or YAML</small></div>
+      <div class="stat-card"><span>Total</span><strong>${list.length}</strong><small>Ads · Meta · BigQuery · Looker</small></div>`;
+  }
   const grid = document.getElementById("connector-grid");
-  grid.innerHTML = (data.connectors || [])
+  grid.innerHTML = list
     .map((c) => {
       const isMeta = c.id === "meta";
       const tag = isMeta
@@ -1363,7 +1431,6 @@ async function loadConnectors() {
     <article class="connector-card ${c.ready ? "ready" : ""} ${isMeta ? "disabled" : ""}" data-connector-id="${esc(c.id)}" role="button" tabindex="0">
       <h4>${esc(c.name)}</h4>
       <span class="tag">${tag}</span>
-      <small class="hint">${isMeta ? "Click for setup notes" : "Click for live view"}</small>
     </article>`;
     })
     .join("");
@@ -1445,8 +1512,11 @@ async function loadAgentSites() {
 }
 
 function wireNav() {
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
-    btn.addEventListener("click", () => activatePanel(btn.getAttribute("data-panel")));
+  document.querySelectorAll(".nav-btn[data-panel]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      activatePanel(btn.getAttribute("data-panel"));
+    });
   });
 }
 
@@ -1476,10 +1546,6 @@ function wireDeploy() {
   document.getElementById("btn-matomo-gcp-deploy")?.addEventListener("click", (e) => {
     e.preventDefault();
     deployMatomoOnMyGcp();
-  });
-  document.getElementById("btn-matomo-refresh-url")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    refreshMatomoUrlFromDeploy(false);
   });
   document.getElementById("btn-open-matomo-own")?.addEventListener("click", (e) => {
     e.preventDefault();
@@ -1650,7 +1716,7 @@ function wireActions() {
       runAction(action, params);
     });
   });
-  document.getElementById("btn-refresh-parity").addEventListener("click", loadParityDashboard);
+  document.getElementById("btn-parity-run")?.addEventListener("click", runParityCheck);
   document.getElementById("btn-refresh-dpdp").addEventListener("click", loadDpdpDashboard);
   document.getElementById("btn-calc").addEventListener("click", calcCost);
   document.getElementById("btn-agent-send").addEventListener("click", sendAgent);

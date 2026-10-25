@@ -184,8 +184,17 @@ def parity_dashboard(config_path: str) -> dict[str, Any]:
     def _preview(rep: dict | None) -> dict | None:
         if not rep:
             return None
-        subject, plain, html = build_parity_email(rep, _client_name(cfg))
-        return {"subject": subject, "plain": plain, "html": html}
+        normalized = {
+            **rep,
+            "date": rep.get("date") or "unknown",
+            "target_gap_percent": rep.get("target_gap_percent", target),
+            "gaps": rep.get("gaps") or [],
+        }
+        try:
+            subject, plain, html = build_parity_email(normalized, _client_name(cfg))
+            return {"subject": subject, "plain": plain, "html": html}
+        except Exception as exc:
+            return {"subject": "Parity email preview unavailable", "plain": str(exc), "html": ""}
 
     recipients = parity_recipients(cfg)
     email_meta = {

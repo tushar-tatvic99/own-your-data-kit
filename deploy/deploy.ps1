@@ -15,6 +15,36 @@ $Zone = "asia-south1-a"
 $RootDir = Split-Path -Parent $PSScriptRoot
 $KitRemote = "/opt/own-your-data-kit"
 
+# gcloud.ps1 writes progress to stderr; with Stop that aborts even when exit code is 0.
+function Invoke-GcloudCli {
+    param(
+        [Parameter(Mandatory = $true)][string[]]$GcloudArgs,
+        [string]$PipelineInput = $null
+    )
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $lines = if ($null -ne $PipelineInput) {
+            $PipelineInput | & gcloud @GcloudArgs 2>&1
+        } else {
+            & gcloud @GcloudArgs 2>&1
+        }
+        foreach ($line in @($lines)) {
+            if ($null -eq $line) { continue }
+            if ($line -is [System.Management.Automation.ErrorRecord]) {
+                Write-Host $line.ToString()
+            } else {
+                Write-Host $line.ToString()
+            }
+        }
+        if ($LASTEXITCODE -ne 0) {
+            throw ("gcloud {0} failed with exit code {1}" -f ($GcloudArgs -join " "), $LASTEXITCODE)
+        }
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 Write-Host "========================================"
 Write-Host " Own-Your-Data Analytics Kit - Deploy"
 Write-Host " Project: $ProjectId"
@@ -41,11 +71,15 @@ if ($env:OYDK_LOCAL -eq "1") {
 
 # 1. Enable APIs
 Write-Host "[1/7] Enabling GCP APIs..."
-gcloud services enable compute.googleapis.com storage.googleapis.com `
-    secretmanager.googleapis.com monitoring.googleapis.com `
-    cloudscheduler.googleapis.com bigquery.googleapis.com `
-    tagmanager.googleapis.com analyticsadmin.googleapis.com `
-    --project=$ProjectId
+Invoke-GcloudCli @(
+    "services", "enable",
+    "compute.googleapis.com", "storage.googleapis.com",
+    "secretmanager.googleapis.com", "monitoring.googleapis.com",
+    "cloudscheduler.googleapis.com", "bigquery.googleapis.com",
+    "tagmanager.googleapis.com", "analyticsadmin.googleapis.com",
+    "--project=$ProjectId"
+)
+Write-Host "[OK] GCP APIs enabled (or already on)."
 
 # 2. Terraform
 Write-Host "[2/7] Provisioning infrastructure (profile: $Profile)..."
@@ -81,15 +115,20 @@ $MatomoHost = Get-MatomoPublicHost $AnalyticsIp
 $KitApiUrl = "http://${AnalyticsIp}:8090"
 
 Write-Host "[3/7] Copying kit to server ($KitRemote)..."
-gcloud compute ssh "${ClientName}-analytics" --zone=$Zone --project=$ProjectId `
-    --command="sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
+Invoke-GcloudCli @(
+    "compute", "ssh", "${ClientName}-analytics",
+    "--zone=$Zone", "--project=$ProjectId",
+    "--command=sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
+)
 
-gcloud compute scp --recurse `
-    "$RootDir\deploy", "$RootDir\kit", "$RootDir\agents", `
-    "$RootDir\dpdp", "$RootDir\connectors", "$RootDir\config", `
-    "$RootDir\requirements.txt", "$RootDir\docs" `
-    "${ClientName}-analytics:${KitRemote}/" `
-    --zone=$Zone --project=$ProjectId
+Invoke-GcloudCli @(
+    "compute", "scp", "--recurse",
+    "$RootDir\deploy", "$RootDir\kit", "$RootDir\agents",
+    "$RootDir\dpdp", "$RootDir\connectors", "$RootDir\config",
+    "$RootDir\requirements.txt", "$RootDir\docs",
+    "${ClientName}-analytics:${KitRemote}/",
+    "--zone=$Zone", "--project=$ProjectId"
+)
 
 Write-Host "[4/7] Configuring environment and TLS..."
 $DeployEnv = @"
@@ -98,10 +137,13 @@ GCS_BACKUP_BUCKET=$BackupBucket
 MATOMO_PUBLIC_HOST=$MatomoHost
 OYDK_SCALE_PROFILE=$Profile
 "@
-$DeployEnv | gcloud compute ssh "${ClientName}-analytics" --zone=$Zone --project=$ProjectId `
-    --command="cat > ${KitRemote}/.deploy.env"
+Invoke-GcloudCli -PipelineInput $DeployEnv -GcloudArgs @(
+    "compute", "ssh", "${ClientName}-analytics",
+    "--zone=$Zone", "--project=$ProjectId",
+    "--command=cat > ${KitRemote}/.deploy.env"
+)
 
-gcloud compute ssh "${ClientName}-analytics" --zone=$Zone --project=$ProjectId --command=@"
+$remoteSetup = @"
 set -e
 cd ${KitRemote}/deploy/docker
 cp -n .env.example .env || true
@@ -111,6 +153,11 @@ if command -v docker-compose >/dev/null; then DC=docker-compose; else DC='docker
 sudo `$DC up -d --build
 if [ -f matomo-https-config.sh ]; then sudo ./matomo-https-config.sh || true; fi
 "@
+Invoke-GcloudCli @(
+    "compute", "ssh", "${ClientName}-analytics",
+    "--zone=$Zone", "--project=$ProjectId",
+    "--command=$remoteSetup"
+)
 
 Write-Host "[5/7] Waiting for Matomo (HTTPS)..."
 $ok = $false
