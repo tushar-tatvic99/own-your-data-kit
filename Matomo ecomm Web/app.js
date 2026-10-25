@@ -1086,7 +1086,7 @@ function fillDemoDetails() {
 }
 
 // Step 1: Submit Details & Validate
-step1Form.addEventListener('submit', (e) => {
+step1Form?.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const addressSummary = `${custStreet.value}, ${custCity.value}, ${custZip.value}, ${custCountry.value}`;
@@ -1127,7 +1127,7 @@ document.querySelectorAll('input[name="shippingMethod"]').forEach(radio => {
   });
 });
 
-step2Form.addEventListener('submit', (e) => {
+step2Form?.addEventListener('submit', (e) => {
   e.preventDefault();
 
   // GA4 & Matomo: add_shipping_info (Step 2 Completed)
@@ -1140,7 +1140,7 @@ step2Form.addEventListener('submit', (e) => {
 });
 
 // Step 3: Interactive Credit Card Live Sync & Payment
-cardNumber.addEventListener('input', (e) => {
+cardNumber?.addEventListener('input', (e) => {
   let val = e.target.value.replace(/\D/g, '');
   val = val.substring(0, 16);
   const formatted = val.match(/.{1,4}/g)?.join(' ') || '•••• •••• •••• ••••';
@@ -1159,12 +1159,12 @@ cardNumber.addEventListener('input', (e) => {
   }
 });
 
-cardName.addEventListener('input', (e) => {
+cardName?.addEventListener('input', (e) => {
   const val = e.target.value.trim().toUpperCase();
   cardDisplayName.textContent = val || 'CLAIRE DUPONT';
 });
 
-cardExpiry.addEventListener('input', (e) => {
+cardExpiry?.addEventListener('input', (e) => {
   let val = e.target.value.replace(/\D/g, '');
   if (val.length >= 2) {
     val = val.substring(0, 2) + '/' + val.substring(2, 4);
@@ -1174,7 +1174,7 @@ cardExpiry.addEventListener('input', (e) => {
 });
 
 // Handle Step 3 Authorization (Payment)
-step3Form.addEventListener('submit', (e) => {
+step3Form?.addEventListener('submit', (e) => {
   e.preventDefault();
 
   // GA4 & Matomo: add_payment_info (Step 3 Payment Info Added)
@@ -1188,7 +1188,7 @@ step3Form.addEventListener('submit', (e) => {
 
 function processPayment() {
   // Show spinner
-  payBtnText.style.display = 'none';
+  if (payBtnText) payBtnText.style.display = 'none';
   paySpinner.style.display = 'block';
   payNowBtn.disabled = true;
 
@@ -1221,14 +1221,14 @@ function processPayment() {
     confirmedDeliveryDate.textContent = formattedArrival;
 
     if (state.giftWrapEnabled && state.giftMessage.trim()) {
-      confirmedGiftSection.style.display = 'block';
+      if (confirmedGiftSection) confirmedGiftSection.style.display = 'block';
       confirmedGiftMessageText.textContent = `“${state.giftMessage.trim()}”`;
     } else {
-      confirmedGiftSection.style.display = 'none';
+      if (confirmedGiftSection) confirmedGiftSection.style.display = 'none';
     }
 
     // Reset button
-    payBtnText.style.display = 'inline';
+    if (payBtnText) payBtnText.style.display = 'inline';
     paySpinner.style.display = 'none';
     payNowBtn.disabled = false;
 
@@ -1303,17 +1303,17 @@ document.getElementById('expressPayPalBtn')?.addEventListener('click', () => {
 });
 
 // Step navigation buttons
-backToBagBtn.addEventListener('click', () => {
+backToBagBtn?.addEventListener('click', () => {
   closeCheckout();
   openCartDrawer();
 });
 
-backToStep1Btn.addEventListener('click', () => goToCheckoutStep(1));
-editStep1Btn.addEventListener('click', () => goToCheckoutStep(1));
-backToStep2Btn.addEventListener('click', () => goToCheckoutStep(2));
+backToStep1Btn?.addEventListener('click', () => goToCheckoutStep(1));
+editStep1Btn?.addEventListener('click', () => goToCheckoutStep(1));
+backToStep2Btn?.addEventListener('click', () => goToCheckoutStep(2));
 
 // Print Receipt
-printReceiptBtn.addEventListener('click', () => {
+printReceiptBtn?.addEventListener('click', () => {
   if (typeof MatomoTracker !== 'undefined') {
     MatomoTracker.trackCustomEvent('Post-Purchase', 'Print Receipt Clicked', confirmedOrderId.textContent);
   }
@@ -1321,13 +1321,13 @@ printReceiptBtn.addEventListener('click', () => {
 });
 
 // Finish Shopping
-finishShoppingBtn.addEventListener('click', () => {
+finishShoppingBtn?.addEventListener('click', () => {
   closeCheckout();
   goToCheckoutStep(1);
 });
 
 // ================= COUPON CODE ENGINE =================
-applyCouponBtn.addEventListener('click', () => {
+applyCouponBtn?.addEventListener('click', () => {
   const code = couponInput.value.trim().toUpperCase();
   const totals = calculateCartTotals();
 
@@ -1377,7 +1377,7 @@ document.getElementById('copyPromoBtn')?.addEventListener('click', () => {
 });
 
 // Gift Wrap checkbox toggle
-giftWrapToggle.addEventListener('change', (e) => {
+giftWrapToggle?.addEventListener('change', (e) => {
   state.giftWrapEnabled = e.target.checked;
   giftMessageField.style.display = state.giftWrapEnabled ? 'block' : 'none';
 
@@ -1391,7 +1391,7 @@ giftWrapToggle.addEventListener('change', (e) => {
   renderCheckoutSummary();
 });
 
-giftMessageInput.addEventListener('change', (e) => {
+giftMessageInput?.addEventListener('change', (e) => {
   state.giftMessage = e.target.value;
   giftCharCount.textContent = e.target.value.length;
 
@@ -1403,7 +1403,7 @@ giftMessageInput.addEventListener('change', (e) => {
 // ================= EVENT DELEGATION & LISTENERS =================
 
 // Category Filter Tabs
-categoryTabs.addEventListener('click', (e) => {
+categoryTabs?.addEventListener('click', (e) => {
   const btn = e.target.closest('.cat-pill');
   if (btn) {
     document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
@@ -1429,7 +1429,7 @@ categoryTabs.addEventListener('click', (e) => {
 });
 
 // Sort Dropdown
-sortSelect.addEventListener('change', (e) => {
+sortSelect?.addEventListener('change', (e) => {
   state.activeSort = e.target.value;
 
   if (typeof MatomoTracker !== 'undefined') {
@@ -1440,7 +1440,7 @@ sortSelect.addEventListener('change', (e) => {
 });
 
 // Currency Switcher
-currencySelect.addEventListener('change', (e) => {
+currencySelect?.addEventListener('change', (e) => {
   state.currentCurrency = e.target.value;
   const curr = CURRENCIES[state.currentCurrency];
 
@@ -1561,17 +1561,17 @@ wishlistItemsList.addEventListener('click', (e) => {
 });
 
 // Quick View Controls
-qvQtyMinus.addEventListener('click', () => {
+qvQtyMinus?.addEventListener('click', () => {
   let val = parseInt(qvQtyInput.value, 10);
   if (val > 1) qvQtyInput.value = val - 1;
 });
 
-qvQtyPlus.addEventListener('click', () => {
+qvQtyPlus?.addEventListener('click', () => {
   let val = parseInt(qvQtyInput.value, 10);
   if (val < 10) qvQtyInput.value = val + 1;
 });
 
-qvAddToCartBtn.addEventListener('click', () => {
+qvAddToCartBtn?.addEventListener('click', () => {
   if (currentQvProductId) {
     const qty = parseInt(qvQtyInput.value, 10) || 1;
     addToCart(currentQvProductId, qty);
@@ -1579,7 +1579,7 @@ qvAddToCartBtn.addEventListener('click', () => {
   }
 });
 
-qvWishlistBtn.addEventListener('click', () => {
+qvWishlistBtn?.addEventListener('click', () => {
   if (currentQvProductId) {
     toggleWishlist(currentQvProductId);
     const isWish = state.wishlist.includes(currentQvProductId);
@@ -1589,25 +1589,25 @@ qvWishlistBtn.addEventListener('click', () => {
 });
 
 // Cart Trigger Buttons
-cartTrigger.addEventListener('click', openCartDrawer);
-closeCartBtn.addEventListener('click', closeCartDrawer);
-cartOverlay.addEventListener('click', closeCartDrawer);
+cartTrigger?.addEventListener('click', openCartDrawer);
+closeCartBtn?.addEventListener('click', closeCartDrawer);
+cartOverlay?.addEventListener('click', closeCartDrawer);
 
 // Wishlist Trigger Buttons
-wishlistTrigger.addEventListener('click', openWishlistDrawer);
-closeWishlistBtn.addEventListener('click', closeWishlistDrawer);
-wishlistOverlay.addEventListener('click', closeWishlistDrawer);
+wishlistTrigger?.addEventListener('click', openWishlistDrawer);
+closeWishlistBtn?.addEventListener('click', closeWishlistDrawer);
+wishlistOverlay?.addEventListener('click', closeWishlistDrawer);
 
 // Quick View Close Buttons
-closeQuickViewBtn.addEventListener('click', closeQuickView);
-quickViewModal.addEventListener('click', (e) => {
+closeQuickViewBtn?.addEventListener('click', closeQuickView);
+quickViewModal?.addEventListener('click', (e) => {
   if (e.target === quickViewModal) closeQuickView();
 });
 
 // Checkout Open & Close Buttons
-proceedCheckoutBtn.addEventListener('click', openCheckout);
-closeCheckoutBtn.addEventListener('click', closeCheckout);
-fillDemoAddressBtn.addEventListener('click', fillDemoDetails);
+proceedCheckoutBtn?.addEventListener('click', openCheckout);
+closeCheckoutBtn?.addEventListener('click', closeCheckout);
+fillDemoAddressBtn?.addEventListener('click', fillDemoDetails);
 
 // Empty Cart action
 document.getElementById('emptyCartShopBtn')?.addEventListener('click', () => {
@@ -1857,10 +1857,9 @@ function initDpdpCenter() {
 }
 
 // ============================================================================
-// INFINITY BANK - EXPLORE BFSI INTERACTIVE ENGINE & GA4 CD EVENT DISPATCHER
+// INFINITY BANK - EXPLORE BFSI INTERACTIVE ENGINE & REALISTIC BANKING FORMS
 // ============================================================================
 function initBfsiEngine() {
-  if (!document.getElementById('explore-bfsi') && !document.getElementById('bfsiCategoryTabs')) return;
   // Helper to determine income/amount tiers for GA4 Custom Dimensions
   function getAmountTier(num) {
     if (num < 50000) return 'under_50k';
@@ -1910,6 +1909,7 @@ function initBfsiEngine() {
       Object.keys(bfsiPanels).forEach(key => {
         if (bfsiPanels[key]) {
           bfsiPanels[key].classList.toggle('active', key === target);
+          bfsiPanels[key].style.display = (key === target) ? 'block' : 'none';
         }
       });
 
@@ -1936,7 +1936,7 @@ function initBfsiEngine() {
   function calculateFd() {
     if (!fdAmountRange) return;
     const principal = parseFloat(fdAmountRange.value) || 100000;
-    if (fdAmountVal) fdAmountVal.textContent = `$${principal.toLocaleString()}`;
+    if (fdAmountVal) fdAmountVal.textContent = `${principal.toLocaleString()}`;
 
     const payoutMode = document.querySelector('input[name="fdPayout"]:checked')?.value || 'compounded';
     const years = activeFdMonths / 12;
@@ -1944,7 +1944,7 @@ function initBfsiEngine() {
     let interest = 0;
 
     if (payoutMode === 'compounded') {
-      // Monthly compounding
+      // Monthly compounding: A = P * (1 + r/12)^(12*t)
       const r = activeFdRate / 100;
       maturity = principal * Math.pow(1 + r / 12, 12 * years);
       interest = maturity - principal;
@@ -1956,20 +1956,19 @@ function initBfsiEngine() {
 
     const monthlyEq = interest / activeFdMonths;
 
-    if (fdMaturityTotal) fdMaturityTotal.textContent = `$${Math.round(maturity).toLocaleString()}`;
-    if (fdInterestGain) fdInterestGain.textContent = `+$${Math.round(interest).toLocaleString()}`;
-    if (fdMonthlyEquivalent) fdMonthlyEquivalent.textContent = `$${Math.round(monthlyEq).toLocaleString()} / mo`;
+    if (fdMaturityTotal) fdMaturityTotal.textContent = `${Math.round(maturity).toLocaleString()}`;
+    if (fdInterestGain) fdInterestGain.textContent = `+${Math.round(interest).toLocaleString()}`;
+    if (fdMonthlyEquivalent) fdMonthlyEquivalent.textContent = `${Math.round(monthlyEq).toLocaleString()} / mo`;
   }
 
   if (fdAmountRange) {
     let fdDebounce = null;
-    fdAmountRange.addEventListener('input', () => {
+    const onFdSliderChange = () => {
       calculateFd();
       clearTimeout(fdDebounce);
       fdDebounce = setTimeout(() => {
         const principal = parseFloat(fdAmountRange.value);
         const payout = document.querySelector('input[name="fdPayout"]:checked')?.value || 'compounded';
-        // Call backend API for server-verified dataLayer
         fetch('/api/bfsi/calculate-yield', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1995,16 +1994,19 @@ function initBfsiEngine() {
             interest_rate_apy: activeFdRate
           });
         });
-      }, 500);
-    });
+      }, 400);
+    };
+
+    fdAmountRange.addEventListener('input', onFdSliderChange);
+    fdAmountRange.addEventListener('change', onFdSliderChange);
   }
 
   fdTenurePills.forEach(btn => {
     btn.addEventListener('click', () => {
       fdTenurePills.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      activeFdMonths = parseInt(btn.getAttribute('data-months'), 10);
-      activeFdRate = parseFloat(btn.getAttribute('data-rate'));
+      activeFdMonths = parseInt(btn.getAttribute('data-months'), 10) || 36;
+      activeFdRate = parseFloat(btn.getAttribute('data-rate')) || 8.45;
       if (fdApyDisplay) fdApyDisplay.textContent = `${activeFdRate.toFixed(2)}% APY`;
       calculateFd();
 
@@ -2041,52 +2043,33 @@ function initBfsiEngine() {
   let activeLoanRate = 7.65;
   let activeLoanType = 'Prime Home Mortgage';
 
-  function calculateLoanEmi() {
+  function calculateLoan() {
     if (!loanAmountRange || !loanYearsRange) return;
     const principal = parseFloat(loanAmountRange.value) || 350000;
     const years = parseInt(loanYearsRange.value, 10) || 15;
 
-    if (loanAmountVal) loanAmountVal.textContent = `$${principal.toLocaleString()}`;
-    if (loanYearsVal) loanYearsVal.textContent = `${years} Year${years > 1 ? 's' : ''}`;
+    if (loanAmountVal) loanAmountVal.textContent = `${principal.toLocaleString()}`;
+    if (loanYearsVal) loanYearsVal.textContent = `${years} Years`;
 
     const monthlyRate = (activeLoanRate / 100) / 12;
     const totalMonths = years * 12;
-
     const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
     const totalPayment = emi * totalMonths;
-    const totalInt = totalPayment - principal;
+    const totalInterest = totalPayment - principal;
 
-    if (loanMonthlyEmi) loanMonthlyEmi.textContent = `$${Math.round(emi).toLocaleString()}`;
-    if (loanTotalInterest) loanTotalInterest.textContent = `$${Math.round(totalInt).toLocaleString()}`;
-    if (loanTotalPayable) loanTotalPayable.textContent = `$${Math.round(totalPayment).toLocaleString()}`;
+    if (loanMonthlyEmi) loanMonthlyEmi.textContent = `${Math.round(emi).toLocaleString()}`;
+    if (loanTotalInterest) loanTotalInterest.textContent = `${Math.round(totalInterest).toLocaleString()}`;
+    if (loanTotalPayable) loanTotalPayable.textContent = `${Math.round(totalPayment).toLocaleString()}`;
   }
-
-  loanTypePills.forEach(btn => {
-    btn.addEventListener('click', () => {
-      loanTypePills.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeLoanRate = parseFloat(btn.getAttribute('data-rate'));
-      activeLoanType = btn.textContent.trim();
-      if (loanRateDisplay) loanRateDisplay.textContent = `${activeLoanRate.toFixed(2)}% Fixed APR`;
-      calculateLoanEmi();
-
-      pushBfsiGA4('select_loan_structure', {
-        financial_product_name: activeLoanType,
-        financial_category: 'retail_lending',
-        interest_rate_apr: activeLoanRate
-      });
-    });
-  });
 
   if (loanAmountRange && loanYearsRange) {
     let loanDebounce = null;
-    const handleLoanChange = () => {
-      calculateLoanEmi();
+    const onLoanSliderChange = () => {
+      calculateLoan();
       clearTimeout(loanDebounce);
       loanDebounce = setTimeout(() => {
         const principal = parseFloat(loanAmountRange.value);
         const years = parseInt(loanYearsRange.value, 10);
-        // Call backend API for server-verified dataLayer
         fetch('/api/bfsi/calculate-emi', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2106,46 +2089,59 @@ function initBfsiEngine() {
             financial_product_name: activeLoanType,
             financial_category: 'retail_lending',
             calculation_type: 'loan_emi',
+            tenure_range: `${years}_years`,
             financial_amount: principal,
             financial_amount_tier: getAmountTier(principal),
-            tenure_range: `${years}_years`,
             interest_rate_apr: activeLoanRate
           });
         });
-      }, 500);
+      }, 400);
     };
 
-    loanAmountRange.addEventListener('input', handleLoanChange);
-    loanYearsRange.addEventListener('input', handleLoanChange);
+    loanAmountRange.addEventListener('input', onLoanSliderChange);
+    loanAmountRange.addEventListener('change', onLoanSliderChange);
+    loanYearsRange.addEventListener('input', onLoanSliderChange);
+    loanYearsRange.addEventListener('change', onLoanSliderChange);
   }
 
-  calculateLoanEmi();
+  loanTypePills.forEach(btn => {
+    btn.addEventListener('click', () => {
+      loanTypePills.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeLoanRate = parseFloat(btn.getAttribute('data-rate')) || 7.65;
+      activeLoanType = btn.textContent.trim().split('(')[0].trim();
+      if (loanRateDisplay) loanRateDisplay.textContent = `${activeLoanRate.toFixed(2)}% Fixed APR`;
+      calculateLoan();
 
-  // 4. Insurance Tiers Selection
-  const insuranceBoxes = document.querySelectorAll('.insurance-tier-box');
-  const insSelectedCoverage = document.getElementById('insSelectedCoverage');
-  const insSelectedPremium = document.getElementById('insSelectedPremium');
-
-  insuranceBoxes.forEach(box => {
-    box.addEventListener('click', () => {
-      insuranceBoxes.forEach(b => b.classList.remove('active'));
-      box.classList.add('active');
-      const coverage = parseFloat(box.getAttribute('data-coverage'));
-      const premium = parseFloat(box.getAttribute('data-premium'));
-
-      if (insSelectedCoverage) insSelectedCoverage.textContent = `$${coverage.toLocaleString()}`;
-      if (insSelectedPremium) insSelectedPremium.textContent = `$${premium.toLocaleString()} / mo`;
-
-      pushBfsiGA4('select_insurance_tier', {
-        financial_product_name: 'Executive Sovereign Asset Shield',
-        financial_category: 'insurance',
-        coverage_amount: coverage,
-        monthly_premium: premium
+      pushBfsiGA4('select_loan_structure', {
+        financial_product_name: activeLoanType,
+        financial_category: 'retail_lending',
+        interest_rate_apr: activeLoanRate
       });
     });
   });
 
-  // 5. Digital Onboarding Application Modal
+  calculateLoan();
+
+  // 4. Insurance Tier Selections
+  document.querySelectorAll('.insurance-tier-box').forEach(box => {
+    box.addEventListener('click', () => {
+      document.querySelectorAll('.insurance-tier-box').forEach(b => b.classList.remove('active'));
+      box.classList.add('active');
+      const coverage = box.getAttribute('data-coverage');
+      const premium = box.getAttribute('data-premium');
+      const name = box.querySelector('.ins-name')?.textContent || 'Asset Shield';
+
+      pushBfsiGA4('select_insurance_tier', {
+        financial_product_name: name,
+        financial_category: 'insurance',
+        insurance_coverage_amount: parseFloat(coverage),
+        monthly_premium: parseFloat(premium)
+      });
+    });
+  });
+
+  // 5. Short & Simple Realistic BFSI Banking Application Modal
   const bfsiApplyModal = document.getElementById('bfsiApplyModal');
   const closeBfsiModalBtn = document.getElementById('closeBfsiModalBtn');
   const btnDoneBfsiModal = document.getElementById('btnDoneBfsiModal');
@@ -2153,24 +2149,44 @@ function initBfsiEngine() {
   const bfsiSuccessBox = document.getElementById('bfsiSuccessBox');
   const bfsiModalProductTitle = document.getElementById('bfsiModalProductTitle');
   const bfsiSelectedProduct = document.getElementById('bfsiSelectedProduct');
+  const bfsiSelectedBadge = document.getElementById('bfsiSelectedBadge');
+  const bfsiAmountField = document.getElementById('bfsiAmountField');
   const bfsiRefCode = document.getElementById('bfsiRefCode');
+  const btnFillBfsiDemo = document.getElementById('btnFillBfsiDemo');
 
-  function openBfsiModal(productName) {
+  function openBfsiModal(productName, defaultAmount) {
     if (!bfsiApplyModal) return;
     if (bfsiModalProductTitle) bfsiModalProductTitle.textContent = productName;
     if (bfsiSelectedProduct) bfsiSelectedProduct.value = productName;
+    if (bfsiSelectedBadge) bfsiSelectedBadge.textContent = productName;
+    
+    // Auto-fill realistic amount from the active calculator if not provided
+    if (bfsiAmountField) {
+      if (defaultAmount) {
+        bfsiAmountField.value = defaultAmount;
+      } else if (productName.toLowerCase().includes('deposit')) {
+        bfsiAmountField.value = fdAmountVal ? fdAmountVal.textContent : '$100,000';
+      } else if (productName.toLowerCase().includes('loan') || productName.toLowerCase().includes('facility')) {
+        bfsiAmountField.value = loanAmountVal ? loanAmountVal.textContent : '$350,000';
+      } else if (productName.toLowerCase().includes('card')) {
+        bfsiAmountField.value = '$50,000 Credit Facility';
+      } else {
+        bfsiAmountField.value = '$1,000,000 Portfolio Coverage';
+      }
+    }
+
     if (bfsiApplicationForm) {
       bfsiApplicationForm.style.display = 'block';
-      bfsiApplicationForm.reset();
     }
-    if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'none';
+    if (bfsiSuccessBox) {
+      bfsiSuccessBox.style.display = 'none';
+    }
 
     bfsiApplyModal.classList.add('active');
 
     pushBfsiGA4('financial_lead_start', {
       financial_product_name: productName,
-      financial_category: productName.toLowerCase().includes('card') ? 'credit_cards' : (productName.toLowerCase().includes('deposit') ? 'wealth_management' : 'retail_lending'),
-      application_status: 'initiated'
+      financial_category: productName.toLowerCase().includes('card') ? 'credit_cards' : (productName.toLowerCase().includes('deposit') ? 'wealth_management' : 'retail_lending')
     });
   }
 
@@ -2178,23 +2194,26 @@ function initBfsiEngine() {
     if (bfsiApplyModal) bfsiApplyModal.classList.remove('active');
   }
 
-  // Trigger buttons
-  document.getElementById('btnLockDeposit')?.addEventListener('click', function () {
-    openBfsiModal(this.getAttribute('data-bfsi-product') || 'Infinite High-Yield Multiplier Deposit');
+  // Hook all BFSI action triggers
+  document.getElementById('btnLockDeposit')?.addEventListener('click', function() {
+    openBfsiModal('Infinite High-Yield Multiplier Deposit', fdAmountVal ? fdAmountVal.textContent : '$100,000');
   });
 
-  document.getElementById('btnCheckLoanOffer')?.addEventListener('click', function () {
-    openBfsiModal(this.getAttribute('data-bfsi-product') || 'Prime Wealth Lending Facility');
+  document.getElementById('btnCheckLoanOffer')?.addEventListener('click', function() {
+    openBfsiModal(activeLoanType || 'Prime Home Mortgage', loanAmountVal ? loanAmountVal.textContent : '$350,000');
   });
 
   document.querySelectorAll('.btn-apply-card').forEach(btn => {
-    btn.addEventListener('click', function () {
-      openBfsiModal(this.getAttribute('data-bfsi-product') || 'Infinity Black Titanium Card');
+    btn.addEventListener('click', function() {
+      openBfsiModal(this.getAttribute('data-bfsi-product') || 'Infinity Black Titanium Card', '$50,000 Line of Credit');
     });
   });
 
-  document.getElementById('btnApplyInsurance')?.addEventListener('click', function () {
-    openBfsiModal(this.getAttribute('data-bfsi-product') || 'Executive Sovereign Asset Shield');
+  document.getElementById('btnSelectInsurance')?.addEventListener('click', function() {
+    const activeIns = document.querySelector('.insurance-tier-box.active');
+    const insName = activeIns ? activeIns.querySelector('.ins-name')?.textContent : 'Executive Sovereign Asset Shield';
+    const insCov = activeIns ? activeIns.querySelector('.ins-coverage')?.textContent : '$2,000,000 Coverage';
+    openBfsiModal(insName, insCov);
   });
 
   closeBfsiModalBtn?.addEventListener('click', closeBfsiModal);
@@ -2203,23 +2222,36 @@ function initBfsiEngine() {
     if (e.target === bfsiApplyModal) closeBfsiModal();
   });
 
-  // Form Submission
+  // Demo autofill for quick testing
+  btnFillBfsiDemo?.addEventListener('click', () => {
+    const nameEl = document.getElementById('bfsiClientName');
+    const emailEl = document.getElementById('bfsiClientEmail');
+    const phoneEl = document.getElementById('bfsiClientPhone');
+    if (nameEl) nameEl.value = 'Lord Alistair Vance';
+    if (emailEl) emailEl.value = 'alistair.vance@sovereign-holdings.ch';
+    if (phoneEl) phoneEl.value = '+41 22 819 4500';
+    if (typeof showToast === 'function') {
+      showToast('✨', 'Demo Details Filled', 'Verified applicant details auto-filled.');
+    }
+  });
+
+  // Handle Form Submission
   if (bfsiApplicationForm) {
     bfsiApplicationForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const clientName = document.getElementById('bfsiClientName')?.value.trim() || 'Valued Client';
       const clientEmail = document.getElementById('bfsiClientEmail')?.value.trim() || '';
+      const clientPhone = document.getElementById('bfsiClientPhone')?.value.trim() || '';
       const incomeBracket = document.getElementById('bfsiIncomeBracket')?.value || '250k-500k';
       const purpose = document.getElementById('bfsiAccountPurpose')?.value || 'yield_maximization';
       const productName = bfsiSelectedProduct ? bfsiSelectedProduct.value : 'Infinite Wealth Solution';
-
-      const clientPhone = document.getElementById('bfsiClientPhone')?.value.trim() || '';
+      const requestedAmount = bfsiAmountField ? bfsiAmountField.value : '$100,000';
 
       // Call Backend API for Lead Processing and Server DataLayer
       fetch('/api/bfsi/submit-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientName, clientEmail, clientPhone, incomeBracket, purpose, productName })
+        body: JSON.stringify({ clientName, clientEmail, clientPhone, incomeBracket, purpose, productName, requestedAmount })
       })
       .then(r => r.json())
       .then(d => {
@@ -2227,60 +2259,36 @@ function initBfsiEngine() {
         if (bfsiRefCode) bfsiRefCode.textContent = refId;
         bfsiApplicationForm.style.display = 'none';
         if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'block';
+
         if (d.dataLayer) {
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push(d.dataLayer);
-            window._mtm = window._mtm || [];
-            window._mtm.push(d.dataLayer);
-          }
-        showToast('🏛️', 'Application Dispatched', `Dossier ${refId} submitted to Private Underwriting.`);
+          window._mtm = window._mtm || [];
+          window._mtm.push(d.dataLayer);
+        }
+
+        if (typeof showToast === 'function') {
+          showToast('🏛️', 'Application Approved & Logged', `Reference Ticket: ${refId}`);
+        }
       })
       .catch(() => {
         const refId = `INF-BFSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
         if (bfsiRefCode) bfsiRefCode.textContent = refId;
         bfsiApplicationForm.style.display = 'none';
         if (bfsiSuccessBox) bfsiSuccessBox.style.display = 'block';
+
         pushBfsiGA4('financial_lead_submitted', {
           financial_product_name: productName,
           financial_category: productName.toLowerCase().includes('card') ? 'credit_cards' : (productName.toLowerCase().includes('deposit') ? 'wealth_management' : 'retail_lending'),
           customer_income_bracket: incomeBracket,
           primary_financial_objective: purpose,
-          application_reference_id: refId,
-          application_status: 'pre_approved_instant',
-          client_name_masked: clientName.split(' ')[0]
+          application_reference_id: refId
         });
-        showToast('🏛️', 'Application Dispatched', `Dossier ${refId} submitted to Private Underwriting.`);
+
+        if (typeof showToast === 'function') {
+          showToast('🏛️', 'Application Logged', `Reference Ticket: ${refId}`);
+        }
       });
-    });
-  }
-}
-
-// ================= INITIALIZATION =================
-
-// ================= MOBILE NAVIGATION TOGGLE =================
-function initMobileNav() {
-  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-  const siteHeader = document.getElementById('siteHeader');
-  const mainNavLinks = document.querySelectorAll('#mainNav a, #mobileNavPanel a');
-
-  if (mobileMenuBtn && siteHeader) {
-    mobileMenuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      siteHeader.classList.toggle('mobile-nav-open');
-    });
-
-    // Close when a nav link is clicked
-    mainNavLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        siteHeader.classList.remove('mobile-nav-open');
-      });
-    });
-
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!siteHeader.contains(e.target)) {
-        siteHeader.classList.remove('mobile-nav-open');
-      }
     });
   }
 }

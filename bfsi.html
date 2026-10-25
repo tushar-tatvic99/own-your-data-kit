@@ -557,7 +557,7 @@
     <div class="bfsi-modal-window">
       <div class="bfsi-modal-header">
         <div>
-          <span class="modal-pretitle">INFINITY BANK • DIGITAL ONBOARDING</span>
+          <span class="modal-pretitle">INFINITY BANK • PRIVATE WEALTH ONBOARDING</span>
           <h3 class="modal-title" id="bfsiModalProductTitle">Infinite Wealth Solution</h3>
         </div>
         <button type="button" class="bfsi-modal-close" id="closeBfsiModalBtn" aria-label="Close modal">✕</button>
@@ -565,26 +565,37 @@
 
       <div class="bfsi-modal-body">
         <form class="bfsi-form" id="bfsiApplicationForm">
-          <input type="hidden" id="bfsiSelectedProduct" value="">
+          <input type="hidden" id="bfsiSelectedProduct" value="Infinite High-Yield Multiplier Deposit">
           
+          <div class="bfsi-selected-badge" id="bfsiSelectedBadge" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10B981; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; margin-bottom: 14px; display: inline-block;">
+            Infinite High-Yield Multiplier Deposit
+          </div>
+
           <div class="form-row-2">
             <div class="bfsi-field">
               <label for="bfsiClientName">Full Legal Name *</label>
               <input type="text" id="bfsiClientName" required placeholder="e.g. Lord Alistair Vance">
             </div>
             <div class="bfsi-field">
-              <label for="bfsiClientEmail">Verified Business / Personal Email *</label>
+              <label for="bfsiClientEmail">Verified Email Address *</label>
               <input type="email" id="bfsiClientEmail" required placeholder="e.g. vance@sovereign-holdings.ch">
             </div>
           </div>
 
           <div class="form-row-2">
             <div class="bfsi-field">
-              <label for="bfsiClientPhone">Direct Telephone / Mobile</label>
-              <input type="tel" id="bfsiClientPhone" placeholder="+41 22 819 0000">
+              <label for="bfsiClientPhone">Direct Phone / Mobile *</label>
+              <input type="tel" id="bfsiClientPhone" required placeholder="+41 22 819 0000">
             </div>
             <div class="bfsi-field">
-              <label for="bfsiIncomeBracket">Annual Capital / Income Bracket</label>
+              <label for="bfsiAmountField">Facility / Deposit Amount</label>
+              <input type="text" id="bfsiAmountField" value="$100,000" placeholder="$100,000">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="bfsi-field">
+              <label for="bfsiIncomeBracket">Annual Income Bracket</label>
               <select id="bfsiIncomeBracket">
                 <option value="100k-250k">$100,000 – $250,000</option>
                 <option value="250k-500k" selected>$250,000 – $500,000</option>
@@ -592,26 +603,29 @@
                 <option value="1M-plus">$1,000,000+ (Ultra High Net Worth)</option>
               </select>
             </div>
+            <div class="bfsi-field">
+              <label for="bfsiAccountPurpose">Primary Objective</label>
+              <select id="bfsiAccountPurpose">
+                <option value="yield_maximization">High-Yield Treasury &amp; FD Multiplier</option>
+                <option value="real_estate_credit">Bespoke Real Estate &amp; Mortgage Lending</option>
+                <option value="metal_card_lifestyle">Metal Card &amp; Global Lifestyle Privileges</option>
+                <option value="generational_estate">Generational Estate Shield &amp; Assurance</option>
+              </select>
+            </div>
           </div>
 
-          <div class="bfsi-field">
-            <label for="bfsiAccountPurpose">Primary Financial Objective</label>
-            <select id="bfsiAccountPurpose">
-              <option value="yield_maximization">High-Yield Treasury &amp; FD Multiplier</option>
-              <option value="real_estate_credit">Bespoke Real Estate &amp; Mortgage Lending</option>
-              <option value="metal_card_lifestyle">Metal Card &amp; Global Lifestyle Privileges</option>
-              <option value="generational_estate">Generational Estate Shield &amp; Assurance</option>
-            </select>
+          <div style="display: flex; justify-content: flex-end; margin: 4px 0 10px;">
+            <button type="button" class="btn-demo-fill" id="btnFillBfsiDemo" style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE; cursor: pointer;">✨ Fill Demo Details</button>
           </div>
 
-          <div class="bfsi-checkbox-wrap">
-            <label class="bfsi-checkbox-label">
+          <div class="bfsi-checkbox-wrap" style="margin-bottom: 14px;">
+            <label class="bfsi-checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.76rem; color: #64748B;">
               <input type="checkbox" id="bfsiConsentCheck" checked required>
-              <span>I authorize Infinity Bank Private Underwriters to run an instant soft qualification profile.</span>
+              <span>I authorize Infinity Bank Private Wealth Underwriters to process this onboarding application.</span>
             </label>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block" id="btnSubmitBfsiApplication">
+          <button type="submit" class="btn btn-primary btn-block" id="btnSubmitBfsiApplication" style="height: 42px; font-size: 0.88rem; font-weight: 700;">
             <span>Submit Priority Application</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -620,19 +634,20 @@
           </button>
         </form>
 
-        <div class="bfsi-success-state" id="bfsiSuccessBox" style="display: none;">
-          <div class="success-badge-icon">🏛️</div>
-          <h3 class="success-title">Application Approved &amp; Logged</h3>
-          <p class="success-text">Your priority relationship dossier has been generated and dispatched to our Senior Wealth Underwriter.</p>
-          <div class="success-ref-card">
-            <span class="ref-label">APPLICATION REFERENCE ID</span>
-            <strong class="ref-code" id="bfsiRefCode">INF-BFSI-2026-89412</strong>
+        <div class="bfsi-success-state" id="bfsiSuccessBox" style="display: none; text-align: center; padding: 20px 10px;">
+          <div class="success-badge-icon" style="font-size: 2.5rem; margin-bottom: 10px;">🏛️</div>
+          <h3 class="success-title" style="font-size: 1.3rem; font-weight: 800; color: #0F172A; margin-bottom: 6px;">Application Approved &amp; Logged</h3>
+          <p class="success-text" style="font-size: 0.84rem; color: #64748B; margin-bottom: 16px;">Your institutional relationship dossier has been generated and dispatched to our Senior Private Wealth Underwriter.</p>
+          <div class="success-ref-card" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+            <span class="ref-label" style="display: block; font-size: 0.68rem; letter-spacing: 0.1em; color: #64748B; font-weight: 700; margin-bottom: 4px;">APPLICATION REFERENCE TICKET</span>
+            <strong class="ref-code" id="bfsiRefCode" style="font-size: 1.25rem; font-family: monospace; color: #10B981; letter-spacing: 1px;">INF-BFSI-2026-89412</strong>
           </div>
-          <p class="success-contact">A Senior Private Banker will reach out via your verified email within 2 business hours.</p>
-          <button type="button" class="btn btn-primary" id="btnDoneBfsiModal">Done &amp; Return to Dashboard</button>
+          <p class="success-contact" style="font-size: 0.78rem; color: #64748B; margin-bottom: 16px;">A dedicated Senior Private Banker will reach out via your verified contact details within 2 business hours.</p>
+          <button type="button" class="btn btn-primary" id="btnDoneBfsiModal" style="padding: 10px 24px; font-size: 0.84rem; font-weight: 700;">Done &amp; Return to Dashboard</button>
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- Contact & Private Wealth Salons Section -->

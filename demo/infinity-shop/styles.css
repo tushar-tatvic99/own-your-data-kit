@@ -8093,3 +8093,62 @@ body.page-ecommerce .btn-primary:hover {
   align-items: center !important;
   gap: 8px !important;
 }
+
+
+/* Ensure BFSI Modal is above headers and compact */
+.bfsi-modal-backdrop {
+  z-index: 99999 !important;
+}
+
+.bfsi-modal-window {
+  max-width: 540px !important;
+  border-radius: 14px !important;
+}
+
+.bfsi-modal-header {
+  padding: 14px 20px !important;
+}
+
+.bfsi-modal-body {
+  padding: 20px !important;
+}
+
+.form-row-2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.bfsi-field label {
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  margin-bottom: 3px !important;
+  display: block !important;
+}
+
+.bfsi-field input,
+.bfsi-field select {
+  width: 100% !important;
+  height: 36px !important;
+  padding: 6px 10px !important;
+  font-size: 0.82rem !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+}
+
+.bfsi-modal-close {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: none !important;
+  color: #FFFFFF !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
