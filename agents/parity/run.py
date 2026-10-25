@@ -8,6 +8,7 @@ import requests
 from rich.console import Console
 from rich.table import Table
 
+from agents.parity.daily_log import append_parity_row
 from agents.parity.diagnosis import diagnose
 from agents.parity.fixture_metrics import FixtureGA4Metrics
 from agents.parity.ga4_metrics import GA4Metrics
@@ -194,18 +195,26 @@ def run_parity(
     else:
         console.print("\n[green]All metrics within target.[/green]")
 
-    # Save report
+    _send_daily_report_email(cfg, report)
+
+    # Save report (fixture must not overwrite live JSON for the same date)
     output_dir = Path("output/parity")
     output_dir.mkdir(parents=True, exist_ok=True)
-    suffix = f"-break-{break_tag}" if break_tag else ""
+    mode_tag = "-fixture" if fixture_mode else ""
+    if break_tag:
+        suffix = f"{mode_tag}-break-{break_tag}" if mode_tag else f"-break-{break_tag}"
+    else:
+        suffix = mode_tag
     report_path = output_dir / f"parity-{date}{suffix}.json"
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
+    report["report_path"] = str(report_path)
+    report["report_file"] = report_path.name
 
     md_path = output_dir / f"parity-{date}{suffix}.md"
     _write_markdown_report(md_path, report)
-
-    _send_daily_report_email(cfg, report)
+    sheet_path = append_parity_row(report, output_dir)
+    report["parity_daily_sheet"] = str(sheet_path)
 
     log_action(
         "parity-agent",
@@ -222,6 +231,7 @@ def run_parity(
 
     console.print(f"Report saved: {report_path}")
     console.print(f"Summary: {md_path}")
+    console.print(f"Daily sheet: {sheet_path}")
     return report
 
 

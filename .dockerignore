@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+output
+**/__pycache__
+**/*.pyc
+.cursor
+node_modules
+deploy/terraform/.terraform
+credentials/*
+!credentials/.gitkeep
+config/client.yaml
+*.md
+!demo/console/static/**
+Matomo ecomm Web
+demo/infinity-shop

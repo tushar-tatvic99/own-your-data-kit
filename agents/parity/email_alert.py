@@ -5,23 +5,39 @@ from typing import Any
 
 from kit.notify_email import send_email, smtp_ready
 
+# Aurablush / Tatvic demo distribution (used when YAML omits alert_emails)
+DEFAULT_PARITY_ALERT_EMAILS = [
+    "mohit@tatvic.com",
+    "tushar@tatvic.com",
+    "parshwa@tatvic.com",
+    "dhruvi.p@tatvic.com",
+    "prakash.katariya@tatvic.com",
+]
+
 
 def parity_recipients(cfg: dict) -> list[str]:
     parity = cfg.get("parity", {})
     raw = parity.get("alert_emails")
+    emails: list[str] = []
     if raw:
         if isinstance(raw, str):
-            return [e.strip() for e in raw.split(",") if e.strip()]
-        return [str(e).strip() for e in raw if str(e).strip()]
+            emails = [e.strip() for e in raw.split(",") if e.strip()]
+        else:
+            emails = [str(e).strip() for e in raw if str(e).strip()]
 
-    single = (parity.get("alert_email") or "").strip()
-    if single and "example.com" not in single.lower() and not single.startswith("you@"):
-        return [single]
+    if not emails:
+        single = (parity.get("alert_email") or "").strip()
+        if single and "example.com" not in single.lower() and not single.startswith("you@"):
+            emails = [single]
 
-    env = os.getenv("PARITY_ALERT_EMAILS", "")
-    if env.strip():
-        return [e.strip() for e in env.split(",") if e.strip()]
-    return []
+    if not emails:
+        env = os.getenv("PARITY_ALERT_EMAILS", "")
+        if env.strip():
+            emails = [e.strip() for e in env.split(",") if e.strip()]
+
+    if not emails:
+        emails = list(DEFAULT_PARITY_ALERT_EMAILS)
+    return emails
 
 
 def _client_name(cfg: dict) -> str:

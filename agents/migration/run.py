@@ -11,6 +11,11 @@ from agents.migration.fixture_reader import FixtureGA4Reader, FixtureGTMReader
 from agents.migration.ga4_reader import GA4Reader
 from agents.migration.gtm_reader import GTMReader
 from agents.migration.gtm_draft_writer import write_gtm_draft_bundle
+from agents.migration.gtm_suggested_container import (
+    generate_gtm_matomo_suggested_container,
+    write_gtm_matomo_suggested_container,
+)
+from agents.migration.mtm_draft_writer import generate_mtm_container_draft, write_mtm_container_draft
 from agents.migration.mapper import (
     UNMIGRATABLE,
     generate_gtm_draft_changes,
@@ -170,8 +175,28 @@ def run_migration(config_path: str, fixture: bool = False) -> dict:
         cfg["stack"]["site_id"],
     )
     draft_path = write_gtm_draft_bundle(output_dir, workspace, gtm_draft, gtm_container)
-    console.print(f"  GTM draft bundle: {draft_path}")
+    console.print(f"  GTM workspace draft bundle: {draft_path}")
     console.print("  [yellow]NOT PUBLISHED[/yellow] — human review required")
+
+    console.print("[4b/5] Building Matomo Tag Manager (MTM) container draft...")
+    mtm_draft = generate_mtm_container_draft(
+        gtm_container,
+        cfg["stack"]["url"],
+        int(cfg["stack"]["site_id"]),
+        ga4_property_id=cfg["ga4"]["property_id"],
+    )
+    mtm_path = write_mtm_container_draft(output_dir, mtm_draft)
+    console.print(f"  MTM container draft: {mtm_path}")
+
+    console.print("[4c/5] Building suggested GTM container (Matomo-only blueprint)...")
+    gtm_suggested = generate_gtm_matomo_suggested_container(
+        gtm_container,
+        cfg["stack"]["url"],
+        int(cfg["stack"]["site_id"]),
+        source_public_id=gtm_public,
+    )
+    gtm_suggested_path = write_gtm_matomo_suggested_container(output_dir, gtm_suggested)
+    console.print(f"  GTM Matomo suggested container: {gtm_suggested_path}")
 
     # --- Step 5: Generate migration report ---
     console.print("[5/5] Writing migration report...")
@@ -197,6 +222,23 @@ def run_migration(config_path: str, fixture: bool = False) -> dict:
         "migrated": migrated,
         "gtm_workspace": workspace,
         "gtm_draft_changes": gtm_draft,
+        "mtm_container_draft": {
+            "path": "output/migration/mtm-container-draft.json",
+            "tag_count": len(mtm_draft.get("tags") or []),
+            "trigger_count": len(mtm_draft.get("triggers") or []),
+            "variable_count": len(mtm_draft.get("variables") or []),
+        },
+        "gtm_matomo_suggested_container": {
+            "path": "output/migration/gtm-matomo-suggested-container.json",
+            "name": gtm_suggested["suggested_container"]["name"],
+            "tag_count": len(gtm_suggested.get("tags") or []),
+        },
+        "artifacts": {
+            "migration_report_md": "output/migration/migration-report.md",
+            "gtm_workspace_draft": "output/migration/gtm-draft-bundle.json",
+            "mtm_container_draft": "output/migration/mtm-container-draft.json",
+            "gtm_matomo_suggested_container": "output/migration/gtm-matomo-suggested-container.json",
+        },
         "unmigrated": unmigrated,
         "errors": migrated["errors"],
     }
@@ -257,9 +299,32 @@ def _write_markdown_report(path: Path, report: dict) -> None:
     for g in report["migrated"]["goals"]:
         lines.append(f"- **{g['name']}** (GA4 event: `{g['ga4_source']}`)")
 
-    lines.extend(["", "## GTM Draft Changes (NOT published)"])
+    lines.extend(["", "## GTM workspace draft (NOT published)"])
     for change in report["gtm_draft_changes"]:
         lines.append(f"- **{change['name']}** — {change.get('note', '')}")
+    lines.append("")
+    lines.append("See `gtm-draft-bundle.json` — changes for **OYDK Migration Draft** workspace only.")
+
+    mtm = report.get("mtm_container_draft") or {}
+    lines.extend(
+        [
+            "",
+            "## Matomo Tag Manager (MTM) container draft (NOT published)",
+            f"- Tags: {mtm.get('tag_count', '—')} · Triggers: {mtm.get('trigger_count', '—')} · "
+            f"Variables: {mtm.get('variable_count', '—')}",
+            f"- File: `{mtm.get('path', 'output/migration/mtm-container-draft.json')}`",
+        ]
+    )
+    gsc = report.get("gtm_matomo_suggested_container") or {}
+    lines.extend(
+        [
+            "",
+            "## Suggested new GTM container — Matomo only (NOT published)",
+            f"- **{gsc.get('name', 'OYDK Matomo tracking (suggested)')}**",
+            f"- Proposed tags: {gsc.get('tag_count', '—')}",
+            f"- File: `{gsc.get('path', 'output/migration/gtm-matomo-suggested-container.json')}`",
+        ]
+    )
 
     lines.extend(["", "## Unmigrated Items"])
     for item in report["unmigrated"]:

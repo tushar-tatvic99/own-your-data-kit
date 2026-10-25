@@ -1,20 +1,23 @@
 client:
   name: "aurablush"
   region: "asia-south1"
+  website_url: "https://auraandblush-61760469326.asia-south1.run.app"
 
 stack:
   type: matomo
   url: "https://matomo.35-234-210-199.nip.io"
   site_id: 1
-  api_token: "5f18309ca2e10e1c1ff5c5b2cc760842"
+  api_token: "${MATOMO_API_TOKEN}"
 
 ga4:
-  property_id: "61760469326"
+  # Numeric property ID (Admin URL …/p560630351/…), not Cloud Run or G- measurement ID
+  property_id: "560630351"
   credentials_file: "credentials/ga-service-account.json"
 
 gtm:
-  account_id: "6000000000"
-  container_id: "GTM-MMXM5L53"
+  # From tagmanager.google.com URL accountId=…&containerId=… (numeric container ID for API)
+  account_id: "6399646488"
+  container_id: "283402441"
   credentials_file: "credentials/ga-service-account.json"
 
 dpdp:
@@ -39,10 +42,17 @@ parity:
     - financial_lead_submitted
     - calculate_loan_emi
     - calculate_fd_yield
-  alert_email: "parshwa@tatvic.com"
+  email_daily_report: true
+  alert_emails:
+    - mohit@tatvic.com
+    - tushar@tatvic.com
+    - parshwa@tatvic.com
+    - dhruvi.p@tatvic.com
+    - prakash.katariya@tatvic.com
   alert_slack_webhook: ""
 
 connectors:
+  demo_mode: false
   google_ads:
     customer_id: "1112110147"
     conversion_action_id: "7868766365"
@@ -59,3 +69,12 @@ connectors:
 migration:
   gtm_draft_only: true
   output_dir: "output/migration"
+
+# GA4 → BigQuery export (NOT matomo_export). Link in GA4 Admin → Product links → BigQuery.
+history:
+  import_limit: 100
+  ga4_bigquery:
+    project_id: "tvc-int-matomo"
+    dataset: "analytics_560630351"
+    location: "asia-south1"
+  fixture_file: "agents/history/fixtures/sample_ga4_bq_rows.json"

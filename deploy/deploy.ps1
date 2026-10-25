@@ -60,6 +60,13 @@ $tfVars = @(
 )
 if ($MachineType) { $tfVars += "-var=machine_type=$MachineType" }
 if ($DiskSizeGb -gt 0) { $tfVars += "-var=disk_size_gb=$DiskSizeGb" }
+if ($env:OYDK_DRY_RUN -eq "1") {
+    Write-Host "[DRY-RUN] terraform plan (no resources will be created)..."
+    terraform plan @tfVars
+    Pop-Location
+    Write-Host "[DRY-RUN] Complete. Re-run enterprise-deploy.ps1 and choose GCP live execution to apply."
+    exit 0
+}
 terraform apply -auto-approve @tfVars
 if ($LASTEXITCODE -ne 0) { Pop-Location; throw "Terraform apply failed" }
 $AnalyticsIp = terraform output -raw analytics_ip
@@ -118,7 +125,7 @@ for ($i = 1; $i -le 36; $i++) {
         Start-Sleep -Seconds 10
     }
 }
-if (-not $ok) { Write-Host "[yellow]Matomo HTTPS not ready yet — complete setup wizard in browser[/yellow]" }
+if (-not $ok) { Write-Host "[yellow]Matomo HTTPS not ready yet - complete setup wizard in browser[/yellow]" }
 
 Write-Host "[6/7] Smoke test Kit API..."
 try {
