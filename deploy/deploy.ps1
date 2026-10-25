@@ -140,15 +140,22 @@ gcloud @ScpArgs
 if ($LASTEXITCODE -ne 0) { throw "Copying kit to $VmName failed" }
 
 Write-Host "[4/7] Configuring environment and TLS..."
-# Remote content is piped over stdin with CRs stripped: here-strings carry the
-# script file's CRLF endings, which bash rejects
+# Remote content travels base64-encoded inside --command: stdin is unusable because
+# gcloud feeds plink a "y" to accept the host key, and here-strings carry this
+# file's CRLF endings, which bash rejects
+function ConvertTo-RemoteBase64([string]$Text) {
+    [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($Text -replace "`r", "")))
+}
+
 $DeployEnv = @"
 GCP_PROJECT_ID=$ProjectId
 GCS_BACKUP_BUCKET=$BackupBucket
 MATOMO_PUBLIC_HOST=$MatomoHost
 OYDK_SCALE_PROFILE=$Profile
 "@
-$DeployEnv | gcloud compute ssh $VmName @VmFlags --command="tr -d '\r' > ${KitRemote}/.deploy.env"
+gcloud compute ssh $VmName @VmFlags `
+    --command="echo $(ConvertTo-RemoteBase64 $DeployEnv) | base64 -d > ${KitRemote}/.deploy.env"
+if ($LASTEXITCODE -ne 0) { throw "Writing ${KitRemote}/.deploy.env on $VmName failed" }
 
 $RemoteSetup = @"
 # The VM startup script may still be installing Docker
@@ -162,7 +169,7 @@ if command -v docker-compose >/dev/null; then DC=docker-compose; else DC='docker
 sudo `$DC up -d --build
 if [ -f matomo-https-config.sh ]; then sudo ./matomo-https-config.sh || true; fi
 "@
-$RemoteSetup | gcloud compute ssh $VmName @VmFlags --command="tr -d '\r' | bash -s"
+gcloud compute ssh $VmName @VmFlags --command="echo $(ConvertTo-RemoteBase64 $RemoteSetup) | base64 -d | bash"
 if ($LASTEXITCODE -ne 0) { throw "Remote environment setup on $VmName failed" }
 
 Write-Host "[5/7] Waiting for Matomo (HTTPS)..."
