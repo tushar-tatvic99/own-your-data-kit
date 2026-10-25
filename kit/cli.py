@@ -81,6 +81,19 @@ def dsar_delete(config: str, user_id: str, yes: bool):
 
 @main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--continuous", is_flag=True, default=False, help="Run continuously in background")
+@click.option("--interval", default=60, help="Interval in seconds for continuous sync")
+def bq_sync(config: str, continuous: bool, interval: int):
+    """Sync Matomo live events and conversions into BigQuery."""
+    from connectors.bigquery_export import run_bigquery_sync
+
+    console.print(f"[bold cyan]Starting BigQuery Sync[/bold cyan] (continuous={continuous})...")
+    result = run_bigquery_sync(config, continuous=continuous, interval_seconds=interval)
+    console.print(f"[bold green]✓ BigQuery Sync Complete:[/bold green] {result}")
+
+
+@main.command()
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 def connectors_test(config: str):
     """Test all connector integrations."""
     from connectors.runner import test_all_connectors

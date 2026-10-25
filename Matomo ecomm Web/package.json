@@ -1,0 +1,12 @@
+{
+  "name": "aura-and-blush-atelier",
+  "version": "1.0.0",
+  "description": "AURA & BLUSH - High-End E-Commerce Web Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["ecommerce", "dpdp", "analytics"],
+  "author": "",
+  "license": "ISC"
+}
