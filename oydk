@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$DIR/.venv/bin/python3" ]; then
+    exec "$DIR/.venv/bin/python3" -m kit.cli "$@"
+elif [ -f "$DIR/venv/bin/python3" ]; then
+    exec "$DIR/venv/bin/python3" -m kit.cli "$@"
+else
+    exec python3 -m kit.cli "$@"
+fi
