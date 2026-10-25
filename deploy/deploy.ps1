@@ -151,6 +151,8 @@ OYDK_SCALE_PROFILE=$Profile
 $DeployEnv | gcloud compute ssh $VmName @VmFlags --command="tr -d '\r' > ${KitRemote}/.deploy.env"
 
 $RemoteSetup = @"
+# The VM startup script may still be installing Docker
+for i in `$(seq 1 60); do sudo docker compose version >/dev/null 2>&1 && break; echo "Waiting for Docker install on VM... (`$i/60)"; sleep 5; done
 set -e
 cd ${KitRemote}/deploy/docker
 cp -n .env.example .env || true
