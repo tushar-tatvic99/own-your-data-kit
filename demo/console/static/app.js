@@ -73,7 +73,10 @@ function activatePanel(panel) {
     bq: "Run output (GA4 BQ → Matomo)",
   };
   document.getElementById("output-label").textContent = labels[panel] || "Run output (active tab)";
-  document.querySelector(".output-bar")?.classList.toggle("hidden", panel === "parity");
+  document.querySelector(".output-bar")?.classList.toggle(
+    "hidden",
+    panel === "parity" || panel === "deploy" || panel === "migration"
+  );
   syncFooterOutput();
   if (panel === "parity") loadParityDashboard();
   if (panel === "migration") loadMigrationDashboard();
@@ -93,17 +96,18 @@ let matomoProvisionMeta = { default_matomo_url: "", hosted_matomo: true };
 let matomoDeployPollTimer = null;
 let matomoGcpDeployActive = false;
 
+function setDeployLog(text) {
+  const out = document.getElementById("matomo-provision-result");
+  if (out) out.textContent = text || "";
+}
+
 function focusMatomoDeployOutput() {
   document.querySelector(".matomo-provision-box")?.setAttribute("open", "");
-  const out = document.getElementById("matomo-provision-result");
-  const preview = document.getElementById("deploy-preview");
-  out?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  if (preview && out) preview.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  document.getElementById("matomo-provision-result")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function renderDeployLogPanel(data, header) {
   const out = document.getElementById("matomo-provision-result");
-  const preview = document.getElementById("deploy-preview");
   const lines = [];
   if (header) lines.push(header, "");
   if (data?.last_error) {
@@ -123,13 +127,10 @@ function renderDeployLogPanel(data, header) {
   if (data?.log_tail) lines.push("—— deploy.log (tail) ——", data.log_tail.slice(-6000));
   const text = lines.filter((x) => x !== undefined).join("\n");
   if (out) out.textContent = text || "Waiting for deploy.log…";
-  if (preview && data?.log_tail) {
-    preview.textContent = (preview.textContent || "") + "\n\n" + data.log_tail.slice(-3000);
-  }
 }
 
 function matomoSourceMode() {
-  return document.getElementById("btn-matomo-own")?.classList.contains("active") ? "own" : "hosted";
+  return "own";
 }
 
 function isHostedMatomoUrl(url) {
@@ -149,43 +150,14 @@ function applyMatomoUrlToForms(url) {
   if (form?.elements?.matomo_url) form.elements.matomo_url.value = clean;
 }
 
-function updateMatomoModeHint(hosted) {
-  const hint = document.getElementById("matomo-provision-hint");
-  if (!hint) return;
-  if (hosted) {
-    hint.textContent = matomoProvisionMeta.hint_hosted || matomoProvisionMeta.hint || "";
-  } else {
-    hint.textContent = matomoProvisionMeta.hint_own_gcp || matomoProvisionMeta.hint || "";
-  }
-}
-
-function setMatomoSourceMode(mode) {
-  const hosted = mode !== "own";
-  document.getElementById("btn-matomo-hosted")?.classList.toggle("active", hosted);
-  document.getElementById("btn-matomo-own")?.classList.toggle("active", !hosted);
-  document.getElementById("matomo-gcp-own-panel")?.classList.toggle("hidden", hosted);
-  document.getElementById("matomo-hosted-only")?.classList.toggle("hidden", !hosted);
+function setMatomoSourceMode(_mode) {
   const urlInput = document.getElementById("matomo-provision-url");
-  const openBtn = document.getElementById("btn-open-matomo");
   const openOwnBtn = document.getElementById("btn-open-matomo-own");
-  const result = document.getElementById("matomo-provision-result");
-  if (urlInput && hosted && matomoProvisionMeta.default_matomo_url) {
-    urlInput.readOnly = true;
-    urlInput.value = matomoProvisionMeta.default_matomo_url;
-  }
   const matomoUrl =
     document.getElementById("deploy-form")?.elements?.matomo_url?.value?.trim() ||
     urlInput?.value?.trim() ||
     "";
-  if (openBtn) openBtn.classList.toggle("hidden", !hosted || !matomoUrl);
-  if (openOwnBtn) openOwnBtn.classList.toggle("hidden", hosted || !matomoUrl);
-  if (result && !hosted) {
-    result.textContent = "Deploy log and status appear here after you click Deploy Matomo on my GCP.";
-  }
-  updateMatomoModeHint(hosted);
-  if (!hosted) {
-    document.getElementById("deploy-form")?.elements?.gcp_project_id?.focus();
-  }
+  if (openOwnBtn) openOwnBtn.classList.toggle("hidden", !matomoUrl);
 }
 
 function stopMatomoDeployPoll() {
@@ -278,9 +250,8 @@ async function deployMatomoOnMyGcp() {
     return;
   }
   const text = formatDeployStartResponse(data);
-  document.getElementById("deploy-preview").textContent = text;
+  setDeployLog(text);
   setDeployStatus(data.message || data.error || "Deploy", !!data.started);
-  setPanelOutput("deploy", text, !data.started);
   if (data.started) {
     renderDeployLogPanel({ deploy_running: true, log_tail: "" }, "PowerShell deploy running");
     startMatomoDeployPoll();
@@ -305,19 +276,16 @@ function openMatomoLogin() {
 }
 
 async function loadMatomoProvisionStatus() {
-  const hint = document.getElementById("matomo-provision-hint");
-  if (!hint) return;
   try {
     const data = await apiGet("/api/matomo/provision/status");
     matomoProvisionMeta = data;
-    hint.textContent = data.hint || "";
     const matomoInput = document.getElementById("matomo-provision-url");
     if (matomoInput && data.default_matomo_url && !matomoInput.value) {
       matomoInput.value = data.default_matomo_url;
     }
-    setMatomoSourceMode(matomoSourceMode());
-  } catch (e) {
-    hint.textContent = String(e);
+    setMatomoSourceMode("own");
+  } catch (_) {
+    setMatomoSourceMode("own");
   }
 }
 
@@ -768,9 +736,9 @@ async function handleDeployStart(localOnly, opts = {}) {
   const dep = linksCache.deploy || {};
   if (!localOnly && dep.host === "cloud_run") {
     const data = await apiPost("/api/deploy/start", { fields: deployFields() });
-    document.getElementById("deploy-preview").textContent = formatDeployStartResponse(data);
+    const cloudText = formatDeployStartResponse(data);
+    setDeployLog(cloudText);
     setDeployStatus(data.message, true);
-    setPanelOutput("deploy", formatDeployStartResponse(data), false);
     return;
   }
   const msg = localOnly
@@ -793,10 +761,9 @@ async function handleDeployStart(localOnly, opts = {}) {
     return;
   }
   const text = formatDeployStartResponse(data);
-  document.getElementById("deploy-preview").textContent = text;
+  setDeployLog(text);
   const ok = !!data.started;
   setDeployStatus(data.message || data.error || (ok ? "Deploy started" : "Deploy did not start"), ok);
-  setPanelOutput("deploy", text, !ok);
   if (matomoGcp) {
     focusMatomoDeployOutput();
     if (!ok) {
@@ -1159,7 +1126,7 @@ function migrationBundleTableRows(kind, bundle) {
     const refs = (bundle.ga4_to_matomo_mapping_reference || []).map((r) => ({
       type: "mapping",
       name: r.source_gtm_tag,
-      detail: JSON.stringify(r.matomo_equivalent || {}),
+      detail: (r.matomo_equivalent && r.matomo_equivalent.tag) || "Matomo equivalent",
       source: r.type,
     }));
     return [...triggers, ...vars, ...tags, ...refs];
@@ -1200,7 +1167,6 @@ function renderMigrationBundleView(kind, bundle) {
   const panel = document.getElementById("migration-bundle-panel");
   const title = document.getElementById("migration-bundle-title");
   const blurb = document.getElementById("migration-bundle-blurb");
-  const jsonEl = document.getElementById("migration-bundle-json");
   const tableEl = document.getElementById("migration-bundle-table");
   if (!panel) return;
   panel.classList.remove("hidden");
@@ -1218,7 +1184,6 @@ function renderMigrationBundleView(kind, bundle) {
   if (blurb) blurb.textContent = blurbs[kind] || "";
   const rows = migrationBundleTableRows(kind, bundle);
   renderTable(tableEl, ["type", "name", "detail", "source"], rows);
-  if (jsonEl) jsonEl.textContent = JSON.stringify(bundle, null, 2);
 }
 
 async function showMigrationBundle(kind) {
@@ -1508,12 +1473,6 @@ async function loadInfra() {
 }
 
 function wireDeploy() {
-  document.querySelector(".matomo-source-row")?.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-matomo-source]");
-    if (!btn) return;
-    e.preventDefault();
-    setMatomoSourceMode(btn.getAttribute("data-matomo-source") === "own" ? "own" : "hosted");
-  });
   document.getElementById("btn-matomo-gcp-deploy")?.addEventListener("click", (e) => {
     e.preventDefault();
     deployMatomoOnMyGcp();
@@ -1522,33 +1481,30 @@ function wireDeploy() {
     e.preventDefault();
     refreshMatomoUrlFromDeploy(false);
   });
-  document.getElementById("btn-open-matomo")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    openMatomoLogin();
-  });
   document.getElementById("btn-open-matomo-own")?.addEventListener("click", (e) => {
     e.preventDefault();
     openMatomoLogin();
   });
   document.getElementById("btn-deploy-preview")?.addEventListener("click", async () => {
     const data = await apiPost("/api/deploy/preview", { fields: deployFields() });
-    document.getElementById("deploy-preview").textContent =
+    setDeployLog(
       "Interactive (recommended on laptop):\n" +
-      (data.interactive_command || ".\\deploy\\enterprise-deploy.ps1") +
-      "\n\nNon-interactive / console:\n" +
-      data.command +
-      (data.dry_run_command ? "\n\nDry-run:\n" + data.dry_run_command : "") +
-      "\n\nChecklist:\n- " +
-      (data.checklist || []).join("\n- ") +
-      "\n\n--- YAML ---\n" +
-      (data.yaml_preview || "");
-    setDeployStatus("Preview ready — review command and YAML below. Nothing is saved until you click Save.", true);
+        (data.interactive_command || ".\\deploy\\enterprise-deploy.ps1") +
+        "\n\nNon-interactive / console:\n" +
+        data.command +
+        (data.dry_run_command ? "\n\nDry-run:\n" + data.dry_run_command : "") +
+        "\n\nChecklist:\n- " +
+        (data.checklist || []).join("\n- ") +
+        "\n\n--- YAML ---\n" +
+        (data.yaml_preview || "")
+    );
+    setDeployStatus("Preview ready — see Step 1 log. Nothing is saved until you click Save.", true);
+    focusMatomoDeployOutput();
   });
   document.getElementById("btn-deploy-save")?.addEventListener("click", async () => {
     const data = await apiPost("/api/deploy/save-config", { fields: deployFields() });
     setDeployStatus(`Saved client YAML to ${data.path}. Next: Save & activate, or Deploy to GCP.`, true);
-    document.getElementById("deploy-preview").textContent =
-      `✓ Written: ${data.path}\n\n` + (document.getElementById("deploy-preview").textContent || "");
+    setDeployLog(`✓ Written: ${data.path}\n\n` + (document.getElementById("matomo-provision-result")?.textContent || ""));
   });
   document.getElementById("btn-matomo-provision")?.addEventListener("click", async () => {
     const out = document.getElementById("matomo-provision-result");
@@ -1635,7 +1591,7 @@ function wireDeploy() {
       `Activated ${data.config_path} for all tabs (saved to ${saved.path}). Run the demo suite from Demo mode.`,
       true
     );
-    setPanelOutput("deploy", `Profile active:\n${data.config_path}\n\nParity alerts: ${deployFields().alert_emails}`, false);
+    setDeployLog(`Profile active:\n${data.config_path}\n\nParity alerts: ${deployFields().alert_emails}`);
   });
   document.getElementById("btn-deploy-start")?.addEventListener("click", () => handleDeployStart(false));
   document.getElementById("btn-deploy-local")?.addEventListener("click", () => handleDeployStart(true));

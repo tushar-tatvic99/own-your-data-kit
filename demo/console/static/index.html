@@ -85,48 +85,18 @@
       <section class="panel" id="panel-deploy">
         <header class="panel-head">
           <h1>One-command deploy</h1>
-          <p>Provision the full analytics kit on GCP (Matomo + kit-api + scheduler). For <strong>Your Analytics Setup</strong>, create a dedicated Matomo site first, then fill the rest and deploy.</p>
         </header>
         <details class="prereq-box matomo-provision-box" open>
-          <summary>Step 1 — Create your Matomo site (one click)</summary>
-          <p class="hint" id="matomo-provision-hint">Checking provisioning…</p>
-          <div class="mode-cta-row matomo-source-row">
-            <button type="button" class="mode-cta active" id="btn-matomo-hosted" data-matomo-source="hosted">
-              <strong>OYDK hosted Matomo</strong>
-              <span>No API token — we create your site on our server</span>
-            </button>
-            <button type="button" class="mode-cta" id="btn-matomo-own" data-matomo-source="own">
-              <strong>My Matomo server</strong>
-              <span>Deploy Matomo on <em>your</em> GCP (Terraform + VM, India region)</span>
-            </button>
-          </div>
-          <div id="matomo-gcp-own-panel" class="matomo-gcp-panel hidden" aria-live="polite">
-            <p class="hint"><strong>Your GCP Matomo</strong> — same flow as <code>deploy\enterprise-deploy.ps1</code> / <code>deploy.ps1</code> in this repo. Fill <strong>GCP project ID</strong> and <strong>Client name</strong> in the form below, then deploy.</p>
-            <ol class="matomo-gcp-steps">
-              <li>Fill <strong>GCP project ID</strong> + <strong>Client name</strong> below, then click <strong>Deploy Matomo on my GCP</strong>.</li>
-              <li>A <strong>PowerShell window</strong> opens — installs Terraform/gcloud if needed, Google sign-in if needed, then deploys (~15–25 min).</li>
-              <li>When deploy finishes, open the <strong>Matomo URL</strong> (filled in the form below) and complete the install wizard.</li>
-            </ol>
+          <summary>Step 1 — Matomo on your GCP</summary>
+          <div id="matomo-gcp-own-panel" class="matomo-gcp-panel" aria-live="polite">
             <div class="btn-row">
-              <button type="button" class="btn secondary" id="btn-matomo-gcp-deploy">Deploy Matomo on my GCP</button>
+              <button type="button" class="btn primary" id="btn-matomo-gcp-deploy">Deploy Matomo on my GCP</button>
               <button type="button" class="btn ghost" id="btn-matomo-refresh-url">Refresh URL from deploy log</button>
               <button type="button" class="btn ghost hidden" id="btn-open-matomo-own">Open Matomo</button>
             </div>
           </div>
-          <div id="matomo-hosted-only">
-            <div class="form-grid tight">
-              <label>Work email <input name="provision_email" type="email" placeholder="you@company.com" /></label>
-              <label id="matomo-url-label">Matomo URL
-                <input name="matomo_url" id="matomo-provision-url" placeholder="https://matomo…" readonly />
-              </label>
-            </div>
-            <p class="hint">Shop URL and client name come from the form below. After create we fill <strong>Matomo site ID</strong> for you.</p>
-            <div class="btn-row">
-              <button type="button" class="btn primary" id="btn-matomo-provision">Create Matomo site</button>
-              <button type="button" class="btn ghost hidden" id="btn-open-matomo">Open Matomo login</button>
-            </div>
-          </div>
-          <pre class="panel-output" id="matomo-provision-result">Enter email + shop URL, then click Create.</pre>
+          <input type="hidden" id="matomo-provision-url" name="matomo_url" value="" />
+          <pre class="panel-output" id="matomo-provision-result">Deploy log appears here.</pre>
         </details>
         <form id="deploy-form" class="form-grid">
           <label>GCP project ID <input name="gcp_project_id" required placeholder="tvc-int-matomo" /></label>
@@ -157,7 +127,6 @@
         </div>
         <div class="deploy-banner hidden" id="deploy-cloud-banner"></div>
         <div class="deploy-status" id="deploy-status" role="status"></div>
-        <pre class="code-block" id="deploy-preview">Click Preview to see deploy.ps1 command and generated YAML.</pre>
       </section>
 
       <!-- 2 Migration -->
@@ -201,11 +170,9 @@
           </div>
           <p class="hint" id="migration-bundle-blurb"></p>
           <div class="table-wrap" id="migration-bundle-table"></div>
-          <pre class="panel-output bundle-json" id="migration-bundle-json"></pre>
         </div>
 
-        <h3>Migration run output (CLI)</h3>
-        <pre class="panel-output" id="output-migration">Run migration or the demo suite.</pre>
+        <pre class="panel-output hidden" id="output-migration" aria-hidden="true">Run migration or the demo suite.</pre>
       </section>
 
       <!-- 3 Parity -->
@@ -367,6 +334,6 @@
       </footer>
     </main>
   </div>
-  <script src="/app.js?v=20261025t"></script>
+  <script src="/app.js?v=20261025w"></script>
 </body>
 </html>

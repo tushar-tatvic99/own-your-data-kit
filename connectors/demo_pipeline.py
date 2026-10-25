@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 
 from dpdp.audit_log import log_action
 from dpdp.pii_scrubber import scrub_string
-from dpdp.settings import dpdp_config
 
 
 def is_placeholder(value: str | None) -> bool:
@@ -52,7 +51,7 @@ def record_demo_conversion(
             "message": f"Demo conversion logged (audit only): {channel}/{event_name}",
         }
 
-    dpdp = dpdp_config()
+    dpdp = cfg.get("dpdp") or {}
     scrub = bool(dpdp.get("pii_scrub_enabled", True))
     visitor_id = email or "demo-visitor"
     if scrub and email:

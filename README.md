@@ -27,9 +27,10 @@ Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — dep
 ### Prerequisites
 
 - Python 3.11+
-- Docker & Docker Compose
-- `gcloud` CLI (for cloud deploy)
-- Terraform 1.5+
+- Docker & Docker Compose (local Matomo stack only — not needed for fixture demos)
+- `gcloud` CLI + Terraform 1.5+ (GCP deploy only)
+
+**Publishing the demo console for other teams:** see **[docs/run-console-on-your-pc.md](docs/run-console-on-your-pc.md)** (laptop setup, credentials, Custom mode, what requires VM/Docker vs not).
 
 ### Local development
 
@@ -88,6 +89,14 @@ python -m kit.cli verify-parts
 ```
 
 See **[docs/five-parts-complete.md](docs/five-parts-complete.md)** for the full rubric mapping.
+
+### Judge demo UI (one screen, click buttons)
+
+```powershell
+py -3 -m kit.cli demo-ui
+```
+
+Open **http://127.0.0.1:8765** — all 5 parts + stretch + cost calculator + Ask your data. See [docs/demo-console.md](docs/demo-console.md).
 
 ### Stretch: GA4 history import (BigQuery → Matomo)
 

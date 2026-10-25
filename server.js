@@ -64,6 +64,25 @@ DPDP_RIGHTS_REQUESTS.set('DR-849201', {
   lockedUntil: null
 });
 
+if (DPDP_CONSENT_AUDIT_LOGS.length === 0) {
+  const noticeVersion = '2023.v1_dpdp';
+  for (let i = 0; i < 24; i++) {
+    DPDP_CONSENT_AUDIT_LOGS.push({
+      choice: 'granted',
+      timestamp: new Date(Date.now() - i * 3600000).toISOString(),
+      noticeVersion,
+      anonymousAnalyticsId: `demo-grant-${i}`,
+    });
+  }
+  for (let i = 0; i < 5; i++) {
+    DPDP_CONSENT_AUDIT_LOGS.push({
+      choice: 'denied',
+      timestamp: new Date(Date.now() - i * 7200000).toISOString(),
+      noticeVersion,
+      anonymousAnalyticsId: `demo-deny-${i}`,
+    });
+  }
+}
 
 // Helper to parse JSON body
 function parseJsonBody(req) {
@@ -339,6 +358,25 @@ const server = http.createServer(async (req, res) => {
   // =========================================================================
   // DPDP ACT 2023 STATUTORY API ENDPOINTS
   // =========================================================================
+
+  // GET /api/dpdp/summary — consent counts + rights tickets (no PII) for OYDK console
+  if (req.method === 'GET' && reqPath === '/api/dpdp/summary') {
+    const granted = DPDP_CONSENT_AUDIT_LOGS.filter((c) => c.choice === 'granted').length;
+    const denied = DPDP_CONSENT_AUDIT_LOGS.filter((c) => c.choice === 'denied').length;
+    const rights_requests = Array.from(DPDP_RIGHTS_REQUESTS.values()).map((t) => ({
+      ticketId: t.ticketId,
+      requestType: t.requestType,
+      status: t.status,
+      acknowledgedDate: t.acknowledgedDate,
+      currentStage: t.currentStage,
+    }));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      consent: { granted, denied, total: DPDP_CONSENT_AUDIT_LOGS.length },
+      rights_requests,
+    }));
+    return;
+  }
 
   // 1. POST /api/consent (Save choice, timestamp, and notice version without PII)
   if (req.method === 'POST' && reqPath === '/api/consent') {
