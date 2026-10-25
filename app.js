@@ -506,14 +506,17 @@ function renderCart() {
   headerCartTotal.textContent = formatPrice(totals.subtotal);
 
   // Free shipping progress bar
-  const pct = Math.min(100, Math.round((totals.subtotal / totals.freeThreshold) * 100));
-  shippingProgressBar.style.width = `${pct}%`;
-  
-  if (totals.subtotal >= totals.freeThreshold) {
-    shippingProgressMsg.innerHTML = `🌸 <strong>Complimentary Luxury White-Glove Shipping Unlocked!</strong>`;
-  } else {
-    const remaining = totals.freeThreshold - totals.subtotal;
-    shippingProgressMsg.innerHTML = `Add <strong>${formatPrice(remaining)}</strong> more to unlock <strong>Free White-Glove Delivery</strong>!`;
+  if (shippingProgressBar) {
+    const pct = Math.min(100, Math.round((totals.subtotal / totals.freeThreshold) * 100));
+    shippingProgressBar.style.width = `${pct}%`;
+  }
+  if (shippingProgressMsg) {
+    if (totals.subtotal >= totals.freeThreshold) {
+      shippingProgressMsg.innerHTML = `🌸 <strong>Complimentary Luxury White-Glove Shipping Unlocked!</strong>`;
+    } else {
+      const remaining = totals.freeThreshold - totals.subtotal;
+      shippingProgressMsg.innerHTML = `Add <strong>${formatPrice(remaining)}</strong> more to unlock <strong>Free White-Glove Delivery</strong>!`;
+    }
   }
 
   // Matomo Ecommerce Cart Update Tracking
@@ -523,15 +526,21 @@ function renderCart() {
 
   // Empty state vs items
   if (state.cart.length === 0) {
-    cartItemsList.innerHTML = '';
-    cartItemsList.appendChild(cartEmptyState);
-    cartEmptyState.style.display = 'flex';
-    document.getElementById('cartDrawerFooter').style.opacity = '0.5';
-    proceedCheckoutBtn.disabled = true;
+    if (cartItemsList) cartItemsList.innerHTML = '';
+    if (cartEmptyState && cartItemsList) cartItemsList.appendChild(cartEmptyState);
+    if (cartEmptyState) cartEmptyState.style.display = 'flex';
+    const footerEl = document.getElementById('cartDrawerFooter') || document.getElementById('cartFooter');
+    if (footerEl) footerEl.style.opacity = '0.5';
+    if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = true;
+    const chkBtn = document.getElementById('checkoutBtn');
+    if (chkBtn) chkBtn.disabled = true;
   } else {
-    cartEmptyState.style.display = 'none';
-    document.getElementById('cartDrawerFooter').style.opacity = '1';
-    proceedCheckoutBtn.disabled = false;
+    if (cartEmptyState) cartEmptyState.style.display = 'none';
+    const footerEl = document.getElementById('cartDrawerFooter') || document.getElementById('cartFooter');
+    if (footerEl) footerEl.style.opacity = '1';
+    if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = false;
+    const chkBtn = document.getElementById('checkoutBtn');
+    if (chkBtn) chkBtn.disabled = false;
     cartItemsList.innerHTML = '';
 
     state.cart.forEach(item => {
@@ -1374,6 +1383,7 @@ quickViewModal?.addEventListener('click', (e) => {
 
 // Checkout Open & Close Buttons
 proceedCheckoutBtn?.addEventListener('click', openCheckout);
+  document.getElementById('checkoutBtn')?.addEventListener('click', openCheckout);
 closeCheckoutBtn?.addEventListener('click', closeCheckout);
 fillDemoAddressBtn?.addEventListener('click', fillDemoDetails);
 
