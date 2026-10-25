@@ -7,14 +7,81 @@ from google.analytics.admin import AnalyticsAdminServiceClient
 from google.oauth2 import service_account
 
 
-class GA4Reader:
-    def __init__(self, property_id: str, credentials_path: str | None = None):
-        self.property_id = property_id
-        self.credentials_path = credentials_path
-        self._property_path = f"properties/{property_id}"
-        self.admin = None
-        self._mock_mode = False
+# Explicit fixtures used ONLY when dry_run=True
+DRY_RUN_CUSTOM_DIMENSIONS = [
+    {
+        "name": "customer_tier",
+        "display_name": "Customer Tier",
+        "scope": "USER",
+        "description": "Wealth portfolio bracket (Private, Sovereign, Retail)",
+    },
+    {
+        "name": "bfsi_product_type",
+        "display_name": "BFSI Product Type",
+        "scope": "EVENT",
+        "description": "Category of financial product applied for",
+    },
+    {
+        "name": "investment_horizon",
+        "display_name": "Investment Horizon",
+        "scope": "EVENT",
+        "description": "Tenure selected in calculator",
+    },
+    {
+        "name": "preferred_currency",
+        "display_name": "Preferred Currency",
+        "scope": "USER",
+        "description": "User selected currency (INR, USD, EUR)",
+    },
+]
 
+DRY_RUN_CUSTOM_METRICS = [
+    {
+        "name": "lead_credit_score",
+        "display_name": "Lead Credit Score",
+        "scope": "EVENT",
+        "measurement_unit": "STANDARD",
+    }
+]
+
+DRY_RUN_CONVERSION_EVENTS = [
+    {"name": "purchase", "create_time": "2026-10-24T10:00:00Z", "custom": False},
+    {"name": "financial_lead_submitted", "create_time": "2026-10-24T12:00:00Z", "custom": True},
+    {"name": "calculate_loan_emi", "create_time": "2026-10-24T12:00:00Z", "custom": True},
+    {"name": "calculate_fd_yield", "create_time": "2026-10-24T12:00:00Z", "custom": True},
+    {"name": "sign_up", "create_time": "2026-10-24T10:00:00Z", "custom": False},
+]
+
+DRY_RUN_DATA_STREAMS = [
+    {
+        "name": "Aura & Blush Production Web",
+        "display_name": "Aura & Blush Web",
+        "type": "WEB_DATA_STREAM",
+        "web_stream": {
+            "default_uri": "https://auraandblush-61760469326.asia-south1.run.app",
+            "measurement_id": "G-MMXM5L53",
+        },
+    }
+]
+
+
+class GA4Reader:
+    def __init__(
+        self,
+        property_id: str,
+        credentials_path: str | None = None,
+        dry_run: bool = False,
+    ):
+        self.property_id = str(property_id).strip()
+        self.credentials_path = credentials_path
+        self.dry_run = dry_run
+        self._property_path = f"properties/{self.property_id}"
+        self.admin = None
+
+        if self.dry_run:
+            return
+
+        # Attempt to load credentials
         if credentials_path and os.path.exists(credentials_path):
             try:
                 self.credentials = service_account.Credentials.from_service_account_file(
@@ -23,45 +90,28 @@ class GA4Reader:
                 )
                 self.admin = AnalyticsAdminServiceClient(credentials=self.credentials)
             except Exception as e:
-                print(f"Warning: Failed to load service account: {e}. Checking ADC.")
-        
-        if not self.admin:
+                raise RuntimeError(
+                    f"Failed to initialize GA4 Admin Client from credentials file '{credentials_path}': {e}"
+                )
+        else:
+            # Attempt Application Default Credentials (ADC)
             try:
                 creds, _ = google.auth.default(
                     scopes=["https://www.googleapis.com/auth/analytics.readonly"]
                 )
                 self.admin = AnalyticsAdminServiceClient(credentials=creds)
-            except Exception:
-                self._mock_mode = True
+            except Exception as e:
+                raise RuntimeError(
+                    f"GA4 credentials missing or invalid for property '{self.property_id}'.\n"
+                    f"Expected credentials at '{credentials_path}' or via Application Default Credentials (ADC).\n"
+                    f"Details: {e}\n"
+                    f"Hint: Run with '--dry-run' if you wish to simulate without live Google Cloud authentication."
+                )
 
     def get_custom_dimensions(self) -> list[dict[str, Any]]:
-        if self._mock_mode or not self.admin:
-            return [
-                {
-                    "name": "customer_tier",
-                    "display_name": "Customer Tier",
-                    "scope": "USER",
-                    "description": "Wealth portfolio bracket (Private, Sovereign, Retail)",
-                },
-                {
-                    "name": "bfsi_product_type",
-                    "display_name": "BFSI Product Type",
-                    "scope": "EVENT",
-                    "description": "Category of financial product applied for",
-                },
-                {
-                    "name": "investment_horizon",
-                    "display_name": "Investment Horizon",
-                    "scope": "EVENT",
-                    "description": "Tenure selected in calculator",
-                },
-                {
-                    "name": "preferred_currency",
-                    "display_name": "Preferred Currency",
-                    "scope": "USER",
-                    "description": "User selected currency (INR, USD, EUR)",
-                },
-            ]
+        """Harvest custom dimensions from live GA4 Admin API (or dry-run fixture)."""
+        if self.dry_run:
+            return DRY_RUN_CUSTOM_DIMENSIONS
 
         try:
             dims = []
@@ -74,20 +124,20 @@ class GA4Reader:
                 })
             return dims
         except Exception as e:
-            print(f"Notice: Live GA4 dimension extraction error ({e}). Using discovered schema.")
-            self._mock_mode = True
-            return self.get_custom_dimensions()
+            raise RuntimeError(
+                f"Google Analytics Admin API error while listing custom dimensions on property '{self.property_id}':\n"
+                f"{e}\n\n"
+                f"Action Required:\n"
+                f"1. Ensure the Service Account has 'Viewer' permission on GA4 Property '{self.property_id}'.\n"
+                f"2. Ensure the 'analyticsadmin.googleapis.com' API is enabled in your GCP project.\n"
+                f"3. Run with '--dry-run' if you want to test migration workflows offline."
+            )
 
     def get_custom_metrics(self) -> list[dict[str, Any]]:
-        if self._mock_mode or not self.admin:
-            return [
-                {
-                    "name": "lead_credit_score",
-                    "display_name": "Lead Credit Score",
-                    "scope": "EVENT",
-                    "measurement_unit": "STANDARD",
-                }
-            ]
+        """Harvest custom metrics from live GA4 Admin API (or dry-run fixture)."""
+        if self.dry_run:
+            return DRY_RUN_CUSTOM_METRICS
+
         try:
             metrics = []
             for m in self.admin.list_custom_metrics(parent=self._property_path):
@@ -98,18 +148,16 @@ class GA4Reader:
                     "measurement_unit": m.measurement_unit.name,
                 })
             return metrics
-        except Exception:
-            return []
+        except Exception as e:
+            raise RuntimeError(
+                f"Google Analytics Admin API error while listing custom metrics on property '{self.property_id}':\n{e}"
+            )
 
     def get_conversion_events(self) -> list[dict[str, Any]]:
-        if self._mock_mode or not self.admin:
-            return [
-                {"name": "purchase", "create_time": "2026-10-24T10:00:00Z", "custom": False},
-                {"name": "financial_lead_submitted", "create_time": "2026-10-24T12:00:00Z", "custom": True},
-                {"name": "calculate_loan_emi", "create_time": "2026-10-24T12:00:00Z", "custom": True},
-                {"name": "calculate_fd_yield", "create_time": "2026-10-24T12:00:00Z", "custom": True},
-                {"name": "sign_up", "create_time": "2026-10-24T10:00:00Z", "custom": False},
-            ]
+        """Harvest conversion events from live GA4 Admin API (or dry-run fixture)."""
+        if self.dry_run:
+            return DRY_RUN_CONVERSION_EVENTS
+
         try:
             events = []
             for conv in self.admin.list_conversion_events(parent=self._property_path):
@@ -120,22 +168,16 @@ class GA4Reader:
                     "custom": conv.custom,
                 })
             return events
-        except Exception:
-            return []
+        except Exception as e:
+            raise RuntimeError(
+                f"Google Analytics Admin API error while listing conversion events on property '{self.property_id}':\n{e}"
+            )
 
     def get_data_streams(self) -> list[dict[str, Any]]:
-        if self._mock_mode or not self.admin:
-            return [
-                {
-                    "name": "Aura & Blush / Infinity BFSI Production Web",
-                    "display_name": "Aura & Blush Web",
-                    "type": "WEB_DATA_STREAM",
-                    "web_stream": {
-                        "default_uri": "https://auraandblush-61760469326.asia-south1.run.app",
-                        "measurement_id": "G-MMXM5L53",
-                    },
-                }
-            ]
+        """Harvest data streams from live GA4 Admin API (or dry-run fixture)."""
+        if self.dry_run:
+            return DRY_RUN_DATA_STREAMS
+
         try:
             streams = []
             for stream in self.admin.list_data_streams(parent=self._property_path):
@@ -149,8 +191,10 @@ class GA4Reader:
                     } if stream.web_stream_data else None,
                 })
             return streams
-        except Exception:
-            return []
+        except Exception as e:
+            raise RuntimeError(
+                f"Google Analytics Admin API error while listing data streams on property '{self.property_id}':\n{e}"
+            )
 
     def get_full_setup(self) -> dict[str, Any]:
         """Read complete GA4 property configuration."""

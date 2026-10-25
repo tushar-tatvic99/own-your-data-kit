@@ -137,14 +137,25 @@ if [ "$UNATTENDED" = false ]; then
 
   echo -e "\n${BOLD}[5/5] GA4 & GTM Migration Source (Press Enter for practice property):${RESET}"
   read_input "Enter GA4 Property ID (default: 61760469326): " GA4_PROPERTY_ID "61760469326"
+  read_input "Enter GTM Account ID (default: 6000000000): " GTM_ACCOUNT_ID "6000000000"
   read_input "Enter GTM Container ID (default: GTM-MMXM5L53): " GTM_CONTAINER_ID "GTM-MMXM5L53"
+  read_input "Enter Service Account JSON key path (default: credentials/ga-service-account.json): " GA4_CREDENTIALS "credentials/ga-service-account.json"
+
+  if [ -f "$GA4_CREDENTIALS" ] && [ "$GA4_CREDENTIALS" != "credentials/ga-service-account.json" ]; then
+    mkdir -p "$ROOT_DIR/credentials"
+    cp "$GA4_CREDENTIALS" "$ROOT_DIR/credentials/ga-service-account.json"
+    GA4_CREDENTIALS="credentials/ga-service-account.json"
+    echo -e "  ${GREEN}✓ Copied service account key to credentials/ga-service-account.json${RESET}"
+  fi
 fi
 
 # Fallback validation
 CLIENT_NAME="${CLIENT_NAME:-demo-client}"
 TARGET_ENV="${TARGET_ENV:-gcp}"
 GA4_PROPERTY_ID="${GA4_PROPERTY_ID:-61760469326}"
+GTM_ACCOUNT_ID="${GTM_ACCOUNT_ID:-6000000000}"
 GTM_CONTAINER_ID="${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
+GA4_CREDENTIALS="${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
 
 echo -e "\n${BOLD}${BLUE}Deployment Configuration Summary:${RESET}"
 echo -e "--------------------------------------------------"
@@ -229,12 +240,12 @@ stack:
 
 ga4:
   property_id: "${GA4_PROPERTY_ID:-61760469326}"
-  credentials_file: "credentials/ga-service-account.json"
+  credentials_file: "${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
 
 gtm:
-  account_id: "6000000000"
+  account_id: "${GTM_ACCOUNT_ID:-6000000000}"
   container_id: "${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
-  credentials_file: "credentials/ga-service-account.json"
+  credentials_file: "${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
 
 dpdp:
   require_consent: true
@@ -399,12 +410,12 @@ stack:
 
 ga4:
   property_id: "${GA4_PROPERTY_ID:-61760469326}"
-  credentials_file: "credentials/ga-service-account.json"
+  credentials_file: "${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
 
 gtm:
-  account_id: "6000000000"
+  account_id: "${GTM_ACCOUNT_ID:-6000000000}"
   container_id: "${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
-  credentials_file: "credentials/ga-service-account.json"
+  credentials_file: "${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
 
 dpdp:
   require_consent: true

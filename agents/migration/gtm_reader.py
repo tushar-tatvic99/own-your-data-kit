@@ -2,20 +2,82 @@
 
 import os
 from typing import Any
+import google.auth
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 
-class GTMReader:
-    def __init__(self, account_id: str, container_id: str, credentials_path: str):
-        self.account_id = account_id
-        self.container_id = container_id
-        self.credentials_path = credentials_path
-        self._container_path = f"accounts/{account_id}/containers/{container_id}"
-        self.service = None
-        self._mock_mode = False
+DRY_RUN_TAGS = [
+    {
+        "name": "GA4 - Configuration Tag",
+        "type": "gaawc",
+        "tag_id": "101",
+        "firing_trigger_id": ["2147479553"],
+        "parameter": [{"key": "measurementId", "value": "G-DEMO12345"}],
+    },
+    {
+        "name": "GA4 - Event - purchase",
+        "type": "gaawe",
+        "tag_id": "102",
+        "firing_trigger_id": ["201"],
+        "parameter": [
+            {"key": "eventName", "value": "purchase"},
+            {"key": "eventSettingsTable", "value": "ecommerce"},
+        ],
+    },
+    {
+        "name": "GA4 - Event - add_to_cart",
+        "type": "gaawe",
+        "tag_id": "103",
+        "firing_trigger_id": ["202"],
+        "parameter": [
+            {"key": "eventName", "value": "add_to_cart"},
+            {"key": "eventSettingsTable", "value": "ecommerce"},
+        ],
+    },
+    {
+        "name": "GA4 - Event - begin_checkout",
+        "type": "gaawe",
+        "tag_id": "104",
+        "firing_trigger_id": ["203"],
+        "parameter": [
+            {"key": "eventName", "value": "begin_checkout"},
+            {"key": "eventSettingsTable", "value": "ecommerce"},
+        ],
+    },
+]
 
-        if os.path.exists(credentials_path):
+DRY_RUN_TRIGGERS = [
+    {"name": "All Pages", "type": "pageview", "trigger_id": "2147479553"},
+    {"name": "Custom Event - purchase", "type": "customEvent", "trigger_id": "201"},
+    {"name": "Custom Event - add_to_cart", "type": "customEvent", "trigger_id": "202"},
+]
+
+DRY_RUN_VARIABLES = [
+    {"name": "Page URL", "type": "u", "variable_id": "1"},
+    {"name": "DLV - ecommerce", "type": "v", "variable_id": "2"},
+]
+
+
+class GTMReader:
+    def __init__(
+        self,
+        account_id: str,
+        container_id: str,
+        credentials_path: str | None = None,
+        dry_run: bool = False,
+    ):
+        self.account_id = str(account_id).strip()
+        self.container_id = str(container_id).strip()
+        self.credentials_path = credentials_path
+        self.dry_run = dry_run
+        self._container_path = f"accounts/{self.account_id}/containers/{self.container_id}"
+        self.service = None
+
+        if self.dry_run:
+            return
+
+        if credentials_path and os.path.exists(credentials_path):
             try:
                 self.credentials = service_account.Credentials.from_service_account_file(
                     credentials_path,
@@ -26,53 +88,30 @@ class GTMReader:
                 )
                 self.service = build("tagmanager", "v2", credentials=self.credentials)
             except Exception as e:
-                print(f"Warning: Could not initialize live GTM client: {e}. Running in draft simulation mode.")
-                self._mock_mode = True
+                raise RuntimeError(
+                    f"Failed to initialize GTM Client from credentials file '{credentials_path}': {e}"
+                )
         else:
-            self._mock_mode = True
+            try:
+                creds, _ = google.auth.default(
+                    scopes=[
+                        "https://www.googleapis.com/auth/tagmanager.readonly",
+                        "https://www.googleapis.com/auth/tagmanager.edit.containers",
+                    ]
+                )
+                self.service = build("tagmanager", "v2", credentials=creds)
+            except Exception as e:
+                raise RuntimeError(
+                    f"GTM credentials missing or invalid for container '{self.container_id}'.\n"
+                    f"Expected credentials at '{credentials_path}' or via Application Default Credentials (ADC).\n"
+                    f"Details: {e}\n"
+                    f"Hint: Run with '--dry-run' if you wish to simulate without live Google authentication."
+                )
 
     def get_tags(self) -> list[dict[str, Any]]:
-        if self._mock_mode or not self.service:
-            # Synthetic standard container tags for demonstration resilience
-            return [
-                {
-                    "name": "GA4 - Configuration Tag",
-                    "type": "gaawc",
-                    "tag_id": "101",
-                    "firing_trigger_id": ["2147479553"],
-                    "parameter": [{"key": "measurementId", "value": "G-DEMO12345"}],
-                },
-                {
-                    "name": "GA4 - Event - purchase",
-                    "type": "gaawe",
-                    "tag_id": "102",
-                    "firing_trigger_id": ["201"],
-                    "parameter": [
-                        {"key": "eventName", "value": "purchase"},
-                        {"key": "eventSettingsTable", "value": "ecommerce"},
-                    ],
-                },
-                {
-                    "name": "GA4 - Event - add_to_cart",
-                    "type": "gaawe",
-                    "tag_id": "103",
-                    "firing_trigger_id": ["202"],
-                    "parameter": [
-                        {"key": "eventName", "value": "add_to_cart"},
-                        {"key": "eventSettingsTable", "value": "ecommerce"},
-                    ],
-                },
-                {
-                    "name": "GA4 - Event - begin_checkout",
-                    "type": "gaawe",
-                    "tag_id": "104",
-                    "firing_trigger_id": ["203"],
-                    "parameter": [
-                        {"key": "eventName", "value": "begin_checkout"},
-                        {"key": "eventSettingsTable", "value": "ecommerce"},
-                    ],
-                },
-            ]
+        """Harvest tags from live GTM container (or dry-run fixture)."""
+        if self.dry_run:
+            return DRY_RUN_TAGS
 
         try:
             parent = f"{self._container_path}/workspaces/default"
@@ -88,17 +127,20 @@ class GTMReader:
                 })
             return tags
         except Exception as e:
-            print(f"Notice: GTM list_tags fallback ({e}). Using discovered container structure.")
-            self._mock_mode = True
-            return self.get_tags()
+            raise RuntimeError(
+                f"Google Tag Manager API error while listing tags in '{self._container_path}':\n"
+                f"{e}\n\n"
+                f"Action Required:\n"
+                f"1. Ensure the Service Account has 'Edit' or 'User' role in GTM Container '{self.container_id}'.\n"
+                f"2. Ensure the 'tagmanager.googleapis.com' API is enabled in your GCP project.\n"
+                f"3. Run with '--dry-run' if you want to test migration workflows offline."
+            )
 
     def get_triggers(self) -> list[dict[str, Any]]:
-        if self._mock_mode or not self.service:
-            return [
-                {"name": "All Pages", "type": "pageview", "trigger_id": "2147479553"},
-                {"name": "Custom Event - purchase", "type": "customEvent", "trigger_id": "201"},
-                {"name": "Custom Event - add_to_cart", "type": "customEvent", "trigger_id": "202"},
-            ]
+        """Harvest triggers from live GTM container (or dry-run fixture)."""
+        if self.dry_run:
+            return DRY_RUN_TRIGGERS
+
         try:
             parent = f"{self._container_path}/workspaces/default"
             result = self.service.accounts().containers().workspaces().triggers().list(parent=parent).execute()
@@ -111,15 +153,16 @@ class GTMReader:
                     "custom_event_filter": trigger.get("customEventFilter", []),
                 })
             return triggers
-        except Exception:
-            return []
+        except Exception as e:
+            raise RuntimeError(
+                f"Google Tag Manager API error while listing triggers in '{self._container_path}':\n{e}"
+            )
 
     def get_variables(self) -> list[dict[str, Any]]:
-        if self._mock_mode or not self.service:
-            return [
-                {"name": "Page URL", "type": "u", "variable_id": "1"},
-                {"name": "DLV - ecommerce", "type": "v", "variable_id": "2"},
-            ]
+        """Harvest variables from live GTM container (or dry-run fixture)."""
+        if self.dry_run:
+            return DRY_RUN_VARIABLES
+
         try:
             parent = f"{self._container_path}/workspaces/default"
             result = self.service.accounts().containers().workspaces().variables().list(parent=parent).execute()
@@ -132,17 +175,19 @@ class GTMReader:
                     "parameter": var.get("parameter", []),
                 })
             return variables
-        except Exception:
-            return []
+        except Exception as e:
+            raise RuntimeError(
+                f"Google Tag Manager API error while listing variables in '{self._container_path}':\n{e}"
+            )
 
     def create_migration_workspace(self, name: str = "OYDK Migration Draft") -> dict[str, Any]:
         """Create a new GTM workspace for migration changes (draft only)."""
-        if self._mock_mode or not self.service:
+        if self.dry_run:
             return {
-                "workspace_id": "ws-draft-1001",
-                "workspace_path": f"{self._container_path}/workspaces/ws-draft-1001",
+                "workspace_id": "ws-draft-simulation",
+                "workspace_path": f"{self._container_path}/workspaces/ws-draft-simulation",
                 "name": name,
-                "status": "created_draft",
+                "status": "created_draft_simulation",
             }
 
         try:
@@ -160,13 +205,9 @@ class GTMReader:
                 "status": "created_live",
             }
         except Exception as e:
-            print(f"Notice: Live workspace creation returned ({e}). Switched to local draft workspace representation.")
-            return {
-                "workspace_id": "ws-draft-1001",
-                "workspace_path": f"{self._container_path}/workspaces/ws-draft-1001",
-                "name": name,
-                "status": "created_draft",
-            }
+            raise RuntimeError(
+                f"Google Tag Manager API error while creating draft workspace '{name}' in '{self._container_path}':\n{e}"
+            )
 
     def create_custom_html_tag(
         self,
@@ -176,6 +217,14 @@ class GTMReader:
         firing_trigger_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """Inject a custom HTML tag directly into the GTM draft workspace via API."""
+        if self.dry_run:
+            return {
+                "name": name,
+                "tag_id": f"tag-simulated-{abs(hash(name)) % 10000}",
+                "status": "staged_in_simulation",
+                "note": "Draft created (Simulation)",
+            }
+
         tag_body = {
             "name": name,
             "type": "html",
@@ -185,14 +234,6 @@ class GTMReader:
             ],
             "firingTriggerId": firing_trigger_ids or [],
         }
-
-        if self._mock_mode or not self.service:
-            return {
-                "name": name,
-                "tag_id": f"tag-draft-{abs(hash(name)) % 10000}",
-                "status": "staged_in_draft_workspace",
-                "note": "Draft created (Unpublished)",
-            }
 
         try:
             workspace_parent = f"{self._container_path}/workspaces/{workspace_id}"
@@ -207,12 +248,9 @@ class GTMReader:
                 "note": "Draft created in GTM Workspace",
             }
         except Exception as e:
-            return {
-                "name": name,
-                "tag_id": f"tag-draft-{abs(hash(name)) % 10000}",
-                "status": "staged_in_draft_workspace",
-                "note": f"Draft saved locally ({e})",
-            }
+            raise RuntimeError(
+                f"Google Tag Manager API error while injecting tag '{name}' in workspace '{workspace_id}':\n{e}"
+            )
 
     def get_full_container(self) -> dict[str, Any]:
         return {

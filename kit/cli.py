@@ -126,11 +126,12 @@ def update(config: str, check_only: bool):
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--property-id", "-p", default=None, help="GA4 Property ID (overrides config)")
 @click.option("--container-id", "-g", default=None, help="GTM Container ID (overrides config)")
-def migrate(config: str, property_id: str | None, container_id: str | None):
+@click.option("--dry-run", is_flag=True, help="Simulate migration without live Google API calls")
+def migrate(config: str, property_id: str | None, container_id: str | None, dry_run: bool):
     """Run GA4/GTM migration agent."""
     from agents.migration.run import run_migration
 
-    run_migration(config_path=config, property_id=property_id, container_id=container_id)
+    run_migration(config_path=config, property_id=property_id, container_id=container_id, dry_run=dry_run)
 
 
 @main.command()
