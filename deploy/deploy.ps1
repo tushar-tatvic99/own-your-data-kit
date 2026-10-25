@@ -101,28 +101,34 @@ Pop-Location
 $MatomoHost = Get-MatomoPublicHost $AnalyticsIp
 $KitApiUrl = "http://${AnalyticsIp}:8090"
 
-Write-Host "[3/7] Copying kit to server ($KitRemote)..."
-gcloud compute ssh "${ClientName}-analytics" --zone=$Zone --project=$ProjectId `
-    --command="sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
+$VmName = "${ClientName}-analytics"
+# gcloud.ps1 forwards $args as-is, so pass a flat array via splatting; --quiet and
+# --strict-host-key-checking=no keep keygen and host-key prompts from blocking the run
+$VmFlags = @("--zone=$Zone", "--project=$ProjectId", "--quiet", "--strict-host-key-checking=no")
 
-gcloud compute scp --recurse `
-    "$RootDir\deploy", "$RootDir\kit", "$RootDir\agents", `
-    "$RootDir\dpdp", "$RootDir\connectors", "$RootDir\config", `
-    "$RootDir\requirements.txt", "$RootDir\docs" `
-    "${ClientName}-analytics:${KitRemote}/" `
-    --zone=$Zone --project=$ProjectId
+Write-Host "[3/7] Copying kit to server ($KitRemote)..."
+gcloud compute ssh $VmName @VmFlags `
+    --command="sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
+if ($LASTEXITCODE -ne 0) { throw "SSH to $VmName failed" }
+
+$ScpSources = @("deploy", "kit", "agents", "dpdp", "connectors", "config", "requirements.txt", "docs") |
+    ForEach-Object { Join-Path $RootDir $_ } | Where-Object { Test-Path $_ }
+$ScpArgs = @("compute", "scp", "--recurse") + $ScpSources + @("${VmName}:${KitRemote}/") + $VmFlags
+gcloud @ScpArgs
+if ($LASTEXITCODE -ne 0) { throw "Copying kit to $VmName failed" }
 
 Write-Host "[4/7] Configuring environment and TLS..."
+# Remote content is piped over stdin with CRs stripped: here-strings carry the
+# script file's CRLF endings, which bash rejects
 $DeployEnv = @"
 GCP_PROJECT_ID=$ProjectId
 GCS_BACKUP_BUCKET=$BackupBucket
 MATOMO_PUBLIC_HOST=$MatomoHost
 OYDK_SCALE_PROFILE=$Profile
 "@
-$DeployEnv | gcloud compute ssh "${ClientName}-analytics" --zone=$Zone --project=$ProjectId `
-    --command="cat > ${KitRemote}/.deploy.env"
+$DeployEnv | gcloud compute ssh $VmName @VmFlags --command="tr -d '\r' > ${KitRemote}/.deploy.env"
 
-gcloud compute ssh "${ClientName}-analytics" --zone=$Zone --project=$ProjectId --command=@"
+$RemoteSetup = @"
 set -e
 cd ${KitRemote}/deploy/docker
 cp -n .env.example .env || true
@@ -132,6 +138,8 @@ if command -v docker-compose >/dev/null; then DC=docker-compose; else DC='docker
 sudo `$DC up -d --build
 if [ -f matomo-https-config.sh ]; then sudo ./matomo-https-config.sh || true; fi
 "@
+$RemoteSetup | gcloud compute ssh $VmName @VmFlags --command="tr -d '\r' | bash -s"
+if ($LASTEXITCODE -ne 0) { throw "Remote environment setup on $VmName failed" }
 
 Write-Host "[5/7] Waiting for Matomo (HTTPS)..."
 $ok = $false

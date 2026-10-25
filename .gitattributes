@@ -1,0 +1,8 @@
+# Files are copied to Linux VMs (gcloud compute scp, Terraform startup script),
+# so keep LF in working copies even when core.autocrlf=true on Windows.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
