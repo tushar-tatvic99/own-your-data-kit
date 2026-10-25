@@ -59,7 +59,7 @@ function activatePanel(panel) {
   if (!panel) return;
   activePanel = panel;
   document.querySelectorAll(".nav-btn").forEach((b) => {
-    const on = b.getAttribute("data-panel") === panel;
+    const on = b.getAttribute("data-panel") === panel && !b.dataset.scroll || (b.dataset.scroll === "consent-cards" && panel === "dpdp");
     b.classList.toggle("active", on);
     if (on) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
@@ -1653,6 +1653,13 @@ function wireNav() {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       activatePanel(btn.getAttribute("data-panel"));
+      const target = btn.dataset.scroll;
+      if (target) {
+        document.querySelectorAll(".nav-btn").forEach((b) => { b.classList.remove("active"); b.removeAttribute("aria-current"); });
+        btn.classList.add("active");
+        btn.setAttribute("aria-current", "page");
+        document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     });
   });
 }

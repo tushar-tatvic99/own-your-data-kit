@@ -3,30 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OYDK Analytics Kit</title>
-  <link rel="stylesheet" href="/styles.css?v=20261025z16" />
+  <title>Own-Your-Data Analytics Kit · Tatvic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css?v=20261025tv2" />
 </head>
 <body>
   <div class="shell">
     <aside class="nav">
       <div class="brand">
-        <span class="logo">OYDK</span>
-        <div>
-          <strong>Analytics Kit</strong>
-        </div>
+        <span class="brand-kicker">Hackathon 2026 · Problem 3</span>
+        <strong>Own-Your-Data Analytics Kit</strong>
       </div>
       <nav class="nav-items">
-        <button type="button" class="nav-btn active" data-panel="demo" aria-current="page">Demo mode</button>
-        <button type="button" class="nav-btn" data-panel="deploy">1 · Deploy</button>
-        <button type="button" class="nav-btn" data-panel="migration">2 · Migration</button>
-        <button type="button" class="nav-btn" data-panel="parity">3 · Parity</button>
-        <button type="button" class="nav-btn" data-panel="dpdp">4 · DPDP</button>
-        <button type="button" class="nav-btn" data-panel="connectors">5 · Connectors</button>
-        <hr />
+        <button type="button" class="nav-btn active" data-panel="demo" aria-current="page">Start · Run default</button>
+        <div class="nav-label">Demo flow</div>
+        <button type="button" class="nav-btn" data-panel="deploy"><span class="n">1</span>Deploy</button>
+        <button type="button" class="nav-btn" data-panel="migration"><span class="n">2</span>Migrate</button>
+        <button type="button" class="nav-btn" data-panel="parity"><span class="n">3</span>Parity</button>
+        <button type="button" class="nav-btn" data-panel="dpdp" data-scroll="consent-cards"><span class="n">4</span>Consent</button>
+        <button type="button" class="nav-btn" data-panel="dpdp" data-scroll="audit-requests-table"><span class="n">5</span>Erasure</button>
+        <button type="button" class="nav-btn" data-panel="connectors"><span class="n">6</span>Conversion</button>
+        <div class="nav-label">Extras</div>
         <button type="button" class="nav-btn stretch" data-panel="bq">GA4 → Matomo (BQ)</button>
         <button type="button" class="nav-btn stretch" data-panel="cost">Cost calculator</button>
         <button type="button" class="nav-btn stretch" data-panel="agent">Ask your agent</button>
-        <button type="button" class="nav-btn" data-panel="infra">Infra checklist</button>
+        <button type="button" class="nav-btn stretch" data-panel="infra">Infra checklist</button>
       </nav>
       <div class="nav-footer">
         <div class="kit-pill" id="kit-pill">Kit API …</div>
@@ -38,6 +41,7 @@
       <section class="panel active" id="panel-demo">
         <header class="panel-head">
           <h1>Client setup</h1>
+          <p>Run the full default suite, or point the kit at your own analytics setup.</p>
         </header>
         <div class="deploy-banner ok hidden" id="judge-browser-banner" role="status"></div>
         <div class="mode-cta-row">
@@ -67,6 +71,7 @@
       <section class="panel" id="panel-deploy">
         <header class="panel-head">
           <h1>Deploy</h1>
+          <p>One command, fresh India-region cloud project.</p>
         </header>
         <div class="parity-controls deploy-controls">
           <button type="button" class="btn primary" id="btn-matomo-gcp-deploy">Deploy Matomo on my GCP</button>
@@ -113,7 +118,8 @@
       <!-- 2 Migration -->
       <section class="panel" id="panel-migration">
         <header class="panel-head">
-          <h1>Migration</h1>
+          <h1>Migrate</h1>
+          <p>Agent reads GA4 and GTM, builds the Matomo setup, and writes drafts for human approval.</p>
         </header>
         <div class="btn-row">
           <button type="button" class="btn primary" data-action="migrate_linked">Start migration</button>
@@ -155,6 +161,7 @@
       <section class="panel" id="panel-parity">
         <header class="panel-head">
           <h1>Parity</h1>
+          <p>GA4 and Matomo side by side, checked against the target gap.</p>
         </header>
         <div class="parity-controls">
           <div class="parity-dates">
@@ -178,11 +185,11 @@
       <!-- 4 DPDP -->
       <section class="panel" id="panel-dpdp">
         <header class="panel-head">
-          <h1>DPDP</h1>
+          <h1>Consent &amp; Erasure</h1>
           <p>Consent on the live shop + statutory requests processed through kit-api / Matomo.</p>
         </header>
         <div class="consent-cards" id="consent-cards"></div>
-        <h3>Shop rights requests</h3>
+        <h3 id="erasure-anchor">Shop rights requests</h3>
         <div class="table-wrap" id="shop-requests-table"></div>
         <h3>Erasure / DSAR audit</h3>
         <div class="table-wrap" id="audit-requests-table"></div>
@@ -195,7 +202,8 @@
       <!-- 5 Connectors -->
       <section class="panel" id="panel-connectors">
         <header class="panel-head">
-          <h1>Connectors</h1>
+          <h1>Conversion &amp; Connectors</h1>
+          <p>Google Ads, Meta CAPI, BigQuery and Looker Studio.</p>
         </header>
         <div class="btn-row">
           <button type="button" class="btn primary" data-action="connectors_test">Run connector test</button>
@@ -290,6 +298,7 @@
       </footer>
     </main>
   </div>
+  <div class="tv-footer-logo" aria-hidden="true">LOGO</div>
   <script src="/app.js?v=20261025z18"></script>
 </body>
 </html>
