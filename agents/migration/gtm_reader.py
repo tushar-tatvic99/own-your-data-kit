@@ -313,19 +313,75 @@ class GTMReader:
                 "note": "Draft created (Simulation)",
             }
 
-        tag_body = {
+        workspace_parent = f"{self._container_path}/workspaces/{workspace_id}"
+
+        # 1. Fetch valid triggers currently present in this target workspace
+        valid_trigger_ids = set()
+        pageview_trigger_id = None
+        try:
+            ws_triggers = (
+                self.service.accounts()
+                .containers()
+                .workspaces()
+                .triggers()
+                .list(parent=workspace_parent)
+                .execute()
+                .get("trigger", [])
+            )
+            for tr in ws_triggers:
+                tid = str(tr.get("triggerId", ""))
+                if tid:
+                    valid_trigger_ids.add(tid)
+                t_type = str(tr.get("type", "")).lower()
+                t_name = str(tr.get("name", "")).lower()
+                if t_type == "pageview" or "all pages" in t_name:
+                    pageview_trigger_id = tid
+        except Exception:
+            pass
+
+        # 2. If it's a base config tracker, ensure a pageview trigger exists in this workspace
+        if "config" in name.lower() and not pageview_trigger_id:
+            try:
+                new_trig = (
+                    self.service.accounts()
+                    .containers()
+                    .workspaces()
+                    .triggers()
+                    .create(
+                        parent=workspace_parent,
+                        body={
+                            "name": "All Pages",
+                            "type": "pageview",
+                        },
+                    )
+                    .execute()
+                )
+                pageview_trigger_id = str(new_trig.get("triggerId"))
+                valid_trigger_ids.add(pageview_trigger_id)
+            except Exception:
+                pass
+
+        # 3. Filter requested firing trigger IDs to ONLY those that exist in this workspace
+        safe_firing_ids = []
+        if firing_trigger_ids:
+            safe_firing_ids = [str(fid) for fid in firing_trigger_ids if str(fid) in valid_trigger_ids]
+
+        # 4. If it's a base config tag and safe_firing_ids is empty, attach the pageview trigger
+        if not safe_firing_ids and "config" in name.lower() and pageview_trigger_id:
+            safe_firing_ids = [pageview_trigger_id]
+
+        tag_body: dict[str, Any] = {
             "name": name,
             "type": "html",
             "parameter": [
                 {"type": "template", "key": "html", "value": html_content},
                 {"type": "boolean", "key": "supportDocumentWrite", "value": "false"},
             ],
-            "firingTriggerId": firing_trigger_ids or [],
         }
+        if safe_firing_ids:
+            tag_body["firingTriggerId"] = safe_firing_ids
 
         try:
-            workspace_parent = f"{self._container_path}/workspaces/{workspace_id}"
-
             # Idempotency check: if tag with this name already exists in workspace, update it
             try:
                 existing_tags = (
@@ -359,10 +415,14 @@ class GTMReader:
             except Exception:
                 pass
 
-            res = self.service.accounts().containers().workspaces().tags().create(
-                parent=workspace_parent,
-                body=tag_body,
-            ).execute()
+            res = (
+                self.service.accounts()
+                .containers()
+                .workspaces()
+                .tags()
+                .create(parent=workspace_parent, body=tag_body)
+                .execute()
+            )
             return {
                 "name": name,
                 "tag_id": res.get("tagId"),

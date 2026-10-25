@@ -12,10 +12,14 @@ def get_stack_adapter(config: dict[str, Any]) -> AnalyticsStackAdapter:
     stack_type = stack_cfg.get("type", "matomo").lower()
 
     if stack_type == "matomo":
+        token = (stack_cfg.get("api_token") or "").strip()
+        if not token or token.startswith("${"):
+            import os
+            token = os.environ.get("MATOMO_API_TOKEN", "").strip()
         return MatomoAdapter(
             base_url=stack_cfg["url"],
             site_id=int(stack_cfg.get("site_id", 1)),
-            token=stack_cfg.get("api_token", ""),
+            token=token,
         )
     elif stack_type == "posthog":
         return PostHogAdapter(

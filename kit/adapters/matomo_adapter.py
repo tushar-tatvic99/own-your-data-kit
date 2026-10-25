@@ -25,6 +25,12 @@ class MatomoAdapter(AnalyticsStackAdapter):
             "token_auth": self.token,
         })
         resp = requests.post(f"{self.base_url}/index.php", data=params, timeout=30)
+        if resp.status_code == 401:
+            raise RuntimeError(
+                f"Matomo API 401 Unauthorized at '{self.base_url}'. "
+                f"Please update 'api_token' in config/client.yaml or set MATOMO_API_TOKEN in .env "
+                f"(Matomo -> Settings -> Personal -> Security -> Auth tokens)."
+            )
         resp.raise_for_status()
         return resp.json()
 

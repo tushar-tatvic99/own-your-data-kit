@@ -193,14 +193,22 @@ def run_migration(
         if not firing_ids and "Config" in tag_spec.get("name", ""):
             firing_ids = [all_pages_trigger_id]
 
-        res = gtm.create_custom_html_tag(
-            workspace_id=ws_id,
-            name=tag_spec["name"],
-            html_content=tag_spec["html"],
-            firing_trigger_ids=firing_ids,
-        )
-        injected_tags.append(res)
-        console.print(f"  [green]✓[/green] Injected Tag: {tag_spec['name']} [dim]({res.get('status')})[/dim]")
+        try:
+            res = gtm.create_custom_html_tag(
+                workspace_id=ws_id,
+                name=tag_spec["name"],
+                html_content=tag_spec["html"],
+                firing_trigger_ids=firing_ids,
+            )
+            injected_tags.append(res)
+            console.print(f"  [green]✓[/green] Injected Tag: {tag_spec['name']} [dim]({res.get('status')})[/dim]")
+        except Exception as e:
+            console.print(f"  [yellow]![/yellow] Injected Tag: {tag_spec['name']} [dim](Skipped: {e})[/dim]")
+            injected_tags.append({
+                "name": tag_spec["name"],
+                "status": "skipped",
+                "error": str(e),
+            })
 
     # Also save importable GTM JSON container file
     gtm_json = generate_importable_gtm_json(gtm_draft, target_gtm)
