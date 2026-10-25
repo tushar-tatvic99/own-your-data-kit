@@ -43,3 +43,20 @@ class FixtureGTMReader:
             "simulated": True,
             "note": "Fixture mode — workspace not created in GTM API until credentials are configured",
         }
+
+    def get_or_create_migration_workspace(self, name: str = "OYDK Migration Draft") -> dict:
+        return self.create_migration_workspace(name)
+
+    def create_custom_html_tag(
+        self,
+        workspace_id: str,
+        name: str,
+        html_content: str,
+        firing_trigger_ids: list[str] | None = None,
+    ) -> dict:
+        return {
+            "name": name,
+            "tag_id": f"tag-simulated-{abs(hash(name)) % 10000}",
+            "status": "staged_in_fixture",
+            "note": "Fixture draft created",
+        }

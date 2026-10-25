@@ -17,6 +17,7 @@ ga4:
 gtm:
   account_id: "1234567"
   container_id: "7654321"
+  # workspace_id: "1"  # Optional: base-10 workspace ID (auto-detected if omitted)
   credentials_file: "credentials/ga-service-account.json"
 
 dpdp:

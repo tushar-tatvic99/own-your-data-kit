@@ -13,6 +13,7 @@ ga4:
 gtm:
   account_id: '6000000000'
   container_id: GTM-MMXM5L53
+  # workspace_id: '14'  # Optional: numeric workspace ID (auto-detected if omitted)
   credentials_file: credentials/ga-service-account.json
 dpdp:
   require_consent: true

@@ -35,6 +35,7 @@ def run_migration(
     config_path: str = "config/client.yaml",
     property_id: str | None = None,
     container_id: str | None = None,
+    workspace_id: str | None = None,
     dry_run: bool = False,
     fixture: bool = False,
 ) -> dict:
@@ -49,6 +50,8 @@ def run_migration(
         cfg.setdefault("ga4", {})["property_id"] = str(property_id)
     if container_id:
         cfg.setdefault("gtm", {})["container_id"] = str(container_id)
+    if workspace_id:
+        cfg.setdefault("gtm", {})["workspace_id"] = str(workspace_id)
 
     target_prop = cfg.get("ga4", {}).get("property_id", "Unknown")
     target_gtm = cfg.get("gtm", {}).get("container_id", "Unknown")
@@ -92,6 +95,7 @@ def run_migration(
         gtm = GTMReader(
             account_id=cfg.get("gtm", {}).get("account_id", "6000000000"),
             container_id=target_gtm,
+            workspace_id=cfg.get("gtm", {}).get("workspace_id"),
             credentials_path=cfg.get("gtm", {}).get("credentials_file", ""),
             dry_run=dry_run,
         )
@@ -153,8 +157,20 @@ def run_migration(
 
     # --- Step 4: Write GTM draft with staged tags ---
     console.print("\n[4/5] Staging changes in Google Tag Manager workspace (Draft Only)...")
-    workspace = gtm.create_migration_workspace("OYDK Migration Draft")
+    workspace = gtm.get_or_create_migration_workspace("OYDK Migration Draft")
     ws_id = workspace.get("workspace_id", "ws-draft-1001")
+    console.print(f"  • Draft Workspace Target: [cyan]{workspace.get('name', 'OYDK Migration Draft')}[/cyan] (ID: {ws_id})")
+
+    # Identify primary All Pages trigger if present
+    all_pages_trigger_id = None
+    for trig in gtm_container.get("triggers", []):
+        t_name = str(trig.get("name", "")).lower()
+        t_type = str(trig.get("type", "")).lower()
+        if "all pages" in t_name or t_type == "pageview":
+            all_pages_trigger_id = str(trig.get("trigger_id"))
+            break
+    if not all_pages_trigger_id:
+        all_pages_trigger_id = "2147479553"
 
     gtm_draft = generate_gtm_draft_changes(
         gtm_container["tags"],
@@ -164,11 +180,24 @@ def run_migration(
 
     injected_tags = []
     for tag_spec in gtm_draft:
+        firing_ids = []
+        if "Config" in tag_spec.get("name", ""):
+            firing_ids = [all_pages_trigger_id]
+        elif "replaces_ga4_tag" in tag_spec:
+            for orig_tag in gtm_container.get("tags", []):
+                if orig_tag.get("name") == tag_spec["replaces_ga4_tag"]:
+                    orig_firing = orig_tag.get("firing_trigger_id", [])
+                    if orig_firing:
+                        firing_ids = [str(fid) for fid in orig_firing]
+                    break
+        if not firing_ids and "Config" in tag_spec.get("name", ""):
+            firing_ids = [all_pages_trigger_id]
+
         res = gtm.create_custom_html_tag(
             workspace_id=ws_id,
             name=tag_spec["name"],
             html_content=tag_spec["html"],
-            firing_trigger_ids=["2147479553"] if "Config" in tag_spec["name"] else ["201"],
+            firing_trigger_ids=firing_ids,
         )
         injected_tags.append(res)
         console.print(f"  [green]✓[/green] Injected Tag: {tag_spec['name']} [dim]({res.get('status')})[/dim]")

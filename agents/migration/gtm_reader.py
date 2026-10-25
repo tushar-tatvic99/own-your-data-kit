@@ -64,11 +64,13 @@ class GTMReader:
         self,
         account_id: str,
         container_id: str,
+        workspace_id: str | None = None,
         credentials_path: str | None = None,
         dry_run: bool = False,
     ):
         self.account_id = str(account_id).strip()
         self.container_id = str(container_id).strip()
+        self.workspace_id = str(workspace_id).strip() if workspace_id else None
         self.credentials_path = credentials_path
         self.dry_run = dry_run
         self._container_path = f"accounts/{self.account_id}/containers/{self.container_id}"
@@ -108,13 +110,76 @@ class GTMReader:
                     f"Hint: Run with '--dry-run' if you wish to simulate without live Google authentication."
                 )
 
+        self._resolve_container_path()
+
+    def _resolve_container_path(self) -> None:
+        """Resolve numeric container ID if publicId (e.g. GTM-XXXX) was supplied."""
+        if not self.container_id.isdigit() and self.service:
+            try:
+                containers = (
+                    self.service.accounts()
+                    .containers()
+                    .list(parent=f"accounts/{self.account_id}")
+                    .execute()
+                    .get("container", [])
+                )
+                for c in containers:
+                    if c.get("publicId") == self.container_id:
+                        self.container_id = str(c.get("containerId"))
+                        self._container_path = f"accounts/{self.account_id}/containers/{self.container_id}"
+                        return
+            except Exception:
+                pass
+
+    def get_default_workspace_id(self) -> str:
+        """Resolve the active workspace ID (from config, or by discovering the Default Workspace)."""
+        if self.workspace_id:
+            return self.workspace_id
+        if self.dry_run:
+            self.workspace_id = "1"
+            return self.workspace_id
+
+        try:
+            workspaces_resp = (
+                self.service.accounts()
+                .containers()
+                .workspaces()
+                .list(parent=self._container_path)
+                .execute()
+            )
+            workspaces = workspaces_resp.get("workspace", [])
+            if not workspaces:
+                raise RuntimeError(
+                    f"No workspaces found in GTM Container '{self._container_path}'."
+                )
+
+            # Prioritize workspace named "Default Workspace"
+            for ws in workspaces:
+                if ws.get("name", "").strip().lower() == "default workspace":
+                    self.workspace_id = str(ws.get("workspaceId"))
+                    return self.workspace_id
+
+            # Fallback to the first available workspace
+            self.workspace_id = str(workspaces[0].get("workspaceId"))
+            return self.workspace_id
+        except Exception as e:
+            raise RuntimeError(
+                f"Google Tag Manager API error while listing workspaces in '{self._container_path}':\n"
+                f"{e}\n\n"
+                f"Action Required:\n"
+                f"1. Ensure the Service Account / ADC has 'Edit' or 'User' permission on GTM Container '{self.container_id}'.\n"
+                f"2. You can also specify 'gtm.workspace_id' in config/client.yaml or pass '--workspace-id <id>'.\n"
+                f"3. Run with '--dry-run' if you want to test migration workflows offline."
+            )
+
     def get_tags(self) -> list[dict[str, Any]]:
         """Harvest tags from live GTM container (or dry-run fixture)."""
         if self.dry_run:
             return DRY_RUN_TAGS
 
         try:
-            parent = f"{self._container_path}/workspaces/default"
+            ws_id = self.get_default_workspace_id()
+            parent = f"{self._container_path}/workspaces/{ws_id}"
             result = self.service.accounts().containers().workspaces().tags().list(parent=parent).execute()
             tags = []
             for tag in result.get("tag", []):
@@ -128,7 +193,7 @@ class GTMReader:
             return tags
         except Exception as e:
             raise RuntimeError(
-                f"Google Tag Manager API error while listing tags in '{self._container_path}':\n"
+                f"Google Tag Manager API error while listing tags in '{self._container_path}/workspaces/{getattr(self, 'workspace_id', 'default')}':\n"
                 f"{e}\n\n"
                 f"Action Required:\n"
                 f"1. Ensure the Service Account has 'Edit' or 'User' role in GTM Container '{self.container_id}'.\n"
@@ -142,7 +207,8 @@ class GTMReader:
             return DRY_RUN_TRIGGERS
 
         try:
-            parent = f"{self._container_path}/workspaces/default"
+            ws_id = self.get_default_workspace_id()
+            parent = f"{self._container_path}/workspaces/{ws_id}"
             result = self.service.accounts().containers().workspaces().triggers().list(parent=parent).execute()
             triggers = []
             for trigger in result.get("trigger", []):
@@ -155,7 +221,7 @@ class GTMReader:
             return triggers
         except Exception as e:
             raise RuntimeError(
-                f"Google Tag Manager API error while listing triggers in '{self._container_path}':\n{e}"
+                f"Google Tag Manager API error while listing triggers in '{self._container_path}/workspaces/{getattr(self, 'workspace_id', 'default')}':\n{e}"
             )
 
     def get_variables(self) -> list[dict[str, Any]]:
@@ -164,7 +230,8 @@ class GTMReader:
             return DRY_RUN_VARIABLES
 
         try:
-            parent = f"{self._container_path}/workspaces/default"
+            ws_id = self.get_default_workspace_id()
+            parent = f"{self._container_path}/workspaces/{ws_id}"
             result = self.service.accounts().containers().workspaces().variables().list(parent=parent).execute()
             variables = []
             for var in result.get("variable", []):
@@ -177,7 +244,7 @@ class GTMReader:
             return variables
         except Exception as e:
             raise RuntimeError(
-                f"Google Tag Manager API error while listing variables in '{self._container_path}':\n{e}"
+                f"Google Tag Manager API error while listing variables in '{self._container_path}/workspaces/{getattr(self, 'workspace_id', 'default')}':\n{e}"
             )
 
     def create_migration_workspace(self, name: str = "OYDK Migration Draft") -> dict[str, Any]:
@@ -258,6 +325,40 @@ class GTMReader:
 
         try:
             workspace_parent = f"{self._container_path}/workspaces/{workspace_id}"
+
+            # Idempotency check: if tag with this name already exists in workspace, update it
+            try:
+                existing_tags = (
+                    self.service.accounts()
+                    .containers()
+                    .workspaces()
+                    .tags()
+                    .list(parent=workspace_parent)
+                    .execute()
+                    .get("tag", [])
+                )
+                for existing in existing_tags:
+                    if existing.get("name") == name:
+                        tag_id = existing.get("tagId")
+                        tag_path = f"{workspace_parent}/tags/{tag_id}"
+                        tag_body["tagId"] = tag_id
+                        res = (
+                            self.service.accounts()
+                            .containers()
+                            .workspaces()
+                            .tags()
+                            .update(path=tag_path, body=tag_body)
+                            .execute()
+                        )
+                        return {
+                            "name": name,
+                            "tag_id": res.get("tagId"),
+                            "status": "updated_in_live_workspace",
+                            "note": "Draft tag updated in GTM Workspace",
+                        }
+            except Exception:
+                pass
+
             res = self.service.accounts().containers().workspaces().tags().create(
                 parent=workspace_parent,
                 body=tag_body,
