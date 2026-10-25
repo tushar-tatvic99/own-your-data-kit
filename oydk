@@ -6,5 +6,11 @@ if [ -f "$DIR/.venv/bin/python3" ]; then
 elif [ -f "$DIR/venv/bin/python3" ]; then
     exec "$DIR/venv/bin/python3" -m kit.cli "$@"
 else
+    if ! python3 -c "import click" 2>/dev/null; then
+        echo "Dependencies missing. Creating .venv and installing requirements..."
+        python3 -m venv "$DIR/.venv"
+        "$DIR/.venv/bin/pip" install --quiet -r "$DIR/requirements.txt"
+        exec "$DIR/.venv/bin/python3" -m kit.cli "$@"
+    fi
     exec python3 -m kit.cli "$@"
 fi
