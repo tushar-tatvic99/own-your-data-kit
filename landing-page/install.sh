@@ -125,20 +125,26 @@ if [ "$UNATTENDED" = false ]; then
     STACK_ENGINE="matomo"
   fi
 
-  echo -e "\n${BOLD}[3/4] Client Identification:${RESET}"
+  echo -e "\n${BOLD}[3/5] Client Identification:${RESET}"
   DEFAULT_CLIENT="client-$(date +%s | tail -c 4)"
   read_input "Enter Client Slug (default: $DEFAULT_CLIENT): " CLIENT_NAME "$DEFAULT_CLIENT"
 
   if [ "$TARGET_ENV" = "gcp" ]; then
     ACTIVE_GCP_PROJECT=$(gcloud config get-value project 2>/dev/null || echo "")
-    echo -e "\n${BOLD}[4/4] Google Cloud Configuration:${RESET}"
+    echo -e "\n${BOLD}[4/5] Google Cloud Configuration:${RESET}"
     read_input "Enter GCP Project ID (default: ${ACTIVE_GCP_PROJECT:-tvc-int-matomo}): " GCP_PROJECT "${ACTIVE_GCP_PROJECT:-tvc-int-matomo}"
   fi
+
+  echo -e "\n${BOLD}[5/5] GA4 & GTM Migration Source (Press Enter for practice property):${RESET}"
+  read_input "Enter GA4 Property ID (default: 61760469326): " GA4_PROPERTY_ID "61760469326"
+  read_input "Enter GTM Container ID (default: GTM-MMXM5L53): " GTM_CONTAINER_ID "GTM-MMXM5L53"
 fi
 
 # Fallback validation
 CLIENT_NAME="${CLIENT_NAME:-demo-client}"
 TARGET_ENV="${TARGET_ENV:-gcp}"
+GA4_PROPERTY_ID="${GA4_PROPERTY_ID:-61760469326}"
+GTM_CONTAINER_ID="${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
 
 echo -e "\n${BOLD}${BLUE}Deployment Configuration Summary:${RESET}"
 echo -e "--------------------------------------------------"
@@ -149,6 +155,8 @@ if [ "$TARGET_ENV" = "gcp" ]; then
   echo -e "  GCP Project     : ${BOLD}${GCP_PROJECT}${RESET}"
   echo -e "  Cloud Region    : ${BOLD}${GCP_REGION} (Mumbai, India)${RESET}"
 fi
+echo -e "  GA4 Property    : ${BOLD}${GA4_PROPERTY_ID}${RESET}"
+echo -e "  GTM Container   : ${BOLD}${GTM_CONTAINER_ID}${RESET}"
 echo -e "  Mode            : ${BOLD}$( [ "$DRY_RUN" = true ] && echo -e "${MAGENTA}DRY-RUN SIMULATION" || echo -e "${GREEN}LIVE EXECUTION" )${RESET}"
 echo -e "--------------------------------------------------"
 
@@ -218,6 +226,15 @@ stack:
   url: "${SIM_URL}"
   site_id: 1
   api_token: "simulated_token_5f18309ca2e10e1c1ff5c5b2cc760842"
+
+ga4:
+  property_id: "${GA4_PROPERTY_ID:-61760469326}"
+  credentials_file: "credentials/ga-service-account.json"
+
+gtm:
+  account_id: "6000000000"
+  container_id: "${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
+  credentials_file: "credentials/ga-service-account.json"
 
 dpdp:
   require_consent: true
@@ -381,12 +398,12 @@ stack:
   api_token: "${API_TOKEN}"
 
 ga4:
-  property_id: "61760469326"
+  property_id: "${GA4_PROPERTY_ID:-61760469326}"
   credentials_file: "credentials/ga-service-account.json"
 
 gtm:
   account_id: "6000000000"
-  container_id: "GTM-MMXM5L53"
+  container_id: "${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
   credentials_file: "credentials/ga-service-account.json"
 
 dpdp:

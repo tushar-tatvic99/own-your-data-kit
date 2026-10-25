@@ -30,20 +30,34 @@ from kit.adapters import get_stack_adapter
 console = Console()
 
 
-def run_migration(config_path: str = "config/client.yaml") -> dict:
+def run_migration(
+    config_path: str = "config/client.yaml",
+    property_id: str | None = None,
+    container_id: str | None = None,
+) -> dict:
     """Execute the full autonomous migration agent pipeline."""
     cfg = load_config(config_path)
     output_dir = Path(cfg.get("migration", {}).get("output_dir", "output/migration"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    if property_id:
+        cfg.setdefault("ga4", {})["property_id"] = str(property_id)
+    if container_id:
+        cfg.setdefault("gtm", {})["container_id"] = str(container_id)
+
+    target_prop = cfg.get("ga4", {}).get("property_id", "Unknown")
+    target_gtm = cfg.get("gtm", {}).get("container_id", "Unknown")
+
     console.print("\n[bold cyan]╔════════════════════════════════════════════════════════════╗[/bold cyan]")
     console.print("[bold cyan]║       TATVIC OYDK — AUTONOMOUS GA4 MIGRATION AGENT         ║[/bold cyan]")
     console.print("[bold cyan]╚════════════════════════════════════════════════════════════╝[/bold cyan]\n")
+    console.print(f"Target GA4 Property  : [bold green]{target_prop}[/bold green]")
+    console.print(f"Target GTM Container : [bold green]{target_gtm}[/bold green]\n")
 
     # --- Step 1: Read GA4 setup ---
     console.print("[1/5] Harvesting GA4 property configuration via APIs...")
     ga4 = GA4Reader(
-        property_id=cfg["ga4"]["property_id"],
+        property_id=target_prop,
         credentials_path=cfg["ga4"].get("credentials_file"),
     )
     ga4_setup = ga4.get_full_setup()

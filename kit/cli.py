@@ -124,11 +124,13 @@ def update(config: str, check_only: bool):
 
 @main.command()
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
-def migrate(config: str):
+@click.option("--property-id", "-p", default=None, help="GA4 Property ID (overrides config)")
+@click.option("--container-id", "-g", default=None, help="GTM Container ID (overrides config)")
+def migrate(config: str, property_id: str | None, container_id: str | None):
     """Run GA4/GTM migration agent."""
     from agents.migration.run import run_migration
 
-    run_migration(config)
+    run_migration(config_path=config, property_id=property_id, container_id=container_id)
 
 
 @main.command()
