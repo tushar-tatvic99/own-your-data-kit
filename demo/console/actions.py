@@ -34,7 +34,11 @@ def run_action(action_id: str, config_path: str, params: dict[str, Any]) -> dict
 
     def verify_parts():
         from kit.verify_parts import verify_all
-        return {"pass": verify_all(config_path)}
+
+        result = verify_all(config_path)
+        if isinstance(result, dict):
+            return result
+        return {"pass": bool(result), "parts": []}
 
     def verify_dpdp():
         from demo.console.dashboard import dpdp_dashboard

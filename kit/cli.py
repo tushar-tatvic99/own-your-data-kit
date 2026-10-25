@@ -138,7 +138,8 @@ def verify_parts(config: str):
     """Verify all five required build parts are present."""
     from kit.verify_parts import verify_all
 
-    ok = verify_all(config)
+    result = verify_all(config)
+    ok = result.get("pass") if isinstance(result, dict) else bool(result)
     raise SystemExit(0 if ok else 1)
 
 

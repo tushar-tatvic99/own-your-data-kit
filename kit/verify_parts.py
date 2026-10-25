@@ -1,6 +1,7 @@
 """Verify all five required build parts are present and runnable."""
 
 from pathlib import Path
+from typing import Any
 
 from rich.console import Console
 from rich.table import Table
@@ -10,7 +11,7 @@ console = Console()
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def verify_all(config_path: str = "config/client.yaml") -> bool:
+def verify_all(config_path: str = "config/client.yaml") -> dict[str, Any]:
     checks: list[tuple[str, str, bool, str]] = []
 
     # Part 1 — Deploy
@@ -95,14 +96,28 @@ def verify_all(config_path: str = "config/client.yaml") -> bool:
         )
     )
 
+    parts = [
+        {
+            "part": part,
+            "requirement": name,
+            "status": "PASS" if ok else "FAIL",
+            "location": loc,
+        }
+        for part, name, ok, loc in checks
+    ]
+    all_ok = all(p["status"] == "PASS" for p in parts)
+
     table = Table(title="Five build parts verification")
     table.add_column("Part")
     table.add_column("Requirement")
     table.add_column("Status")
     table.add_column("Location")
-    all_ok = True
-    for part, name, ok, loc in checks:
-        all_ok = all_ok and ok
-        table.add_row(part, name, "[green]PASS[/green]" if ok else "[red]FAIL[/red]", loc)
+    for row in parts:
+        table.add_row(
+            row["part"],
+            row["requirement"],
+            f"[green]{row['status']}[/green]" if row["status"] == "PASS" else f"[red]{row['status']}[/red]",
+            row["location"],
+        )
     console.print(table)
-    return all_ok
+    return {"pass": all_ok, "parts": parts}

@@ -469,100 +469,175 @@ function setModeUI(mode, navigateCustom) {
   if (navigateCustom && mode === "custom") activatePanel("deploy");
 }
 
-function formatSuiteEvidence(ev) {
-  if (!ev) return "";
-  const lines = [];
-  const m = ev.migration || {};
-  lines.push("=== Migration (last report) ===");
-  if ((m.dimensions || []).length) {
-    lines.push(
-      "Dimensions: " + m.dimensions.map((d) => d.name || d).join(", ")
-    );
-  } else {
-    lines.push("Dimensions: (none in report — run migrate_live)");
+function suiteStepSummary(s) {
+  const r = s.result || {};
+  if (r.parts?.length) {
+    const fail = r.parts.filter((p) => p.status !== "PASS").length;
+    return fail ? `${fail} part(s) failed` : `${r.parts.length} parts OK`;
   }
-  if ((m.goals || []).length) {
-    lines.push("Goals: " + m.goals.map((g) => g.name || g).join(", "));
+  if (r.dimensions || r.goals) {
+    return `${(r.dimensions || []).length} dims · ${(r.goals || []).length} goals`;
   }
-  if ((m.gtm_draft_changes || []).length) {
-    lines.push(
-      "GTM draft: " + m.gtm_draft_changes.map((c) => c.name || c).join(", ")
-    );
+  if (r.gaps?.length) {
+    const miss = r.gaps.filter((g) => !g.within_target).length;
+    return miss ? `${miss} metric(s) over threshold` : `all within ±${r.target_gap_percent ?? 5}%`;
   }
-  if ((m.unmigrated || []).length) {
-    lines.push("Unmigrated: " + m.unmigrated.map((u) => u.item || u).join("; "));
+  if (r.consent) {
+    return `consent ${r.consent.granted ?? 0}/${r.consent.denied ?? 0}`;
   }
-
-  const d = ev.dpdp || {};
-  lines.push("\n=== DPDP ===");
-  const c = d.consent || {};
-  lines.push(
-    `Shop consent granted/denied: ${c.granted ?? 0} / ${c.denied ?? 0} (${c.source || "—"})`
-  );
-  const shop = d.rights_requests || [];
-  if (shop.length) {
-    lines.push("Shop rights requests:");
-    shop.forEach((r) =>
-      lines.push(`  - ${r.ticketId || "—"} ${r.requestType || ""} ${r.status || ""}`)
-    );
-  } else {
-    lines.push("Shop rights requests: none (redeploy shop with /api/dpdp/summary if expected)");
-  }
-  const audit = d.audit_requests || [];
-  if (audit.length) {
-    lines.push("Erasure / DSAR audit (latest):");
-    audit.slice(0, 10).forEach((r) =>
-      lines.push(
-        `  - ${r.timestamp} ${r.action} ${r.resource} deleted=${r.visits_deleted ?? "—"}`
-      )
-    );
-  } else {
-    lines.push("Erasure / DSAR audit: no erasure rows in local/kit audit log");
-  }
-
-  const p = ev.parity || {};
-  lines.push("\n=== Parity (daily log, last 2 days) ===");
-  (p.daily_last_2_days || []).forEach((row) => {
-    lines.push(
-      `  ${row.report_date}: within_target=${row.all_within_target} missed=${row.missed_metrics || row.missed_count}`
-    );
-  });
-  const latest = p.latest_report;
-  if (latest?.gaps) {
-    lines.push(`Latest run ${latest.date} (${latest.mode || ""}):`);
-    latest.gaps.forEach((g) =>
-      lines.push(`  ${g.metric}: GA4=${g.ga4} Matomo=${g.matomo} gap=${g.gap_percent}% ${g.within_target ? "OK" : "MISS"}`)
-    );
-  }
-  lines.push("\nTip: Parity tab = full tables + email preview. DPDP tab = live shop + audit. Migration tab = dimension/goal tables.");
-  lines.push("Demo break tag: Parity panel → “Demo break” (parity_break_purchase).");
-  return lines.join("\n");
+  if (r.message) return String(r.message);
+  if (r.pass === true) return "passed";
+  if (r.pass === false) return "failed";
+  if (s.stderr) return s.stderr.trim().split("\n")[0].slice(0, 100);
+  return s.status === "ok" ? "done" : "error";
 }
 
-function formatSuiteSteps(steps) {
-  return (steps || [])
-    .map((s) => {
-      let line = `${s.status === "ok" ? "✓" : "✗"} ${s.label}`;
-      const r = s.result;
-      if (r?.dimensions?.length) line += ` — ${r.dimensions.length} dims`;
-      if (r?.goals?.length) line += `, ${r.goals.length} goals`;
-      if (r?.gaps?.length) {
-        const miss = r.gaps.filter((g) => !g.within_target).length;
-        line += ` — ${r.date}: ${miss ? miss + " MISS" : "all OK"}`;
-      }
-      if (s.stderr) line += `\n    ${s.stderr.trim()}`;
-      if (s.stdout && s.status === "ok" && !r?.gaps) {
-        const snippet = s.stdout.trim().split("\n").slice(-6).join("\n    ");
-        if (snippet) line += `\n    ${snippet}`;
-      }
-      return line;
-    })
+function suiteStepDetailHtml(s) {
+  const r = s.result || {};
+  const blocks = [];
+  if (r.parts?.length) {
+    blocks.push(
+      renderTableHtml(
+        ["part", "requirement", "status", "location"],
+        r.parts.map((p) => ({
+          part: p.part,
+          requirement: p.requirement,
+          status: p.status,
+          location: p.location,
+        }))
+      )
+    );
+  }
+  if (r.dimensions?.length) {
+    blocks.push("<h4>Dimensions</h4>");
+    blocks.push(
+      renderTableHtml(
+        ["name", "scope"],
+        r.dimensions.map((d) => ({
+          name: d.name || d.dimension || String(d),
+          scope: d.scope || d.type || "",
+        }))
+      )
+    );
+  }
+  if (r.goals?.length) {
+    blocks.push("<h4>Goals</h4>");
+    blocks.push(
+      renderTableHtml(
+        ["name", "id"],
+        r.goals.map((g) => ({
+          name: g.name || String(g),
+          id: g.id ?? g.goal_id ?? "",
+        }))
+      )
+    );
+  }
+  if (r.gaps?.length) {
+    blocks.push("<h4>Parity gaps</h4>");
+    blocks.push(
+      renderTableHtml(
+        ["date", "metric", "ga4", "matomo", "gap_percent", "status"],
+        r.gaps.map((g) => ({
+          date: g.date || r.date || "",
+          metric: g.metric,
+          ga4: g.ga4,
+          matomo: g.matomo,
+          gap_percent: `${g.gap_percent}%`,
+          status: g.within_target ? "OK" : "MISS",
+        }))
+      )
+    );
+  }
+  if (r.rights_requests?.length) {
+    blocks.push("<h4>Shop rights requests</h4>");
+    blocks.push(
+      renderTableHtml(
+        ["ticketId", "requestType", "status", "currentStage"],
+        r.rights_requests
+      )
+    );
+  }
+  if (r.audit_requests?.length) {
+    blocks.push("<h4>Erasure / DSAR audit</h4>");
+    blocks.push(
+      renderTableHtml(
+        ["timestamp", "action", "resource", "visits_deleted"],
+        r.audit_requests.slice(0, 8).map((a) => ({
+          timestamp: a.timestamp,
+          action: a.action,
+          resource: a.resource,
+          visits_deleted: a.visits_deleted ?? "",
+        }))
+      )
+    );
+  }
+  if (r.consent && !r.parts) {
+    blocks.push(
+      `<p class="hint">Consent granted ${r.consent.granted ?? 0} · denied ${r.consent.denied ?? 0}</p>`
+    );
+  }
+  if (s.stderr?.trim() && s.status !== "ok") {
+    blocks.push(`<p class="hint suite-err">${esc(s.stderr.trim().slice(0, 400))}</p>`);
+  }
+  if (!blocks.length) {
+    blocks.push(`<p class="hint">${esc(suiteStepSummary(s))}</p>`);
+  }
+  return blocks.join("");
+}
+
+function renderSuiteReport(data) {
+  const root = document.getElementById("suite-report");
+  if (!root) return;
+  const steps = data.steps || [];
+  if (!steps.length) {
+    root.innerHTML = `<p class="hint">No suite steps returned.</p>`;
+    return;
+  }
+  const summaryRows = steps.map((s, i) => ({
+    step: String(i + 1),
+    check: s.label || s.action,
+    status: s.status === "ok" ? "PASS" : "FAIL",
+    summary: suiteStepSummary(s),
+  }));
+  const details = steps
+    .map(
+      (s, i) => `
+      <details class="suite-step">
+        <summary>
+          <span class="suite-step-num">${i + 1}</span>
+          <span class="suite-step-label">${esc(s.label || s.action)}</span>
+          <span class="tag ${s.status === "ok" ? "fixture" : "live"}">${s.status === "ok" ? "PASS" : "FAIL"}</span>
+        </summary>
+        <div class="suite-step-body">${suiteStepDetailHtml(s)}</div>
+      </details>`
+    )
+    .join("");
+  root.innerHTML = `
+    <div class="consent-cards migration-summary-cards">
+      <div class="stat-card"><span>Steps</span><strong>${steps.length}</strong><small>in this run</small></div>
+      <div class="stat-card"><span>Passed</span><strong>${steps.filter((s) => s.status === "ok").length}</strong><small>OK</small></div>
+      <div class="stat-card"><span>Failed</span><strong>${steps.filter((s) => s.status !== "ok").length}</strong><small>needs review</small></div>
+      <div class="stat-card"><span>Overall</span><strong>${data.status === "ok" ? "OK" : "Partial"}</strong><small>${esc(data.config || "")}</small></div>
+    </div>
+    <h4>Step overview</h4>
+    ${renderTableHtml(["step", "check", "status", "summary"], summaryRows)}
+    <h4>Step details</h4>
+    <div class="suite-steps">${details}</div>`;
+}
+
+function suiteReportPlainText(data) {
+  return (data.steps || [])
+    .map((s, i) => `${i + 1}. ${s.status === "ok" ? "PASS" : "FAIL"} ${s.label} — ${suiteStepSummary(s)}`)
     .join("\n");
 }
 
 async function runDemoSuite(fixtureOnly) {
   if (busy) return;
   busy = true;
+  const report = document.getElementById("suite-report");
+  if (report) {
+    report.innerHTML = `<p class="hint">${fixtureOnly ? "Running fixture-only suite…" : "Running default connection suite…"}</p>`;
+  }
   setPanelOutput("demo", fixtureOnly ? "Running fixture-only suite…" : "Running default connection suite…", false);
   const buckets = { demo: [], migration: [], dpdp: [], parity: [], connectors: [], bq: [] };
   try {
@@ -570,20 +645,18 @@ async function runDemoSuite(fixtureOnly) {
     (data.steps || []).forEach((s) => {
       const panel = ACTION_PANEL[s.action] || "demo";
       if (!buckets[panel]) buckets[panel] = [];
-      buckets[panel].push(formatStepBlock(s));
+      buckets[panel].push(`${s.status === "ok" ? "PASS" : "FAIL"} ${s.label} — ${suiteStepSummary(s)}`);
     });
     Object.entries(buckets).forEach(([panel, lines]) => {
-      if (lines.length) setPanelOutput(panel, lines.join("\n\n---\n\n"), data.status === "partial");
+      if (lines.length) setPanelOutput(panel, lines.join("\n"), data.status === "partial");
     });
-    const combined =
-      formatSuiteSteps(data.steps) +
-      "\n\n" +
-      formatSuiteEvidence(data.evidence);
-    setPanelOutput("demo", combined, data.status === "partial");
+    renderSuiteReport(data);
+    setPanelOutput("demo", suiteReportPlainText(data), data.status === "partial");
     loadParityDashboard();
     loadMigrationDashboard();
     loadDpdpDashboard();
   } catch (e) {
+    if (report) report.innerHTML = `<p class="hint suite-err">${esc(String(e))}</p>`;
     setPanelOutput("demo", String(e), true);
   } finally {
     busy = false;
