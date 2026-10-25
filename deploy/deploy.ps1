@@ -123,21 +123,34 @@ $VmName = "${ClientName}-analytics"
 $VmFlags = @("--zone=$Zone", "--project=$ProjectId", "--quiet", "--strict-host-key-checking=no")
 
 Write-Host "[3/7] Copying kit to server ($KitRemote)..."
+# Static IPs get reused across VMs; drop PuTTY's cached key for this IP so plink
+# doesn't raise a host-key mismatch warning against the new VM
+$PuttyKeys = "HKCU:\Software\SimonTatham\PuTTY\SshHostKeys"
+if (Test-Path $PuttyKeys) {
+    (Get-Item $PuttyKeys).Property | Where-Object { $_ -like "*:$AnalyticsIp" } |
+        ForEach-Object { Remove-ItemProperty -Path $PuttyKeys -Name $_ }
+}
+
 # A freshly created VM refuses SSH until it has finished booting
 for ($i = 1; $i -le 18; $i++) {
     gcloud compute ssh $VmName @VmFlags `
-        --command="sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
+        --command="sudo mkdir -p $KitRemote/deploy && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
     if ($LASTEXITCODE -eq 0) { break }
     if ($i -eq 18) { throw "SSH to $VmName failed after 3 minutes" }
     Write-Host "  VM not accepting SSH yet, retrying in 10s... ($i/18)"
     Start-Sleep -Seconds 10
 }
 
-$ScpSources = @("deploy", "kit", "agents", "dpdp", "connectors", "config", "requirements.txt", "docs") |
+# deploy\terraform holds ~100 MB of provider binaries and state files with
+# secrets; the VM needs only the rest of deploy\
+$DeploySources = @(Get-ChildItem (Join-Path $RootDir "deploy") | Where-Object Name -ne "terraform" | ForEach-Object FullName)
+$KitSources = @("kit", "agents", "dpdp", "connectors", "config", "requirements.txt", "docs") |
     ForEach-Object { Join-Path $RootDir $_ } | Where-Object { Test-Path $_ }
-$ScpArgs = @("compute", "scp", "--recurse") + $ScpSources + @("${VmName}:${KitRemote}/") + $VmFlags
-gcloud @ScpArgs
-if ($LASTEXITCODE -ne 0) { throw "Copying kit to $VmName failed" }
+foreach ($copy in @(@{ Src = $DeploySources; Dest = "${KitRemote}/deploy/" }, @{ Src = @($KitSources); Dest = "${KitRemote}/" })) {
+    $ScpArgs = @("compute", "scp", "--recurse") + $copy.Src + @("${VmName}:$($copy.Dest)") + $VmFlags
+    gcloud @ScpArgs
+    if ($LASTEXITCODE -ne 0) { throw "Copying kit to $VmName failed" }
+}
 
 Write-Host "[4/7] Configuring environment and TLS..."
 # Remote content travels base64-encoded inside --command: stdin is unusable because

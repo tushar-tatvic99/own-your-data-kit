@@ -75,6 +75,46 @@ function Prompt-User([string]$prompt, [string]$defaultVal) {
     }
 }
 
+# New laptops: install the Google Cloud CLI if missing, then make sure both the
+# CLI login and Application Default Credentials (used by Terraform) are valid
+function Initialize-GcloudAuth {
+    $ErrorActionPreference = "Continue"  # gcloud writes progress to stderr
+    if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
+        Write-Host "`nGoogle Cloud CLI not found - installing it..." -ForegroundColor Yellow
+        if (Get-Command winget -ErrorAction SilentlyContinue) {
+            winget install --exact --id Google.CloudSDK --silent --accept-package-agreements --accept-source-agreements
+        } else {
+            $SdkInstaller = Join-Path $env:TEMP "GoogleCloudSDKInstaller.exe"
+            Invoke-WebRequest -UseBasicParsing -Uri "https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe" -OutFile $SdkInstaller
+            Start-Process $SdkInstaller -Wait
+        }
+        # The installer only updates PATH for new shells
+        $env:PATH = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+        foreach ($dir in @("$env:LOCALAPPDATA\Google\Cloud SDK\google-cloud-sdk\bin", "${env:ProgramFiles(x86)}\Google\Cloud SDK\google-cloud-sdk\bin", "$env:ProgramFiles\Google\Cloud SDK\google-cloud-sdk\bin")) {
+            if (Test-Path (Join-Path $dir "gcloud.cmd")) { $env:PATH = "$dir;$env:PATH"; break }
+        }
+        if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
+            throw "Google Cloud CLI installation did not complete. Install it from https://cloud.google.com/sdk/docs/install and re-run."
+        }
+        Write-Host "[OK] Google Cloud CLI installed" -ForegroundColor Green
+    }
+
+    gcloud auth print-access-token --quiet 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "`nSign in to Google Cloud (a browser window will open)..." -ForegroundColor Yellow
+        gcloud auth login
+        if ($LASTEXITCODE -ne 0) { throw "gcloud auth login failed" }
+    }
+    gcloud auth application-default print-access-token 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "`nAuthorise Terraform with Application Default Credentials (a browser window will open)..." -ForegroundColor Yellow
+        gcloud auth application-default login
+        if ($LASTEXITCODE -ne 0) { throw "gcloud auth application-default login failed" }
+    }
+    $Account = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>$null
+    Write-Host "[OK] Signed in to Google Cloud as $Account" -ForegroundColor Green
+}
+
 # Interactive Prompts if not unattended and parameters missing
 if (-not $Unattended) {
     if (-not $Target -and -not $DryRun) {
@@ -92,6 +132,9 @@ if (-not $Unattended) {
             $Target = "gcp"
         }
     }
+
+    # Sign in before any other question: the project prompt reads gcloud config
+    if (-not $DryRun -and $Target -eq "gcp") { Initialize-GcloudAuth }
 
     if (-not $DryRun -and $Target -eq "gcp" -and -not $ProjectId) {
         $activeProject = ""
@@ -270,10 +313,8 @@ if ($Target -eq "on-premise") {
     & "$RootDir\deploy\deploy.ps1" -ProjectId local
 } elseif ($Target -eq "gcp") {
     Write-Host "`nExecuting GCP Cloud Deployment in India ($Region)..." -ForegroundColor Cyan
-    if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
-        Write-Error "Google Cloud SDK (gcloud) is not installed or not in PATH."
-        exit 1
-    }
+    # Covers -Unattended runs; a quick no-op when already signed in interactively
+    Initialize-GcloudAuth
     $LocalTfDir = Join-Path "$RootDir" ".tools\bin"
     $LocalTf = Join-Path $LocalTfDir "terraform.exe"
     if (Test-Path $LocalTf) {
