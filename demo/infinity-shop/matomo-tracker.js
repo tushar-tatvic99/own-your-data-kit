@@ -483,6 +483,11 @@ const MatomoTracker = (function () {
     return [...eventLog];
   }
 
+  
+  function trackCategoryView(categoryName) {
+    trackCustomEvent('Catalog', 'Category View', categoryName, 1);
+  }
+
   function clearLog() {
     eventLog.length = 0;
     listeners.forEach(fn => fn(null, eventLog));
@@ -511,6 +516,7 @@ const MatomoTracker = (function () {
     trackGiftService,
     trackCurrencyChange,
     trackSiteSearch,
+    trackCategoryView,
     onEvent,
     getEventLog,
     clearLog
@@ -519,3 +525,5 @@ const MatomoTracker = (function () {
 
 // Auto-initialize standard tracker
 MatomoTracker.init();
+
+if (typeof window !== 'undefined') { window.MatomoTracker = MatomoTracker; }

@@ -1408,22 +1408,24 @@ categoryTabs?.addEventListener('click', (e) => {
   if (btn) {
     document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    state.activeCategory = btn.getAttribute('data-category');
+    state.activeCategory = btn.getAttribute('data-category') || 'all';
 
-    // Matomo Category View & Filter Tracking
-    if (typeof MatomoTracker !== 'undefined') {
-      const catLabel = btn.textContent.trim();
-      MatomoTracker.trackCategoryView(catLabel);
-      MatomoTracker.trackCustomEvent('Catalog', 'Category Filter Applied', state.activeCategory);
-    }
-
+    // 1. Instantly re-render classified products for the selected category
     renderProducts();
 
-    // Auto-scroll slightly so filtered items are immediately in clear view
-    const curationsEl = document.getElementById('curations');
-    if (curationsEl) {
-      // Keep scroll position smooth without jumping beneath header
-    // curationsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // 2. Analytics Tracking (Safely wrapped so telemetry never blocks UI rendering)
+    try {
+      if (typeof MatomoTracker !== 'undefined') {
+        const catLabel = btn.textContent.trim();
+        if (typeof MatomoTracker.trackCategoryView === 'function') {
+          MatomoTracker.trackCategoryView(catLabel);
+        }
+        if (typeof MatomoTracker.trackCustomEvent === 'function') {
+          MatomoTracker.trackCustomEvent('Catalog', 'Category Filter Applied', state.activeCategory);
+        }
+      }
+    } catch (err) {
+      console.warn('Analytics tracking error:', err);
     }
   }
 });
@@ -1455,7 +1457,7 @@ currencySelect?.addEventListener('change', (e) => {
 });
 
 // Product Card Click Delegation (Add to cart, Wishlist, Quick view)
-productsGrid.addEventListener('click', (e) => {
+productsGrid?.addEventListener('click', (e) => {
   const addBtn = e.target.closest('[data-add-id]');
   if (addBtn) {
     const id = addBtn.getAttribute('data-add-id');
@@ -1483,7 +1485,7 @@ productsGrid.addEventListener('click', (e) => {
 });
 
 // Cart Drawer Interaction Delegation
-cartItemsList.addEventListener('click', (e) => {
+cartItemsList?.addEventListener('click', (e) => {
   const incBtn = e.target.closest('[data-cart-action="inc"]');
   if (incBtn) {
     const id = incBtn.getAttribute('data-id');
@@ -1537,7 +1539,7 @@ cartItemsList.addEventListener('click', (e) => {
 });
 
 // Wishlist Drawer Interaction Delegation
-wishlistItemsList.addEventListener('click', (e) => {
+wishlistItemsList?.addEventListener('click', (e) => {
   const moveBtn = e.target.closest('[data-move-to-cart]');
   if (moveBtn) {
     const id = moveBtn.getAttribute('data-move-to-cart');
@@ -2289,6 +2291,33 @@ function initBfsiEngine() {
           showToast('🏛️', 'Application Logged', `Reference Ticket: ${refId}`);
         }
       });
+    });
+  }
+}
+
+
+// ================= MOBILE NAVIGATION TOGGLE =================
+function initMobileNav() {
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const siteHeader = document.getElementById('siteHeader');
+  const mainNavLinks = document.querySelectorAll('#mainNav a, #mobileNavPanel a');
+
+  if (mobileMenuBtn && siteHeader) {
+    mobileMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      siteHeader.classList.toggle('mobile-nav-open');
+    });
+
+    mainNavLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        siteHeader.classList.remove('mobile-nav-open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!siteHeader.contains(e.target)) {
+        siteHeader.classList.remove('mobile-nav-open');
+      }
     });
   }
 }
