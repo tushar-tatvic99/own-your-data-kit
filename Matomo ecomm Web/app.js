@@ -227,6 +227,186 @@ const PRODUCTS = [
       "Anti-magnetic mineral glass display dome"
     ],
     "details": "Grade-5 Titanium • 8-Day Reserve"
+  },
+  {
+    "id": "p11",
+    "name": "Geneva Perpetual Calendar Chronograph",
+    "category": "horology",
+    "categoryLabel": "SWISS HOROLOGY",
+    "price": 780,
+    "rating": 4.99,
+    "reviews": 64,
+    "badge": "Heritage Tier",
+    "image": "assets/images/perfume.jpg",
+    "description": "Hand-assembled Swiss chronograph with perpetual moonphase dial and alligator strap.",
+    "highlights": [
+      "Perpetual calendar complication accurate to 2100",
+      "Hand-polished 18k rose gold bezel",
+      "Sapphire exhibition case back with engraved rotor"
+    ],
+    "details": "42mm Rose Gold • 28,800 vph Calibre"
+  },
+  {
+    "id": "p12",
+    "name": "Zurich Dual-Time Aviator Calibre",
+    "category": "horology",
+    "categoryLabel": "SWISS HOROLOGY",
+    "price": 520,
+    "rating": 4.96,
+    "reviews": 112,
+    "badge": "Aviator Edition",
+    "image": "assets/images/perfume.jpg",
+    "description": "Anti-magnetic pilot chronometer featuring dual-time timezone complication and luminescent dial.",
+    "highlights": [
+      "Independently adjustable 24-hour GMT hour hand",
+      "Brushed ceramic bi-directional rotatable bezel",
+      "Water resistant to 150 meters with screw-down crown"
+    ],
+    "details": "40mm Matte Titanium • Calibre 3285"
+  },
+  {
+    "id": "p13",
+    "name": "1 oz Pure Platinum Sovereign Ingot",
+    "category": "bullion",
+    "categoryLabel": "PRECIOUS METALS",
+    "price": 490,
+    "rating": 4.98,
+    "reviews": 83,
+    "badge": "999.5 Platinum",
+    "image": "assets/images/serum.jpg",
+    "description": "One troy ounce investment-grade 99.95% pure platinum bar struck by LBMA certified refiner.",
+    "highlights": [
+      "Certified 999.5 pure physical platinum ingot",
+      "Tamper-evident security blister with serial assay card",
+      "Allocated Zurich and London bullion vault eligibility"
+    ],
+    "details": "31.1g (1 oz) • 99.95% Pure Platinum"
+  },
+  {
+    "id": "p14",
+    "name": "Allocated 50g Fine Minted Gold Bar",
+    "category": "bullion",
+    "categoryLabel": "PRECIOUS METALS",
+    "price": 360,
+    "rating": 4.99,
+    "reviews": 147,
+    "badge": "LBMA Certified",
+    "image": "assets/images/serum.jpg",
+    "description": "50 grams of 99.99% fine 24-karat investment gold with laser-etched holographic security.",
+    "highlights": [
+      "999.9 fine investment-grade bullion purity",
+      "Laser-etched micro-security verifiable via QR",
+      "Direct allocated depository delivery ready"
+    ],
+    "details": "50g • 99.99% 24K Fine Gold"
+  },
+  {
+    "id": "p15",
+    "name": "Sovereign Cold-Storage Ledger",
+    "category": "security",
+    "categoryLabel": "SECURITY & VAULT",
+    "price": 275,
+    "rating": 4.97,
+    "reviews": 92,
+    "badge": "Air-Gapped",
+    "image": "assets/images/silk.jpg",
+    "description": "Air-gapped cryptographic signing device with dual OLED screens and optic QR transmission.",
+    "highlights": [
+      "100% air-gapped architecture with zero wireless radios",
+      "Dual secure elements (CC EAL6+) for asset isolation",
+      "Tamper-proof brushed aerospace aluminum chassis"
+    ],
+    "details": "Aerospace Alloy • Optical QR Airgap"
+  },
+  {
+    "id": "p16",
+    "name": "Hardened Aerospace Alloy Lockbox",
+    "category": "security",
+    "categoryLabel": "SECURITY & VAULT",
+    "price": 390,
+    "rating": 4.94,
+    "reviews": 51,
+    "badge": "Ballistic Grade",
+    "image": "assets/images/silk.jpg",
+    "description": "Heavy-duty biometric vault box with dual optical sensors and emergency mechanical keyway.",
+    "highlights": [
+      "Solid milled CNC 7075 aircraft aluminum housing",
+      "Dual capacitive fingerprint recognition system",
+      "Integrated accelerometer anti-tamper alarm siren"
+    ],
+    "details": "7075 Aluminum • Sub-0.2s Unlock"
+  },
+  {
+    "id": "p17",
+    "name": "Florentine Diamond Pavé Solitaire Pin",
+    "category": "jewelry",
+    "categoryLabel": "BESPOKE JEWELRY",
+    "price": 540,
+    "rating": 4.96,
+    "reviews": 73,
+    "badge": "VVS1 Diamond",
+    "image": "assets/images/pearl.jpg",
+    "description": "Artisan lapel pin handcrafted in Florence featuring brilliant-cut conflict-free diamonds.",
+    "highlights": [
+      "Hand-set VVS1 clarity pavé diamonds in 18k white gold",
+      "Traditional Florentine hand-engraved satin border",
+      "Secure double-locking clutch mechanism"
+    ],
+    "details": "18k White Gold • 0.85ct Diamond Pavé"
+  },
+  {
+    "id": "p18",
+    "name": "Handcrafted Platinum Cable Bracelet",
+    "category": "jewelry",
+    "categoryLabel": "BESPOKE JEWELRY",
+    "price": 430,
+    "rating": 4.93,
+    "reviews": 68,
+    "badge": "950 Platinum",
+    "image": "assets/images/pearl.jpg",
+    "description": "Twisted cable cuff bracelet forged from solid 950 platinum with brushed micro-texture.",
+    "highlights": [
+      "Solid forged 950 investment-grade platinum",
+      "Concealed magnetic clasp with security latch",
+      "Hypoallergenic and highly resistant to oxidation"
+    ],
+    "details": "950 Solid Platinum • 28g Net Weight"
+  },
+  {
+    "id": "p19",
+    "name": "Florentine Full-Grain Leather Briefcase",
+    "category": "lifestyle",
+    "categoryLabel": "EXECUTIVE LIVING",
+    "price": 480,
+    "rating": 4.97,
+    "reviews": 110,
+    "badge": "Hand-Stitched",
+    "image": "assets/images/hero_banner.jpg",
+    "description": "Tuscan vegetable-tanned calfskin executive attaché with padded laptop compartment and brass hardware.",
+    "highlights": [
+      "Full-grain Tuscan vegetable-tanned leather that patinas beautifully",
+      "Swiss-engineered solid brass key lock and hardware",
+      "Tailored internal organizer with pen slots and tablet pocket"
+    ],
+    "details": "Florentine Calfskin • Solid Brass Locks"
+  },
+  {
+    "id": "p20",
+    "name": "Mulberry Silk Ergonomic Sleep Suite",
+    "category": "lifestyle",
+    "categoryLabel": "EXECUTIVE LIVING",
+    "price": 140,
+    "rating": 4.92,
+    "reviews": 154,
+    "badge": "22-Momme Silk",
+    "image": "assets/images/souffle.jpg",
+    "description": "Pure 22-Momme Grade-6A mulberry silk pillowcases and contoured blackout eye mask set.",
+    "highlights": [
+      "100% pure Grade-6A long-strand mulberry silk",
+      "Natural hypoallergenic amino-acid skin protection",
+      "Includes silk travel pouch and gentle laundering bag"
+    ],
+    "details": "Pair of King Pillowcases + Mask"
   }
 ];
 
@@ -1242,7 +1422,8 @@ categoryTabs.addEventListener('click', (e) => {
     // Auto-scroll slightly so filtered items are immediately in clear view
     const curationsEl = document.getElementById('curations');
     if (curationsEl) {
-      curationsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Keep scroll position smooth without jumping beneath header
+    // curationsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
 });
