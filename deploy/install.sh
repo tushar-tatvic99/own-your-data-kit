@@ -67,6 +67,7 @@ GCP_PROJECT=""
 GCP_REGION="asia-south1"
 GCP_ZONE="asia-south1-a"
 STACK_ENGINE="matomo"
+MIGRATE_GA4=true
 UNATTENDED=false
 DRY_RUN=false
 
@@ -79,6 +80,7 @@ while [[ $# -gt 0 ]]; do
     --client) CLIENT_NAME="$2"; shift 2 ;;
     --engine) STACK_ENGINE="$2"; shift 2 ;;
     --region) GCP_REGION="$2"; shift 2 ;;
+    --skip-migration|--no-migration) MIGRATE_GA4=false; shift ;;
     --unattended) UNATTENDED=true; shift ;;
     *) echo -e "${RED}Unknown argument: $1${RESET}"; exit 1 ;;
   esac
@@ -135,17 +137,31 @@ if [ "$UNATTENDED" = false ]; then
     read_input "Enter GCP Project ID (default: ${ACTIVE_GCP_PROJECT:-tvc-int-matomo}): " GCP_PROJECT "${ACTIVE_GCP_PROJECT:-tvc-int-matomo}"
   fi
 
-  echo -e "\n${BOLD}[5/5] GA4 & GTM Migration Source (Press Enter for practice property):${RESET}"
-  read_input "Enter GA4 Property ID (default: 61760469326): " GA4_PROPERTY_ID "61760469326"
-  read_input "Enter GTM Account ID (default: 6000000000): " GTM_ACCOUNT_ID "6000000000"
-  read_input "Enter GTM Container ID (default: GTM-MMXM5L53): " GTM_CONTAINER_ID "GTM-MMXM5L53"
-  read_input "Enter Service Account JSON key path (default: credentials/ga-service-account.json): " GA4_CREDENTIALS "credentials/ga-service-account.json"
+  echo -e "\n${BOLD}[5/7] GA4 & GTM Migration Source (Optional):${RESET}"
+  read_input "Do you want to configure GA4 & GTM migration? (y/n, default: y): " MIGRATE_GA4_CHOICE "y"
+  if [[ "$MIGRATE_GA4_CHOICE" =~ ^[Yy] ]]; then
+    MIGRATE_GA4=true
+    read_input "Enter GA4 Property ID (default: 560630351): " GA4_PROPERTY_ID "560630351"
+    read_input "Enter GTM Account ID (default: 6399646488): " GTM_ACCOUNT_ID "6399646488"
+    read_input "Enter GTM Container ID (numeric, default: 283402441): " GTM_CONTAINER_ID "283402441"
+    if [[ "$GTM_CONTAINER_ID" =~ ^GTM- ]]; then
+      echo -e "  ${YELLOW}⚠ Note: '$GTM_CONTAINER_ID' is a public GTM ID. The GTM API requires a numeric container ID (e.g. 283402441).${RESET}"
+    fi
+    read_input "Enter Service Account JSON key path (default: credentials/ga-service-account.json): " GA4_CREDENTIALS "credentials/ga-service-account.json"
 
-  if [ -f "$GA4_CREDENTIALS" ] && [ "$GA4_CREDENTIALS" != "credentials/ga-service-account.json" ]; then
-    mkdir -p "$ROOT_DIR/credentials"
-    cp "$GA4_CREDENTIALS" "$ROOT_DIR/credentials/ga-service-account.json"
-    GA4_CREDENTIALS="credentials/ga-service-account.json"
-    echo -e "  ${GREEN}✓ Copied service account key to credentials/ga-service-account.json${RESET}"
+    if [ -f "$GA4_CREDENTIALS" ] && [ "$GA4_CREDENTIALS" != "credentials/ga-service-account.json" ]; then
+      mkdir -p "$ROOT_DIR/credentials"
+      cp "$GA4_CREDENTIALS" "$ROOT_DIR/credentials/ga-service-account.json"
+      GA4_CREDENTIALS="credentials/ga-service-account.json"
+      echo -e "  ${GREEN}✓ Copied service account key to credentials/ga-service-account.json${RESET}"
+    fi
+  else
+    MIGRATE_GA4=false
+    GA4_PROPERTY_ID=""
+    GTM_ACCOUNT_ID=""
+    GTM_CONTAINER_ID=""
+    GA4_CREDENTIALS=""
+    echo -e "  ${CYAN}ℹ Skipping GA4 & GTM migration configuration (fresh setup).${RESET}"
   fi
 
   echo -e "\n${BOLD}[6/7] Parity Assurance & Alert Configuration:${RESET}"
@@ -168,10 +184,18 @@ fi
 # Fallback validation
 CLIENT_NAME="${CLIENT_NAME:-demo-client}"
 TARGET_ENV="${TARGET_ENV:-gcp}"
-GA4_PROPERTY_ID="${GA4_PROPERTY_ID:-61760469326}"
-GTM_ACCOUNT_ID="${GTM_ACCOUNT_ID:-6000000000}"
-GTM_CONTAINER_ID="${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
-GA4_CREDENTIALS="${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
+MIGRATE_GA4="${MIGRATE_GA4:-true}"
+if [ "$MIGRATE_GA4" = true ]; then
+  GA4_PROPERTY_ID="${GA4_PROPERTY_ID:-560630351}"
+  GTM_ACCOUNT_ID="${GTM_ACCOUNT_ID:-6399646488}"
+  GTM_CONTAINER_ID="${GTM_CONTAINER_ID:-283402441}"
+  GA4_CREDENTIALS="${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
+else
+  GA4_PROPERTY_ID="${GA4_PROPERTY_ID:-}"
+  GTM_ACCOUNT_ID="${GTM_ACCOUNT_ID:-}"
+  GTM_CONTAINER_ID="${GTM_CONTAINER_ID:-}"
+  GA4_CREDENTIALS="${GA4_CREDENTIALS:-}"
+fi
 PARITY_TARGET_GAP="${PARITY_TARGET_GAP:-5}"
 KEY_EVENTS_STR="${KEY_EVENTS_STR:-purchase,add_to_cart,financial_lead_submitted}"
 ALERT_EMAILS_STR="${ALERT_EMAILS_STR:-analytics-owner@client.com,devops-alerts@tatvic.com}"
@@ -205,8 +229,12 @@ if [ "$TARGET_ENV" = "gcp" ]; then
   echo -e "  GCP Project     : ${BOLD}${GCP_PROJECT}${RESET}"
   echo -e "  Cloud Region    : ${BOLD}${GCP_REGION} (Mumbai, India)${RESET}"
 fi
-echo -e "  GA4 Property    : ${BOLD}${GA4_PROPERTY_ID}${RESET}"
-echo -e "  GTM Container   : ${BOLD}${GTM_CONTAINER_ID}${RESET}"
+if [ "$MIGRATE_GA4" = true ]; then
+  echo -e "  GA4 Property    : ${BOLD}${GA4_PROPERTY_ID}${RESET}"
+  echo -e "  GTM Container   : ${BOLD}${GTM_CONTAINER_ID} (numeric)${RESET}"
+else
+  echo -e "  GA4 & GTM Migr. : ${BOLD}Skipped (Fresh Setup)${RESET}"
+fi
 echo -e "  Mode            : ${BOLD}$( [ "$DRY_RUN" = true ] && echo -e "${MAGENTA}DRY-RUN SIMULATION" || echo -e "${GREEN}LIVE EXECUTION" )${RESET}"
 echo -e "--------------------------------------------------"
 
@@ -504,6 +532,15 @@ EOF
 
 echo -e "  ${GREEN}✓ Configuration generated and validated: config/client.yaml${RESET}"
 
+# Ensure python virtual environment is initialized in ROOT_DIR
+if [ ! -f "$ROOT_DIR/.venv/bin/python3" ]; then
+  echo -e "  Initializing Python virtual environment in ${ROOT_DIR}/.venv..."
+  python3 -m venv "$ROOT_DIR/.venv" 2>/dev/null || true
+  if [ -f "$ROOT_DIR/.venv/bin/pip" ]; then
+    "$ROOT_DIR/.venv/bin/pip" install --quiet -r "$ROOT_DIR/requirements.txt" 2>/dev/null || true
+  fi
+fi
+
 # Final Stack Health Verification via Adapter
 echo -e "\n${BOLD}${GREEN}================================================================================"
 echo -e " ✓ OYDK ENTERPRISE DEPLOYMENT COMPLETE!"
@@ -513,12 +550,19 @@ echo -e "  ${BOLD}Analytics Engine :${RESET} ${STACK_ENGINE^^}"
 echo -e "  ${BOLD}Stack Dashboard  :${RESET} ${STACK_URL}"
 echo -e "  ${BOLD}Config File      :${RESET} config/client.yaml"
 echo -e "--------------------------------------------------------------------------------"
+echo -e "${BOLD}${YELLOW}Important: Run commands from the kit repository directory:${RESET}"
+echo -e "  ${CYAN}cd ${ROOT_DIR}${RESET}"
+echo -e ""
 echo -e "${BOLD}Ready-to-Run Operator Commands:${RESET}"
-echo -e "  • Check Stack Health : ${CYAN}.venv/bin/python3 -m kit.cli health${RESET}"
-echo -e "  • Run GA4 Migration  : ${CYAN}.venv/bin/python3 -m kit.cli migrate${RESET}"
-echo -e "  • Check Daily Parity : ${CYAN}.venv/bin/python3 -m kit.cli parity${RESET}"
-echo -e "  • Trigger Backup     : ${CYAN}.venv/bin/python3 -m kit.cli backup${RESET}"
-echo -e "  • Check Updates      : ${CYAN}.venv/bin/python3 -m kit.cli update --check-only${RESET}"
-echo -e "  • Stream to BigQuery : ${CYAN}.venv/bin/python3 -m kit.cli bq-sync${RESET}"
-echo -e "  • Test Connectors    : ${CYAN}.venv/bin/python3 -m kit.cli connectors-test${RESET}"
+echo -e "  • Check Stack Health : ${CYAN}./oydk health${RESET}           (or: .venv/bin/python3 -m kit.cli health)"
+if [ "$MIGRATE_GA4" = true ]; then
+  echo -e "  • Run GA4 Migration  : ${CYAN}./oydk migrate${RESET}          (or: .venv/bin/python3 -m kit.cli migrate)"
+else
+  echo -e "  • Run GA4 Migration  : ${CYAN}./oydk migrate${RESET}          (configure ga4 in config/client.yaml first)"
+fi
+echo -e "  • Check Daily Parity : ${CYAN}./oydk parity${RESET}           (or: .venv/bin/python3 -m kit.cli parity)"
+echo -e "  • Trigger Backup     : ${CYAN}./oydk backup${RESET}           (or: .venv/bin/python3 -m kit.cli backup)"
+echo -e "  • Check Updates      : ${CYAN}./oydk update --check-only${RESET}"
+echo -e "  • Stream to BigQuery : ${CYAN}./oydk bq-sync${RESET}"
+echo -e "  • Test Connectors    : ${CYAN}./oydk connectors-test${RESET}"
 echo "================================================================================"
