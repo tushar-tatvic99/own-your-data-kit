@@ -275,8 +275,26 @@ if ($Target -eq "on-premise") {
         exit 1
     }
     if (-not (Get-Command terraform -ErrorAction SilentlyContinue)) {
-        Write-Error "Terraform is not installed or not in PATH. Please install Terraform 1.5+."
-        exit 1
+        # Bootstrap a local Terraform binary (mirrors install.sh behaviour)
+        $LocalTfDir = Join-Path $RootDir ".tools\bin"
+        $LocalTf = Join-Path $LocalTfDir "terraform.exe"
+        if (-not (Test-Path $LocalTf)) {
+            Write-Host "        Terraform not found - downloading Terraform 1.8.5 to $LocalTfDir..." -ForegroundColor Yellow
+            $TfArch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "amd64" }
+            $TfZip = Join-Path $env:TEMP "terraform_windows_$TfArch.zip"
+            try {
+                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                New-Item -ItemType Directory -Force -Path $LocalTfDir | Out-Null
+                Invoke-WebRequest -UseBasicParsing -Uri "https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_windows_$TfArch.zip" -OutFile $TfZip
+                Expand-Archive -Path $TfZip -DestinationPath $LocalTfDir -Force
+                Remove-Item $TfZip -Force -ErrorAction SilentlyContinue
+            } catch {
+                Write-Error "Failed to download Terraform automatically: $_. Install Terraform 1.5+ manually (e.g. 'winget install Hashicorp.Terraform') and re-run."
+                exit 1
+            }
+        }
+        $env:PATH = "$LocalTfDir;$env:PATH"
+        Write-Host "        ✓ Using Terraform at $LocalTf" -ForegroundColor Green
     }
 
     & "$RootDir\deploy\deploy.ps1" -ProjectId $ProjectId -ClientName $ClientName -Profile $Profile
