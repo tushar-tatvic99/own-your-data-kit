@@ -36,18 +36,29 @@ Move off Google Analytics onto a self-hosted, DPDP-ready analytics stack — dep
 
 ### One-Command Deployment
 
+**From Linux / macOS / WSL:**
+```bash
+curl -fsSL https://oydk-portal-61760469326.asia-south1.run.app/install.sh | bash
+```
+
+**From Windows PowerShell:**
+```powershell
+irm https://oydk-portal-61760469326.asia-south1.run.app/install.ps1 | iex
+```
+
+**From Local Repository:**
 ```bash
 # Interactive Master Installer (GCP India Region or On-Premise Docker)
 ./deploy/install.sh
+# On Windows: .\deploy\install.ps1
 
 # Unattended GCP Cloud Deploy
 ./deploy/install.sh --target gcp --project <gcp-project-id> --client <client-name>
-
-# On-Premise Bare-Metal Deployment
-./deploy/install.sh --target on-premise --client <client-name>
+# On Windows: .\deploy\install.ps1 -Target gcp -ProjectId <gcp-project-id> -ClientName <client-name>
 
 # Dry-Run Architecture & Config Simulation ($0 Billing Impact)
 ./deploy/install.sh --dry-run --target gcp --client demo
+# On Windows: .\deploy\install.ps1 -DryRun
 ```
 
 ### Local Development & Testing

@@ -100,21 +100,33 @@
         Autonomous schema migration, continuous parity checking with root-cause diagnostics, DPDP-ready legal defaults, and real-time BigQuery & Google Ads connectors.
       </p>
 
-      <!-- Primary Action: Deploy Command Box -->
+      <!-- Primary Action: Deploy Command Box with Cross-Platform Tabs -->
       <div class="pt-6 max-w-2xl mx-auto space-y-3">
+        <!-- Platform Selector Tabs -->
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <button id="tab-linux" onclick="switchPlatform('linux')" 
+                  class="px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🐧 Linux / macOS / WSL
+          </button>
+          <button id="tab-windows" onclick="switchPlatform('windows')" 
+                  class="px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all bg-gray-800 text-gray-400 hover:text-white border border-gray-700 cursor-pointer">
+            🪟 Windows (PowerShell)
+          </button>
+        </div>
+
         <div class="glass-card rounded-2xl p-2 flex items-center justify-between border border-emerald-500/40 terminal-glow">
           <div class="flex items-center gap-3 px-4 font-mono text-sm sm:text-base text-gray-200 overflow-x-auto">
-            <span class="text-emerald-400 font-bold">$</span>
-            <span>curl -fsSL https://oydk-portal-61760469326.asia-south1.run.app/install.sh | bash</span>
+            <span id="cmd-prefix" class="text-emerald-400 font-bold">$</span>
+            <span id="cmd-text">curl -fsSL https://oydk-portal-61760469326.asia-south1.run.app/install.sh | bash</span>
           </div>
-          <button onclick="navigator.clipboard.writeText('curl -fsSL https://oydk-portal-61760469326.asia-south1.run.app/install.sh | bash'); alert('One-command installer copied to clipboard!');" 
-                  class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-all shadow-md shadow-emerald-500/20 shrink-0">
+          <button id="copy-btn" onclick="copyInstallCmd()" 
+                  class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-all shadow-md shadow-emerald-500/20 shrink-0 cursor-pointer">
             Copy
           </button>
         </div>
         <div class="flex items-center justify-between px-2 text-xs text-gray-400 font-mono">
-          <span>Local Repo: <code class="text-emerald-300">./deploy/install.sh --target gcp --client client-demo</code></span>
-          <span>Dry-Run: <code class="text-emerald-300">./deploy/install.sh --dry-run</code> ($0)</span>
+          <span id="local-cmd">Local Repo: <code class="text-emerald-300">./deploy/install.sh --target gcp --client client-demo</code></span>
+          <span id="dry-cmd">Dry-Run: <code class="text-emerald-300">./deploy/install.sh --dry-run</code> ($0)</span>
         </div>
       </div>
     </section>
@@ -619,5 +631,37 @@
     <p class="mt-1 text-gray-400">Deployed in Google Cloud Platform Region: <code class="text-emerald-400">asia-south1 (Mumbai, India)</code></p>
   </footer>
 
+  <script>
+    function switchPlatform(os) {
+      const linuxTab = document.getElementById('tab-linux');
+      const winTab = document.getElementById('tab-windows');
+      const cmdPrefix = document.getElementById('cmd-prefix');
+      const cmdText = document.getElementById('cmd-text');
+      const localCmd = document.getElementById('local-cmd');
+      const dryCmd = document.getElementById('dry-cmd');
+
+      if (os === 'windows') {
+        winTab.className = "px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 cursor-pointer";
+        linuxTab.className = "px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all bg-gray-800 text-gray-400 hover:text-white border border-gray-700 cursor-pointer";
+        cmdPrefix.innerText = "PS>";
+        cmdText.innerText = "irm https://oydk-portal-61760469326.asia-south1.run.app/install.ps1 | iex";
+        localCmd.innerHTML = 'Local Repo: <code class="text-emerald-300">.\\deploy\\install.ps1 -Target gcp -ClientName client-demo</code>';
+        dryCmd.innerHTML = 'Dry-Run: <code class="text-emerald-300">.\\deploy\\install.ps1 -DryRun</code> ($0)';
+      } else {
+        linuxTab.className = "px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 cursor-pointer";
+        winTab.className = "px-4 py-1.5 rounded-lg text-xs font-semibold font-mono transition-all bg-gray-800 text-gray-400 hover:text-white border border-gray-700 cursor-pointer";
+        cmdPrefix.innerText = "$";
+        cmdText.innerText = "curl -fsSL https://oydk-portal-61760469326.asia-south1.run.app/install.sh | bash";
+        localCmd.innerHTML = 'Local Repo: <code class="text-emerald-300">./deploy/install.sh --target gcp --client client-demo</code>';
+        dryCmd.innerHTML = 'Dry-Run: <code class="text-emerald-300">./deploy/install.sh --dry-run</code> ($0)';
+      }
+    }
+
+    function copyInstallCmd() {
+      const text = document.getElementById('cmd-text').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Installer command copied to clipboard:\n\n' + text);
+    }
+  </script>
 </body>
 </html>
