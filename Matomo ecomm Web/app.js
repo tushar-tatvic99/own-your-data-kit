@@ -2549,3 +2549,103 @@ if (document.readyState === 'loading') {
   initApp();
 }
 
+
+
+// ============================================================================
+// BFSI FORM SELECTOR DROPDOWN LOGIC
+// ============================================================================
+function switchBfsiForm(formId) {
+  const dropdown = document.getElementById('bfsiFormSelectDropdown');
+  if (dropdown && dropdown.value !== formId) {
+    dropdown.value = formId;
+  }
+
+  const hint = document.getElementById('bfsiFormPromptHint');
+  const formCards = ['apply-loan', 'open-savings', 'customer-login', 'dpdp-erasure'];
+
+  if (!formId) {
+    // Hide all forms, show prompt hint
+    formCards.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('is-hidden');
+    });
+    if (hint) hint.style.display = 'block';
+    return;
+  }
+
+  if (hint) hint.style.display = 'none';
+
+  if (formId === 'all') {
+    formCards.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('is-hidden');
+    });
+    return;
+  }
+
+  // Show only selected form, hide other forms
+  formCards.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === formId) {
+        el.classList.remove('is-hidden');
+      } else {
+        el.classList.add('is-hidden');
+      }
+    }
+  });
+
+  // Smoothly scroll to the chosen form
+  const targetCard = document.getElementById(formId);
+  if (targetCard) {
+    setTimeout(() => {
+      targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
+  // Push tracking events for dropdown selection
+  if (typeof window !== 'undefined' && window.dataLayer) {
+    window.dataLayer.push({
+      event: 'select_financial_category',
+      financial_category: formId,
+      interaction_source: 'form_dropdown_ui',
+      timestamp: new Date().toISOString()
+    });
+  }
+  if (typeof MatomoTracker !== 'undefined' && typeof MatomoTracker.trackCustomEvent === 'function') {
+    MatomoTracker.trackCustomEvent('BFSI_Navigation', 'form_dropdown_select', formId, 1);
+  }
+}
+
+function toggleFormCard(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  
+  const isHidden = card.classList.contains('is-hidden');
+  if (isHidden) {
+    switchBfsiForm(cardId);
+  } else {
+    card.classList.add('is-hidden');
+    const dropdown = document.getElementById('bfsiFormSelectDropdown');
+    if (dropdown && dropdown.value === cardId) {
+      dropdown.value = '';
+    }
+  }
+}
+
+// Auto open form if URL has hash
+if (typeof window !== 'undefined') {
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (['apply-loan', 'open-savings', 'customer-login', 'dpdp-erasure'].includes(hash)) {
+      switchBfsiForm(hash);
+    }
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (['apply-loan', 'open-savings', 'customer-login', 'dpdp-erasure'].includes(hash)) {
+      switchBfsiForm(hash);
+    }
+  });
+}
