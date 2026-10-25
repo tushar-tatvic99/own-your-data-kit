@@ -15,34 +15,52 @@ $Zone = "asia-south1-a"
 $RootDir = Split-Path -Parent $PSScriptRoot
 $KitRemote = "/opt/own-your-data-kit"
 
-# gcloud.ps1 writes progress to stderr; with Stop that aborts even when exit code is 0.
+# Native CLIs (gcloud/terraform) write progress to stderr; with Stop that aborts even when exit code is 0.
+function Invoke-NativeCli {
+    param(
+        [Parameter(Mandatory = $true)][string]$FilePath,
+        [Parameter(Mandatory = $true)][string[]]$ArgumentList,
+        [string]$PipelineInput = $null,
+        [switch]$CaptureOutput
+    )
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $collected = New-Object System.Collections.Generic.List[string]
+    try {
+        $lines = if ($null -ne $PipelineInput) {
+            $PipelineInput | & $FilePath @ArgumentList 2>&1
+        } else {
+            & $FilePath @ArgumentList 2>&1
+        }
+        foreach ($line in @($lines)) {
+            if ($null -eq $line) { continue }
+            $text = if ($line -is [System.Management.Automation.ErrorRecord]) {
+                $line.ToString()
+            } else {
+                $line.ToString()
+            }
+            if ($CaptureOutput) { [void]$collected.Add($text) } else { Write-Host $text }
+        }
+        if ($LASTEXITCODE -ne 0) {
+            throw ("{0} {1} failed with exit code {2}" -f $FilePath, ($ArgumentList -join " "), $LASTEXITCODE)
+        }
+        if ($CaptureOutput) { return ($collected -join "`n").Trim() }
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 function Invoke-GcloudCli {
     param(
         [Parameter(Mandatory = $true)][string[]]$GcloudArgs,
         [string]$PipelineInput = $null
     )
-    $prev = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    try {
-        $lines = if ($null -ne $PipelineInput) {
-            $PipelineInput | & gcloud @GcloudArgs 2>&1
-        } else {
-            & gcloud @GcloudArgs 2>&1
-        }
-        foreach ($line in @($lines)) {
-            if ($null -eq $line) { continue }
-            if ($line -is [System.Management.Automation.ErrorRecord]) {
-                Write-Host $line.ToString()
-            } else {
-                Write-Host $line.ToString()
-            }
-        }
-        if ($LASTEXITCODE -ne 0) {
-            throw ("gcloud {0} failed with exit code {1}" -f ($GcloudArgs -join " "), $LASTEXITCODE)
-        }
-    } finally {
-        $ErrorActionPreference = $prev
-    }
+    Invoke-NativeCli -FilePath "gcloud" -ArgumentList $GcloudArgs -PipelineInput $PipelineInput
+}
+
+function Invoke-Terraform {
+    param([Parameter(Mandatory = $true)][string[]]$TfArgs, [switch]$CaptureOutput)
+    Invoke-NativeCli -FilePath "terraform" -ArgumentList $TfArgs -CaptureOutput:$CaptureOutput
 }
 
 Write-Host "========================================"
@@ -84,7 +102,12 @@ Write-Host "[OK] GCP APIs enabled (or already on)."
 # 2. Terraform
 Write-Host "[2/7] Provisioning infrastructure (profile: $Profile)..."
 Push-Location "$PSScriptRoot\terraform"
-terraform init -input=false
+try {
+    Invoke-Terraform -TfArgs @("init", "-input=false")
+} catch {
+    Pop-Location
+    throw
+}
 $tfVars = @(
     "-var=project_id=$ProjectId",
     "-var=client_name=$ClientName",
@@ -96,18 +119,25 @@ if ($MachineType) { $tfVars += "-var=machine_type=$MachineType" }
 if ($DiskSizeGb -gt 0) { $tfVars += "-var=disk_size_gb=$DiskSizeGb" }
 if ($env:OYDK_DRY_RUN -eq "1") {
     Write-Host "[DRY-RUN] terraform plan (no resources will be created)..."
-    terraform plan @tfVars
-    Pop-Location
+    try {
+        Invoke-Terraform -TfArgs (@("plan") + $tfVars)
+    } finally {
+        Pop-Location
+    }
     Write-Host "[DRY-RUN] Complete. Re-run enterprise-deploy.ps1 and choose GCP live execution to apply."
     exit 0
 }
-terraform apply -auto-approve @tfVars
-if ($LASTEXITCODE -ne 0) { Pop-Location; throw "Terraform apply failed" }
-$AnalyticsIp = terraform output -raw analytics_ip
-$BackupBucket = terraform output -raw backup_bucket
-$MatomoUrl = terraform output -raw matomo_url
-$EffectiveMachine = terraform output -raw machine_type
-$EffectiveDisk = terraform output -raw disk_size_gb
+try {
+    Invoke-Terraform -TfArgs (@("apply", "-auto-approve") + $tfVars)
+    $AnalyticsIp = Invoke-Terraform -TfArgs @("output", "-raw", "analytics_ip") -CaptureOutput
+    $BackupBucket = Invoke-Terraform -TfArgs @("output", "-raw", "backup_bucket") -CaptureOutput
+    $MatomoUrl = Invoke-Terraform -TfArgs @("output", "-raw", "matomo_url") -CaptureOutput
+    $EffectiveMachine = Invoke-Terraform -TfArgs @("output", "-raw", "machine_type") -CaptureOutput
+    $EffectiveDisk = Invoke-Terraform -TfArgs @("output", "-raw", "disk_size_gb") -CaptureOutput
+} catch {
+    Pop-Location
+    throw
+}
 if (-not $AnalyticsIp) { Pop-Location; throw "Terraform did not return analytics_ip" }
 Pop-Location
 
