@@ -121,29 +121,50 @@ def generate_synthetic_ga4_history(
 
 
 def import_ga4_history(
-    project_id: str = "tvc-int-matomo",
+    project_id: str | None = None,
     dataset_id: str | None = None,
     days: int = 30,
     target_dataset: str = "matomo_export",
     target_table: str = "events",
     dry_run: bool = False,
+    config_path: str = "config/client.yaml",
 ) -> dict[str, Any]:
     """Import historical GA4 BigQuery export telemetry into the unified warehouse."""
-    console.print(f"[bold cyan]GA4 Historical Importer[/bold cyan] (Stretch Goal 1)")
-    console.print(f"Target Warehouse: [green]{project_id}.{target_dataset}.{target_table}[/green] (asia-south1)")
+    from kit.config import load_config
+    cfg = {}
+    if os.path.exists(config_path):
+        try:
+            cfg = load_config(config_path)
+        except Exception:
+            pass
+
+    resolved_project = project_id or cfg.get("connectors", {}).get("bigquery", {}).get("project_id", "tvc-int-matomo")
+    resolved_dataset = dataset_id or cfg.get("ga4", {}).get("bigquery_dataset")
+
+    mode_label = "[yellow]SIMULATION / DRY-RUN[/yellow]" if dry_run else "[green]LIVE[/green]"
+    console.print(f"[bold cyan]GA4 Historical Importer[/bold cyan] (Stretch Goal 1) [{mode_label}]")
+    console.print(f"Target Warehouse: [green]{resolved_project}.{target_dataset}.{target_table}[/green] (asia-south1)")
     console.print(f"Time Window: Past [bold]{days}[/bold] days")
 
     events_to_import: list[dict[str, Any]] = []
-    source_type = "BigQuery GA4 Export"
 
-    if dry_run or not dataset_id or dataset_id.startswith("TEST_") or dataset_id.startswith("analytics_"):
-        console.print("[yellow]Simulating GA4 BigQuery export ingestion pipeline (zero cloud cost mode)...[/yellow]")
+    if dry_run:
+        console.print("[yellow]Simulating GA4 BigQuery export ingestion pipeline (DRY-RUN / ZERO CLOUD COST MODE)...[/yellow]")
         events_to_import = generate_synthetic_ga4_history(days=days, daily_volume=150)
-        source_type = "GA4 BigQuery Export (Validated Partition Replay)"
+        source_type = "GA4 BigQuery Export (Validated Partition Replay - SIMULATION)"
     else:
+        if not resolved_dataset:
+            raise RuntimeError(
+                "No GA4 BigQuery export dataset specified.\n\n"
+                "Action Required:\n"
+                "1. Provide '--dataset analytics_<property_id>' or configure 'ga4.bigquery_dataset' in config/client.yaml.\n"
+                "2. To verify the backfill pipeline and test the ingestion schema offline, run with '--dry-run'."
+            )
+
+        source_type = f"BigQuery Live GA4 Export ({resolved_project}.{resolved_dataset})"
         try:
             from google.cloud import bigquery
-            client = bigquery.Client(project=project_id)
+            client = bigquery.Client(project=resolved_project)
             query = f"""
             SELECT
                 event_date,
@@ -155,11 +176,11 @@ def import_ga4_history(
                 traffic_source.source as source,
                 traffic_source.medium as medium,
                 traffic_source.name as campaign
-            FROM `{project_id}.{dataset_id}.events_*`
+            FROM `{resolved_project}.{resolved_dataset}.events_*`
             WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL {days} DAY))
             LIMIT 5000
             """
-            console.print("Querying live GA4 BigQuery tables...")
+            console.print(f"Querying live GA4 BigQuery export: {resolved_project}.{resolved_dataset}.events_* ...")
             query_job = client.query(query)
             rows = list(query_job.result())
             for row in rows:
@@ -174,7 +195,7 @@ def import_ga4_history(
                     "event_timestamp": row.event_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                     "event_name": row.event_name,
                     "event_category": "ga4_migration",
-                    "page_url": "https://auraandblush-61760469326.asia-south1.run.app/",
+                    "page_url": "/",
                     "visitor_id": row.visitor_id or "anon",
                     "session_id": f"sess_{row.visitor_id[:8] if row.visitor_id else '000'}",
                     "custom_dimensions": json.dumps(dimensions),
@@ -182,9 +203,14 @@ def import_ga4_history(
                     "_raw_timestamp": int(row.event_timestamp.timestamp()),
                 })
         except Exception as e:
-            console.print(f"[yellow]Live GA4 export dataset not found ({e}). Falling back to certified structural historical stream...[/yellow]")
-            events_to_import = generate_synthetic_ga4_history(days=days, daily_volume=150)
-            source_type = "GA4 BigQuery Export (Schema Replay)"
+            raise RuntimeError(
+                f"Failed to query live GA4 BigQuery export dataset `{resolved_project}.{resolved_dataset}.events_*`:\n"
+                f"{e}\n\n"
+                f"Action Required:\n"
+                f"1. Ensure BigQuery Export is enabled in Google Analytics 4 admin console for property.\n"
+                f"2. Ensure the active service account has BigQuery Data Viewer access to {resolved_project}.\n"
+                f"3. Run with '--dry-run' to simulate historical backfill offline."
+            )
 
     total_events = len(events_to_import)
     unique_visitors = len({e["visitor_id"] for e in events_to_import})
@@ -198,10 +224,10 @@ def import_ga4_history(
         try:
             from google.cloud import bigquery
             from connectors.bigquery_export import create_export_schema
-            create_export_schema(project_id, target_dataset, target_table)
+            create_export_schema(resolved_project, target_dataset, target_table)
             
-            bq_client = bigquery.Client(project=project_id)
-            table_ref = f"{project_id}.{target_dataset}.{target_table}"
+            bq_client = bigquery.Client(project=resolved_project)
+            table_ref = f"{resolved_project}.{target_dataset}.{target_table}"
             
             # Prepare clean rows (omit internal _raw_timestamp)
             bq_rows = [{k: v for k, v in ev.items() if k != "_raw_timestamp"} for ev in events_to_import[:1000]]
@@ -209,7 +235,7 @@ def import_ga4_history(
             if errors:
                 console.print(f"[yellow]BigQuery partial insert warning: {errors[:2]}[/yellow]")
             else:
-                console.print(f"[green]✓ Ingested {len(bq_rows)} sample historical rows directly into BigQuery {table_ref}[/green]")
+                console.print(f"[green]✓ Ingested {len(bq_rows)} historical rows directly into BigQuery {table_ref}[/green]")
         except Exception as e:
             console.print(f"[yellow]BigQuery live ingestion bypassed: {e}[/yellow]")
 
@@ -218,7 +244,7 @@ def import_ga4_history(
         log_action(
             actor="migration-history-importer",
             action="ga4_historical_import",
-            resource=f"{project_id}.{target_dataset}.{target_table}",
+            resource=f"{resolved_project}.{target_dataset}.{target_table}",
             details={
                 "source": source_type,
                 "days_imported": days,
@@ -236,7 +262,7 @@ def import_ga4_history(
     table.add_column("Value", style="green")
     
     table.add_row("Data Source", source_type)
-    table.add_row("Target Warehouse", f"{project_id}.{target_dataset}.{target_table}")
+    table.add_row("Target Warehouse", f"{resolved_project}.{target_dataset}.{target_table}")
     table.add_row("Date Range Recovered", f"{start_date} to {end_date} ({days} days)")
     table.add_row("Total Events Backfilled", f"{total_events:,}")
     table.add_row("Recovered Unique Visitors", f"{unique_visitors:,}")

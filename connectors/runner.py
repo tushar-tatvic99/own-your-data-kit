@@ -7,22 +7,42 @@ from kit.config import load_config
 console = Console()
 
 
-def test_all_connectors(config_path: str) -> None:
+def test_all_connectors(config_path: str, dry_run: bool = False) -> None:
     cfg = load_config(config_path)
     connectors = cfg.get("connectors", {})
 
-    console.print("\n[bold]Testing Connectors[/bold]\n")
+    mode_label = "[yellow]SIMULATION / DRY-RUN[/yellow]" if dry_run else "[green]LIVE[/green]"
+    console.print(f"\n[bold]Testing Connectors[/bold] [{mode_label}]\n")
 
-    # Google Ads
-    if "google_ads" in connectors and connectors["google_ads"].get("customer_id"):
-        console.print("[1/4] Google Ads conversion upload...")
+    # 1. Google Ads
+    gads = connectors.get("google_ads", {})
+    customer_id = gads.get("customer_id")
+    conversion_action_id = gads.get("conversion_action_id")
+    gads_cred = gads.get("credentials_file", "credentials/google-ads.yaml")
+
+    if dry_run:
+        console.print("[1/4] Google Ads conversion upload [yellow](SIMULATION)[/yellow]...")
+        from connectors.google_ads import send_conversion
+        result = send_conversion(
+            customer_id=customer_id or "123-456-7890",
+            conversion_action_id=conversion_action_id or "1234567890",
+            email="test.customer@client.com",
+            conversion_value=1499.00,
+            dry_run=True,
+        )
+        console.print(f"  [green]✓ Payload Validated[/green]: Target Action: {result.get('conversion_action')}, SHA-256 Hashed Email: {result.get('hashed_email')[:16]}...")
+        console.print(f"  [green]✓ DPDP Consent Status[/green]: {result.get('consent_status')}")
+    elif customer_id and conversion_action_id:
+        console.print(f"[1/4] Google Ads conversion upload (Account: {customer_id})...")
         try:
             from connectors.google_ads import send_conversion
             result = send_conversion(
-                connectors["google_ads"]["customer_id"],
-                connectors["google_ads"]["conversion_action_id"],
-                email="customer@example.com",
+                customer_id=customer_id,
+                conversion_action_id=conversion_action_id,
+                email="test.customer@client.com",
                 conversion_value=1499.00,
+                credentials_path=gads_cred,
+                dry_run=False,
             )
             if result.get("status") == "success":
                 console.print(f"  [green]OK[/green]: Live upload successful ({result.get('results', 1)} conversions uploaded)")
@@ -35,39 +55,53 @@ def test_all_connectors(config_path: str) -> None:
             else:
                 console.print(f"  [yellow]NOTICE[/yellow]: {result.get('message')}")
         except Exception as e:
-            console.print(f"  [yellow]SKIP[/yellow]: {e}")
+            console.print(f"  [red]FAIL[/red]: {e}")
     else:
-        console.print("[1/4] Google Ads conversion upload... [yellow]SKIP (customer_id empty)[/yellow]")
+        console.print("[1/4] Google Ads conversion upload... [yellow]SKIP (google_ads.customer_id not configured in config/client.yaml. Use --dry-run to simulate)[/yellow]")
 
-    # Meta CAPI
-    console.print("[2/4] Meta Conversions API (CAPI v19.0)...")
-    try:
+    # 2. Meta CAPI
+    meta = connectors.get("meta", {})
+    pixel_id = meta.get("pixel_id")
+    access_token = meta.get("access_token")
+
+    if dry_run:
+        console.print("[2/4] Meta Conversions API (CAPI v19.0) [yellow](SIMULATION)[/yellow]...")
         from connectors.meta_capi import send_event
-        pixel_id = connectors.get("meta", {}).get("pixel_id", "TEST_PIXEL_123456")
-        access_token = connectors.get("meta", {}).get("access_token", "TEST_TOKEN_123456")
-        is_live = bool(pixel_id and not pixel_id.startswith("TEST_") and access_token and not access_token.startswith("TEST_"))
-
         result = send_event(
-            pixel_id=pixel_id,
-            access_token=access_token,
+            pixel_id=pixel_id or "SIMULATION_PIXEL_123456",
+            access_token=access_token or "SIMULATION_TOKEN_123456",
             event_name="Purchase",
-            email="customer@example.com",
+            email="test.customer@client.com",
             phone="+91 98765 43210",
             value=1499.00,
             currency="INR",
-            dry_run=not is_live,
+            dry_run=True,
         )
-        if result.get("status") in ("success", "dry_run_success"):
-            console.print(f"  [green]✓ CAPI v19.0 VALIDATED[/green]: {result.get('message', 'Conversion event dispatched')}")
-            console.print(f"  [green]✓ Enhanced User Data[/green]: SHA-256 Hashed Email ({result.get('hashed_email', '')[:16]}...)")
-            console.print(f"  [green]✓ DPDP Consent Enforcement[/green]: Data Processing Options = {result.get('data_processing_options')} ({result.get('consent_status')})")
-        else:
-            console.print(f"  Result: {result}")
-    except Exception as e:
-        console.print(f"  [yellow]SKIP[/yellow]: {e}")
+        console.print(f"  [green]✓ CAPI v19.0 VALIDATED (SIMULATION)[/green]: {result.get('message', 'Conversion event dispatched')}")
+        console.print(f"  [green]✓ Enhanced User Data[/green]: SHA-256 Hashed Email ({result.get('hashed_email', '')[:16]}...)")
+        console.print(f"  [green]✓ DPDP Consent Enforcement[/green]: Data Processing Options = {result.get('data_processing_options')} ({result.get('consent_status')})")
+    elif pixel_id and access_token:
+        console.print(f"[2/4] Meta Conversions API (CAPI v19.0) (Pixel: {pixel_id})...")
+        try:
+            from connectors.meta_capi import send_event
+            result = send_event(
+                pixel_id=pixel_id,
+                access_token=access_token,
+                event_name="Purchase",
+                email="test.customer@client.com",
+                phone="+91 98765 43210",
+                value=1499.00,
+                currency="INR",
+                dry_run=False,
+            )
+            console.print(f"  [green]OK[/green]: {result}")
+        except Exception as e:
+            console.print(f"  [red]FAIL[/red]: {e}")
+    else:
+        console.print("[2/4] Meta Conversions API (CAPI v19.0)... [yellow]SKIP (meta.pixel_id / access_token not configured in config/client.yaml. Use --dry-run to simulate)[/yellow]")
 
-    # BigQuery
-    if "bigquery" in connectors:
+    # 3. BigQuery
+    if "bigquery" in connectors and connectors["bigquery"].get("project_id"):
         console.print("[3/4] BigQuery live sync...")
         try:
             from connectors.bigquery_export import run_bigquery_sync
@@ -75,8 +109,10 @@ def test_all_connectors(config_path: str) -> None:
             console.print(f"  [green]OK[/green]: {result}")
         except Exception as e:
             console.print(f"  [red]FAIL[/red]: {e}")
+    else:
+        console.print("[3/4] BigQuery live sync... [yellow]SKIP (bigquery.project_id empty)[/yellow]")
 
-    # Looker Studio
+    # 4. Looker Studio
     if "looker" in connectors:
         console.print("[4/4] Looker Studio dashboard...")
         try:

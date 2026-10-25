@@ -2,6 +2,7 @@
 
 import click
 from rich.console import Console
+from rich.panel import Panel
 
 console = Console()
 
@@ -140,24 +141,130 @@ def migrate(config: str, property_id: str | None, container_id: str | None, dry_
 @click.option("--simulate-break", default=None, help="Simulate a broken tag for this event name (e.g. purchase)")
 @click.option("--mode", "-m", type=click.Choice(["migration", "crm"]), default="migration", help="Parity mode: 'migration' (GA4 dual-run) or 'crm' (client backend CRM records)")
 @click.option("--crm", is_flag=True, default=False, help="Shortcut to verify parity against client CRM / backend records (post-migration mode)")
-def parity(config: str, date: str | None, simulate_break: str | None, mode: str, crm: bool):
+@click.option("--events", default=None, help="Comma-separated list of key events to check (overrides config)")
+@click.option("--dry-run", is_flag=True, help="Simulate parity check without live Google/BigQuery calls")
+def parity(config: str, date: str | None, simulate_break: str | None, mode: str, crm: bool, events: str | None, dry_run: bool):
     """Run continuous parity check (GA4 dual-run or post-migration CRM ground truth)."""
     from agents.parity.run import run_parity
 
     actual_mode = "crm" if crm else mode
-    run_parity(config, date, simulate_break_event=simulate_break, mode=actual_mode)
+    ev_list = [e.strip() for e in events.split(",") if e.strip()] if events else None
+    run_parity(config, date, simulate_break_event=simulate_break, mode=actual_mode, dry_run=dry_run, override_events=ev_list)
 
 
 @main.command("simulate-tag-break")
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
 @click.option("--event", "-e", default="purchase", help="Event name to simulate broken tag for (default: purchase)")
 @click.option("--date", "-d", default=None, help="Date to check (YYYY-MM-DD, default yesterday)")
-def simulate_tag_break(config: str, event: str, date: str | None):
+@click.option("--dry-run", is_flag=True, help="Run simulation in dry-run mode")
+def simulate_tag_break(config: str, event: str, date: str | None, dry_run: bool):
     """Simulate a broken tag in GTM to test autonomous diagnosis & alert."""
     from agents.parity.run import run_parity
 
     console.print(f"[bold red]Initiating Tag-Break Simulator for event:[/bold red] [yellow]{event}[/yellow]")
-    run_parity(config, date, simulate_break_event=event)
+    run_parity(config, date, simulate_break_event=event, dry_run=dry_run)
+
+
+@main.command()
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--list", "list_all", is_flag=True, help="List all configured alert emails and webhooks")
+@click.option("--add", "add_email", default=None, help="Add an email recipient for parity alerts")
+@click.option("--remove", "remove_email", default=None, help="Remove an email recipient")
+@click.option("--target-gap", type=float, default=None, help="Update target gap variance percentage threshold (e.g. 5)")
+@click.option("--slack", default=None, help="Set Slack incoming webhook URL for alerts")
+@click.option("--test", is_flag=True, default=False, help="Send a test parity alert to verify email and webhook routing")
+def alerts(config: str, list_all: bool, add_email: str | None, remove_email: str | None, target_gap: float | None, slack: str | None, test: bool):
+    """Manage parity alert recipients, notification emails, and tolerance thresholds."""
+    import yaml
+    from pathlib import Path
+    from rich.table import Table
+
+    cfg_path = Path(config)
+    if not cfg_path.exists():
+        console.print(f"[red]Error: Config file not found: {config}[/red]")
+        return
+
+    with open(cfg_path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f) or {}
+
+    parity_cfg = cfg.setdefault("parity", {})
+    emails = parity_cfg.get("alert_emails", [])
+    if isinstance(emails, str):
+        emails = [emails] if emails else []
+    elif not isinstance(emails, list):
+        emails = []
+
+    # Handle test alert dispatch
+    if test:
+        console.print("[bold cyan]Dispatching Test Parity Alert...[/bold cyan]")
+        from agents.parity.run import _send_alert
+        test_report = {
+            "date": "2026-10-25 (TEST)",
+            "target_engine": cfg.get("stack", {}).get("type", "matomo").upper(),
+            "target_gap_percent": parity_cfg.get("target_gap_percent", 5.0),
+            "diagnosis": [
+                {
+                    "cause": "Automated Alert Notification Pipeline Verification",
+                    "confidence": "HIGH",
+                    "fix": "No action needed. Verified automated parity notification dispatch.",
+                }
+            ],
+        }
+        test_missed = [
+            {
+                "metric": "key_event:purchase",
+                "ga4": 120,
+                "target_engine": 105,
+                "gap_percent": 12.5,
+            }
+        ]
+        _send_alert(cfg, test_report, test_missed)
+        console.print("[green]✓ Test alert transmission processed.[/green]\n")
+
+    # Handle additions
+    if add_email:
+        clean_email = add_email.strip().lower()
+        if clean_email not in [e.lower() for e in emails]:
+            emails.append(clean_email)
+            parity_cfg["alert_emails"] = emails
+            console.print(f"[green]✓ Added alert recipient:[/green] {clean_email}")
+        else:
+            console.print(f"[yellow]Recipient '{clean_email}' already exists.[/yellow]")
+
+    # Handle removals
+    if remove_email:
+        clean_rem = remove_email.strip().lower()
+        emails = [e for e in emails if e.lower() != clean_rem]
+        parity_cfg["alert_emails"] = emails
+        console.print(f"[green]✓ Removed alert recipient:[/green] {clean_rem}")
+
+    # Handle target gap update
+    if target_gap is not None:
+        parity_cfg["target_gap_percent"] = target_gap
+        console.print(f"[green]✓ Updated parity gap target:[/green] ±{target_gap}%")
+
+    # Handle Slack webhook update
+    if slack is not None:
+        parity_cfg["alert_slack_webhook"] = slack.strip()
+        console.print(f"[green]✓ Updated Slack alert webhook[/green]")
+
+    # Save back to YAML if modified
+    if add_email or remove_email or target_gap is not None or slack is not None:
+        with open(cfg_path, "w", encoding="utf-8") as f:
+            yaml.dump(cfg, f, default_flow_style=False, sort_keys=False)
+        console.print(f"[dim]Sealed changes into {config}[/dim]\n")
+
+    # Display current status table
+    table = Table(title="OYDK Parity Alert Configuration", border_style="cyan")
+    table.add_column("Setting", style="bold white")
+    table.add_column("Value", style="green")
+
+    table.add_row("Tolerance Threshold", f"±{parity_cfg.get('target_gap_percent', 5)}%")
+    table.add_row("Notification Emails", ", ".join(emails) if emails else "[dim]None configured[/dim]")
+    table.add_row("Slack Webhook", parity_cfg.get("alert_slack_webhook") or "[dim]Not configured[/dim]")
+    table.add_row("Migration Schedule", parity_cfg.get("schedule_migration", "0 6 * * *"))
+    table.add_row("Steady-State Schedule", parity_cfg.get("schedule_steady", "0 6 * * 1"))
+    console.print(table)
 
 
 @main.command()
@@ -362,13 +469,24 @@ def scrub(url: str | None, text: str | None):
         console.print(f"[bold green]Scrubbed Text :[/bold green] {scrub_string(text)}\n")
 
 
-@main.command()
+@main.command("connectors-test")
 @click.option("--config", "-c", default="config/client.yaml", help="Client config file")
-def connectors_test(config: str):
-    """Test all connector integrations."""
+@click.option("--dry-run", is_flag=True, default=False, help="Simulate connector payloads offline without calling live APIs")
+def connectors_test(config: str, dry_run: bool):
+    """Test all connector integrations (Google Ads, Meta CAPI, BigQuery, Looker)."""
     from connectors.runner import test_all_connectors
 
-    test_all_connectors(config)
+    test_all_connectors(config, dry_run=dry_run)
+
+
+@main.command("test-connectors")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config file")
+@click.option("--dry-run", is_flag=True, default=False, help="Simulate connector payloads offline without calling live APIs")
+def test_connectors_alias(config: str, dry_run: bool):
+    """Alias for connectors-test."""
+    from connectors.runner import test_all_connectors
+
+    test_all_connectors(config, dry_run=dry_run)
 
 
 @main.command("import-history")
@@ -380,20 +498,28 @@ def import_history(project: str, dataset: str | None, days: int, dry_run: bool):
     """Stretch Goal 1: Import past GA4 data from BigQuery export so the client doesn't start from zero."""
     from agents.migration.historical_import import import_ga4_history
 
-    import_ga4_history(project_id=project, dataset_id=dataset, days=days, dry_run=dry_run)
+    try:
+        import_ga4_history(project_id=project, dataset_id=dataset, days=days, dry_run=dry_run)
+    except RuntimeError as e:
+        console.print(Panel(
+            f"[bold red]Historical Import Failed[/bold red]\n\n{e}",
+            title="[red]GA4 History Ingestion Error[/red]",
+            border_style="red",
+        ))
 
 
 @main.command()
 @click.argument("query", required=False)
 @click.option("--interactive", "-i", is_flag=True, help="Start interactive conversational assistant")
-def ask(query: str | None, interactive: bool):
+@click.option("--dry-run", is_flag=True, default=False, help="Query simulated showcase dataset offline")
+def ask(query: str | None, interactive: bool, dry_run: bool):
     """Stretch Goal 2: Assistant answering plain-English questions from the new stack's data."""
     from kit.assistant.ask import ask_assistant, interactive_loop
 
     if interactive or not query:
-        interactive_loop()
+        interactive_loop(dry_run=dry_run)
     else:
-        ask_assistant(query)
+        ask_assistant(query, dry_run=dry_run)
 
 
 @main.command("cost-calculator")

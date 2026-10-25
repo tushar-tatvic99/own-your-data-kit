@@ -35,7 +35,9 @@ parity:
   - financial_lead_submitted
   - calculate_loan_emi
   - calculate_fd_yield
-  alert_email: analytics-owner@client.com
+  alert_emails:
+  - analytics-owner@client.com
+  - devops-alerts@tatvic.com
   alert_slack_webhook: ''
 connectors:
   google_ads:
@@ -43,6 +45,9 @@ connectors:
     conversion_action_id: '7868766365'
     conversion_name: tvc_synminds_ecom_web (web) purchase
     credentials_file: credentials/google-ads.yaml
+  meta:
+    pixel_id: ''
+    access_token: ''
   bigquery:
     project_id: tvc-int-matomo
     dataset: matomo_export

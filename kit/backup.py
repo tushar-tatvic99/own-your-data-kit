@@ -20,6 +20,22 @@ from dpdp.audit_log import log_action
 from kit.config import load_config
 
 
+def _get_db_password() -> str:
+    """Resolve database root password from environment or deployment secrets."""
+    pw = os.environ.get("MYSQL_ROOT_PASSWORD") or os.environ.get("MYSQL_PASSWORD")
+    if pw:
+        return pw
+    env_file = Path("deploy/docker/.env")
+    if env_file.exists():
+        try:
+            for line in env_file.read_text(encoding="utf-8").splitlines():
+                if line.startswith("MYSQL_ROOT_PASSWORD="):
+                    return line.split("=", 1)[1].strip('"').strip("'")
+        except Exception:
+            pass
+    return "MatomoSecurePass123!"
+
+
 def execute_backup(
     config_path: str = "config/client.yaml",
     upload_gcs: bool = True,
@@ -74,9 +90,10 @@ def execute_backup(
             )
             db_container = containers_cmd.stdout.strip().split("\n")[0] if containers_cmd.returncode == 0 else ""
             if db_container:
+                db_pw = _get_db_password()
                 dump_cmd = [
                     "docker", "exec", db_container,
-                    "mariadb-dump", "-u", "root", "-pMatomoSecurePass123!", "--all-databases",
+                    "mariadb-dump", "-u", "root", f"-p{db_pw}", "--all-databases",
                 ]
                 with open(mariadb_dump_file, "w", encoding="utf-8") as f:
                     res = subprocess.run(dump_cmd, stdout=f, stderr=subprocess.PIPE, timeout=60)
@@ -235,9 +252,10 @@ def restore_backup(
                 )
                 db_container = containers_cmd.stdout.strip().split("\n")[0] if containers_cmd.returncode == 0 else ""
                 if db_container:
+                    db_pw = _get_db_password()
                     with open(sql_file, "r", encoding="utf-8") as f:
                         subprocess.run(
-                            ["docker", "exec", "-i", db_container, "mariadb", "-u", "root", "-pMatomoSecurePass123!"],
+                            ["docker", "exec", "-i", db_container, "mariadb", "-u", "root", f"-p{db_pw}"],
                             stdin=f,
                             capture_output=True,
                             timeout=60,

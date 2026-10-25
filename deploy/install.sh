@@ -147,6 +147,22 @@ if [ "$UNATTENDED" = false ]; then
     GA4_CREDENTIALS="credentials/ga-service-account.json"
     echo -e "  ${GREEN}✓ Copied service account key to credentials/ga-service-account.json${RESET}"
   fi
+
+  echo -e "\n${BOLD}[6/7] Parity Assurance & Alert Configuration:${RESET}"
+  read_input "Enter target parity gap threshold % (default: 5): " PARITY_TARGET_GAP "5"
+  read_input "Enter key conversion events to monitor (comma-separated, default: purchase,add_to_cart,financial_lead_submitted): " KEY_EVENTS_STR "purchase,add_to_cart,financial_lead_submitted"
+  read_input "Enter parity alert notification email(s) (comma-separated, default: analytics-owner@client.com,devops-alerts@tatvic.com): " ALERT_EMAILS_STR "analytics-owner@client.com,devops-alerts@tatvic.com"
+
+  echo -e "\n${BOLD}[7/7] Ad Platform Connectors (Optional — press Enter to skip):${RESET}"
+  read_input "Enter Google Ads Customer ID (leave empty if none): " GADS_CUSTOMER_ID ""
+  if [ -n "$GADS_CUSTOMER_ID" ]; then
+    read_input "Enter Google Ads Conversion Action ID: " GADS_CONVERSION_ACTION_ID ""
+    read_input "Enter Google Ads Conversion Name: " GADS_CONVERSION_NAME "purchase"
+  fi
+  read_input "Enter Meta Pixel ID (leave empty if none): " META_PIXEL_ID ""
+  if [ -n "$META_PIXEL_ID" ]; then
+    read_input "Enter Meta CAPI Access Token: " META_ACCESS_TOKEN ""
+  fi
 fi
 
 # Fallback validation
@@ -156,6 +172,29 @@ GA4_PROPERTY_ID="${GA4_PROPERTY_ID:-61760469326}"
 GTM_ACCOUNT_ID="${GTM_ACCOUNT_ID:-6000000000}"
 GTM_CONTAINER_ID="${GTM_CONTAINER_ID:-GTM-MMXM5L53}"
 GA4_CREDENTIALS="${GA4_CREDENTIALS:-credentials/ga-service-account.json}"
+PARITY_TARGET_GAP="${PARITY_TARGET_GAP:-5}"
+KEY_EVENTS_STR="${KEY_EVENTS_STR:-purchase,add_to_cart,financial_lead_submitted}"
+ALERT_EMAILS_STR="${ALERT_EMAILS_STR:-analytics-owner@client.com,devops-alerts@tatvic.com}"
+GADS_CUSTOMER_ID="${GADS_CUSTOMER_ID:-}"
+GADS_CONVERSION_ACTION_ID="${GADS_CONVERSION_ACTION_ID:-}"
+GADS_CONVERSION_NAME="${GADS_CONVERSION_NAME:-purchase}"
+META_PIXEL_ID="${META_PIXEL_ID:-}"
+META_ACCESS_TOKEN="${META_ACCESS_TOKEN:-}"
+
+# Format key events and alert emails into clean YAML arrays
+KEY_EVENTS_YAML=""
+IFS=',' read -ra EV_ARR <<< "$KEY_EVENTS_STR"
+for ev in "${EV_ARR[@]}"; do
+  clean_ev=$(echo "$ev" | xargs)
+  [ -n "$clean_ev" ] && KEY_EVENTS_YAML="${KEY_EVENTS_YAML}    - ${clean_ev}\n"
+done
+
+ALERT_EMAILS_YAML=""
+IFS=',' read -ra EM_ARR <<< "$ALERT_EMAILS_STR"
+for em in "${EM_ARR[@]}"; do
+  clean_em=$(echo "$em" | xargs)
+  [ -n "$clean_em" ] && ALERT_EMAILS_YAML="${ALERT_EMAILS_YAML}    - ${clean_em}\n"
+done
 
 echo -e "\n${BOLD}${BLUE}Deployment Configuration Summary:${RESET}"
 echo -e "--------------------------------------------------"
@@ -427,27 +466,27 @@ dpdp:
 parity:
   schedule_migration: "0 6 * * *"
   schedule_steady: "0 6 * * 1"
-  target_gap_percent: 5
+  target_gap_percent: ${PARITY_TARGET_GAP:-5}
   metrics:
     - users
     - sessions
     - key_events
     - traffic_sources
   key_events:
-    - purchase
-    - add_to_cart
-    - financial_lead_submitted
-    - calculate_loan_emi
-    - calculate_fd_yield
-  alert_email: "analytics-owner@client.com"
+$(echo -ne "$KEY_EVENTS_YAML")
+  alert_emails:
+$(echo -ne "$ALERT_EMAILS_YAML")
   alert_slack_webhook: ""
 
 connectors:
   google_ads:
-    customer_id: "1112110147"
-    conversion_action_id: "7868766365"
-    conversion_name: "tvc_synminds_ecom_web (web) purchase"
+    customer_id: "${GADS_CUSTOMER_ID}"
+    conversion_action_id: "${GADS_CONVERSION_ACTION_ID}"
+    conversion_name: "${GADS_CONVERSION_NAME:-purchase}"
     credentials_file: "credentials/google-ads.yaml"
+  meta:
+    pixel_id: "${META_PIXEL_ID}"
+    access_token: "${META_ACCESS_TOKEN}"
   bigquery:
     project_id: "${GCP_PROJECT:-tvc-int-matomo}"
     dataset: "matomo_export"
