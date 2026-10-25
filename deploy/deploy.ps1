@@ -79,6 +79,22 @@ gcloud services enable compute.googleapis.com storage.googleapis.com `
 Write-Host "[2/7] Provisioning infrastructure (profile: $Profile)..."
 Push-Location "$PSScriptRoot\terraform"
 terraform init -input=false
+# One Terraform workspace per client: with a single shared state, deploying a
+# new client slug destroyed the previously deployed client
+$Workspaces = (terraform workspace list) -replace '^[\s*]+', ''
+if ($Workspaces -contains $ClientName) {
+    terraform workspace select $ClientName
+} else {
+    $DefaultState = Join-Path (Get-Location) "terraform.tfstate"
+    if ((Test-Path $DefaultState) -and ((Get-Content $DefaultState -Raw) -match "`"$ClientName-analytics`"")) {
+        # Client deployed before per-client workspaces: move its state over
+        terraform workspace new "-state=$DefaultState" $ClientName
+        if ($LASTEXITCODE -eq 0) { Move-Item $DefaultState "$DefaultState.migrated-$ClientName" -Force }
+    } else {
+        terraform workspace new $ClientName
+    }
+}
+if ($LASTEXITCODE -ne 0) { Pop-Location; throw "Could not select Terraform workspace '$ClientName'" }
 $tfVars = @(
     "-var=project_id=$ProjectId",
     "-var=client_name=$ClientName",
@@ -107,9 +123,15 @@ $VmName = "${ClientName}-analytics"
 $VmFlags = @("--zone=$Zone", "--project=$ProjectId", "--quiet", "--strict-host-key-checking=no")
 
 Write-Host "[3/7] Copying kit to server ($KitRemote)..."
-gcloud compute ssh $VmName @VmFlags `
-    --command="sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
-if ($LASTEXITCODE -ne 0) { throw "SSH to $VmName failed" }
+# A freshly created VM refuses SSH until it has finished booting
+for ($i = 1; $i -le 18; $i++) {
+    gcloud compute ssh $VmName @VmFlags `
+        --command="sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
+    if ($LASTEXITCODE -eq 0) { break }
+    if ($i -eq 18) { throw "SSH to $VmName failed after 3 minutes" }
+    Write-Host "  VM not accepting SSH yet, retrying in 10s... ($i/18)"
+    Start-Sleep -Seconds 10
+}
 
 $ScpSources = @("deploy", "kit", "agents", "dpdp", "connectors", "config", "requirements.txt", "docs") |
     ForEach-Object { Join-Path $RootDir $_ } | Where-Object { Test-Path $_ }

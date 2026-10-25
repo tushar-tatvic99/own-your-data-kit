@@ -411,6 +411,8 @@ elif [ "$TARGET_ENV" = "gcp" ]; then
     echo -e "  [2b/6] Provisioning cloud infrastructure via Terraform (VPC, Static IP, VM)..."
     cd "$ROOT_DIR/deploy/terraform"
     "$TERRAFORM_BIN" init -input=false >/dev/null 2>&1
+    # One Terraform workspace per client so a new slug never replaces another client
+    "$TERRAFORM_BIN" workspace select -or-create=true "$CLIENT_NAME" >/dev/null
     "$TERRAFORM_BIN" apply -auto-approve \
       -var="project_id=$GCP_PROJECT" \
       -var="client_name=$CLIENT_NAME" \

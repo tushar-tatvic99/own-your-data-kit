@@ -42,6 +42,8 @@ gcloud services enable compute.googleapis.com \
 echo "[2/7] Provisioning infrastructure..."
 cd "$SCRIPT_DIR/terraform"
 terraform init -input=false
+# One Terraform workspace per client so a new slug never replaces another client
+terraform workspace select -or-create=true "$CLIENT_NAME"
 terraform apply -auto-approve \
   -var="project_id=$PROJECT_ID" \
   -var="client_name=$CLIENT_NAME" \
