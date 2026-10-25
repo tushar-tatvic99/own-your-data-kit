@@ -808,37 +808,24 @@ async function loadLinks() {
   pill.className = "kit-pill " + (linksCache.kit_api_ok ? "ok" : "bad");
   const erasure = document.getElementById("link-erasure");
   if (linksCache.erasure_demo) erasure.href = linksCache.erasure_demo;
-  const dep = linksCache.deploy || {};
   const judgeBanner = document.getElementById("judge-browser-banner");
   if (judgeBanner) judgeBanner.classList.add("hidden");
   const banner = document.getElementById("deploy-cloud-banner");
   if (banner) banner.classList.add("hidden");
+  // Same Deploy / Demo button set on local and Cloud Run (no host-specific layout).
   const btnGcp = document.getElementById("btn-deploy-start");
   const btnLocal = document.getElementById("btn-deploy-local");
   const btnGcloud = document.getElementById("btn-go-demo-gcloud");
   const btnMatomoGcp = document.getElementById("btn-matomo-gcp-deploy");
   const btnGcloudLogin = document.getElementById("btn-gcloud-login");
-  if (dep.host === "cloud_run") {
-    // Laptop-only actions — cannot open PowerShell / gcloud from Cloud Run.
-    if (btnGcp) btnGcp.classList.add("hidden");
-    if (btnLocal) btnLocal.classList.add("hidden");
-    if (btnGcloud) btnGcloud.classList.add("hidden");
-    if (btnMatomoGcp) btnMatomoGcp.classList.add("hidden");
-    if (btnGcloudLogin) btnGcloudLogin.classList.add("hidden");
-    setDeployStatus(
-      "Hosted demo — use Save & activate for config. Deploy Matomo / gcloud only work on a laptop with this repo.",
-      true
-    );
-  } else {
-    if (btnGcp) {
-      btnGcp.classList.remove("hidden");
-      btnGcp.textContent = "Deploy to GCP";
-    }
-    if (btnLocal) btnLocal.classList.add("hidden");
-    if (btnGcloud) btnGcloud.classList.add("hidden");
-    if (btnMatomoGcp) btnMatomoGcp.classList.remove("hidden");
-    if (btnGcloudLogin) btnGcloudLogin.classList.remove("hidden");
+  if (btnGcp) {
+    btnGcp.classList.remove("hidden");
+    btnGcp.textContent = "Deploy to GCP";
   }
+  if (btnMatomoGcp) btnMatomoGcp.classList.remove("hidden");
+  if (btnGcloudLogin) btnGcloudLogin.classList.remove("hidden");
+  if (btnLocal) btnLocal.classList.add("hidden");
+  if (btnGcloud) btnGcloud.classList.add("hidden");
 }
 
 function formatDeployStartResponse(data) {
