@@ -345,8 +345,8 @@
 
     </div>
   
-      <!-- =========================================================================
-           DPDP ACT 2023 • DATA ERASURE & RIGHTS CENTER
+            <!-- =========================================================================
+           DPDP ACT 2023 • PETITION FOR DATA ERASURE
            ========================================================================= -->
       <section class="bfsi-simple-card" id="dpdp-erasure">
         <div class="card-top-header">
@@ -354,29 +354,23 @@
         </div>
 
         <form class="bfsi-form-clean" id="dpdpRequestForm">
-          <div class="form-grid-2">
-            <div class="form-field-group">
-              <label for="dpdpName">Full Legal Name *</label>
-              <input type="text" id="dpdpName" class="form-input" required placeholder="e.g. Rahul Sharma" autocomplete="name">
-            </div>
-            <div class="form-field-group">
-              <label for="dpdpEmail">Registered Email Address *</label>
-              <input type="email" id="dpdpEmail" class="form-input" required placeholder="e.g. rahul@example.com" autocomplete="email">
-            </div>
-          </div>
-
-          <div class="form-grid-2">
-            <div class="form-field-group">
-              <label for="dpdpScope">Request Scope *</label>
-              <select id="dpdpScope" class="form-input" required>
-                <option value="full_erasure" selected>Complete Account &amp; Analytics Erasure</option>
-                <option value="tracking_only">Analytics &amp; Marketing Tracking Erasure Only</option>
-                <option value="revoke_consent">Revoke All Processing Consent</option>
-              </select>
-            </div>
-            <div class="form-field-group">
-              <label for="dpdpOrderNum">Order / Account Number (Optional)</label>
-              <input type="text" id="dpdpOrderNum" class="form-input" placeholder="e.g. INF-84920">
+          <div class="dpdp-categories-list" style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 8px;">
+              Select data categories to purge from our systems:
+            </label>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; color: #475569;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" name="dpdpCategory" value="analytics_telemetry" checked>
+                <span>Browsing telemetry, device identifiers &amp; pageview analytics</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" name="dpdpCategory" value="lead_forms" checked>
+                <span>Banking inquiry drafts &amp; loan / savings applications</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" name="dpdpCategory" value="cookies_marketing" checked>
+                <span>Marketing cookies, consent records &amp; session tokens</span>
+              </label>
             </div>
           </div>
 
@@ -388,8 +382,8 @@
         </form>
 
         <div class="form-success-box" id="dpdpReceiptBox" style="display: none;">
-          <div class="success-icon">🔒</div>
-          <h3>Data Erasure Petition Logged</h3>
+          <div class="success-icon">✓</div>
+          <h3>Data Erasure Petition Logged &amp; Purged</h3>
           <p>Ticket Reference: <strong id="dpdpTicketCode">DPDP-2026-XXXXX</strong></p>
           <p style="font-size: 0.78rem; color: #64748b;" id="dpdpTimestamp"></p>
           <div id="receiptStatusBadge" style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #fff; margin-bottom: 10px;"></div>

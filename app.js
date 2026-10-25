@@ -1499,10 +1499,11 @@ function initDpdpCenter() {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const name = document.getElementById('dpdpName').value.trim();
-      const email = document.getElementById('dpdpEmail').value.trim();
-      const scope = document.getElementById('dpdpScope').value;
-      const orderNum = document.getElementById('dpdpOrderNum').value.trim();
+      const name = document.getElementById('dpdpName')?.value?.trim() || 'Active Device User';
+      const email = document.getElementById('dpdpEmail')?.value?.trim() || (localStorage.getItem('user_email') || 'user@current-session');
+      const selectedCategories = Array.from(document.querySelectorAll('input[name="dpdpCategory"]:checked')).map(cb => cb.value);
+      const scope = selectedCategories.length ? selectedCategories.join(',') : 'all_data';
+      const orderNum = document.getElementById('dpdpOrderNum')?.value?.trim() || '';
 
       // Check if user has active transaction / order reference
       const hasActiveOrder = !!orderNum || (state.cart && state.cart.length > 0);
@@ -1574,6 +1575,13 @@ function initDpdpCenter() {
       // Push to GTM dataLayer & Matomo for compliance auditing
       if (typeof window !== 'undefined') {
         window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: 'dpdp_data_erasure_submitted',
+          dpdp_ticket: refId,
+          dpdp_scope: scope,
+          dpdp_status: hasActiveOrder ? 'partially_approved' : 'approved',
+          dpdp_has_order: hasActiveOrder
+        });
         window.dataLayer.push({
           event: 'dpdp_erasure_request',
           dpdp_ticket: refId,
