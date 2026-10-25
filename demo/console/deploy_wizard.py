@@ -377,24 +377,26 @@ def start_deploy_in_terminal(fields: dict[str, Any]) -> dict[str, Any]:
         saved = save_client_config(fields)
         preview = preview_deploy(fields)
         script_rel = "scripts/matomo-gcp-deploy-terminal.ps1"
+        command = (
+            f".\\{script_rel} -ProjectId {project} "
+            f"-ClientName {fields.get('client_name') or 'client-demo'} "
+            f"-Profile {fields.get('profile') or 'standard'}"
+        )
         return {
-            "started": False,
+            # "started" means the hosted action finished OK (saved YAML + showed laptop command).
+            "started": True,
             "runtime": "cloud_run",
             "interactive": False,
             "saved_config": saved["path"],
-            "command": (
-                f".\\{script_rel} -ProjectId {project} "
-                f"-ClientName {fields.get('client_name') or 'client-demo'} "
-                f"-Profile {fields.get('profile') or 'standard'}"
-            ),
+            "command": command,
             "message": (
-                "Hosted console cannot open a terminal on your PC. "
-                "On your laptop: open PowerShell in the repo and run the command below."
+                "Profile saved on the hosted console. "
+                "GCP Matomo deploy needs PowerShell on your laptop — open the repo and run the command in Details."
             ),
             "steps": [
-                "Clone or open this repo on Windows",
+                "On your Windows laptop, open PowerShell in the OYDK repo root",
                 f"Saved profile: {saved['path']}",
-                f"Run: .\\{script_rel} -ProjectId {project} ...",
+                f"Run: {command}",
             ],
             "checklist": preview["checklist"],
         }

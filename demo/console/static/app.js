@@ -316,8 +316,13 @@ async function deployMatomoOnMyGcp() {
   }
   const text = formatDeployStartResponse(data);
   setDeployLog(text);
-  setDeployStatus(data.message || data.error || "Deploy", !!data.started);
-  if (data.started) {
+  const hostedHint = data.runtime === "cloud_run";
+  const ok = !!data.started || hostedHint;
+  setDeployStatus(data.message || data.error || "Deploy", ok);
+  if (hostedHint) {
+    // Hosted URL only saves YAML + shows laptop command — do not poll local deploy.log.
+    showDeployLog(text, { summary: data.message || "Run deploy command on your laptop (see Details)." });
+  } else if (data.started) {
     renderDeployLogPanel({ deploy_running: true, log_tail: "" }, "PowerShell deploy running");
     startMatomoDeployPoll();
   } else {
@@ -684,7 +689,13 @@ function wireDemoMode() {
   document.getElementById("btn-run-default-suite")?.addEventListener("click", () => runDemoSuite(false));
   document.getElementById("btn-gcloud-login")?.addEventListener("click", async () => {
     const data = await apiPost("/api/gcloud/login", { gcp_project_id: gcloudProjectId() });
-    setPanelOutput("demo", data.message || JSON.stringify(data), !data.started);
+    const msg = data.message || data.error || "Google Cloud sign-in";
+    const failed = !data.started;
+    setPanelOutput("demo", msg, failed);
+    const report = document.getElementById("suite-report");
+    if (report) {
+      report.innerHTML = `<p class="hint${failed ? " suite-err" : ""}">${esc(msg)}</p>`;
+    }
   });
 }
 
