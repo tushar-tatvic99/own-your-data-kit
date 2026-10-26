@@ -1,0 +1,58 @@
+# Cloud Run demo console — no secrets in git; set env + Secret Manager at deploy.
+client:
+  name: "aurablush"
+  region: "asia-south1"
+  website_url: "https://auraandblush-61760469326.asia-south1.run.app"
+
+stack:
+  type: matomo
+  url: "https://matomo.35-234-210-199.nip.io"
+  site_id: 1
+  api_token: "${MATOMO_API_TOKEN}"
+
+ga4:
+  property_id: "560630351"
+  credentials_file: "credentials/ga-service-account.json"
+
+gtm:
+  account_id: "6399646488"
+  container_id: "283402441"
+  credentials_file: "credentials/ga-service-account.json"
+
+dpdp:
+  require_consent: true
+  cmp_provider: "cookieconsent"
+  data_retention_days: 365
+  pii_scrub_enabled: true
+  audit_log_enabled: true
+
+parity:
+  target_gap_percent: 5
+  email_daily_report: true
+  alert_emails:
+    - tushar@tatvic.com
+  metrics:
+    - users
+    - sessions
+    - key_events
+    - traffic_sources
+  key_events:
+    - purchase
+    - add_to_cart
+    - financial_lead_submitted
+
+connectors:
+  demo_mode: true
+  bigquery:
+    project_id: "tvc-int-matomo"
+    dataset: "matomo_export"
+
+history:
+  ga4_bigquery:
+    project_id: "tvc-int-matomo"
+    dataset: "analytics_560630351"
+    location: "asia-south1"
+
+migration:
+  gtm_draft_only: true
+  output_dir: "output/migration"

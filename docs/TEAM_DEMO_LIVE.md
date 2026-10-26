@@ -2,6 +2,14 @@
 
 **GCP project:** `tvc-int-matomo` · **Region:** `asia-south1` (Mumbai)
 
+## Demo Console (recommended)
+
+```powershell
+py -3 -m kit.cli demo-ui
+```
+
+Open **http://127.0.0.1:8765** — one-click buttons for all 5 parts + stretch. See [demo-console.md](demo-console.md).
+
 ## Open these URLs (share screen)
 
 | What | URL |

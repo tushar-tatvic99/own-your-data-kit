@@ -62,11 +62,19 @@ def run_ga4_history_import(
         console.print(f"[yellow]Fixture mode[/yellow] — {fixture_path.name}\n")
     else:
         source = "bigquery"
+        bq_location = bq_hist.get("location") or cfg.get("client", {}).get("region")
         try:
-            rows = read_from_bigquery(project_id, dataset, start_date, end_date, limit)
+            rows = read_from_bigquery(
+                project_id, dataset, start_date, end_date, limit, location=bq_location
+            )
         except Exception as exc:
             console.print(f"[red]BigQuery read failed:[/red] {exc}")
-            console.print("[yellow]Use --fixture or set history.ga4_bigquery.dataset to your GA4 export.[/yellow]")
+            console.print(
+                "[yellow]GA4 export dataset is not the same as matomo_export.[/yellow]\n"
+                "  • Enable GA4 → BigQuery link (Admin → Product links) — creates analytics_<PROPERTY_ID>\n"
+                f"  • Or set history.ga4_bigquery.project_id / dataset / location (e.g. asia-south1)\n"
+                "  • Demo without BQ: Preview (fixture) or --fixture"
+            )
             return {"status": "error", "message": str(exc)}
 
     console.print(f"Loaded {len(rows)} events from {source}")

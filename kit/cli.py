@@ -632,7 +632,8 @@ def verify_parts(config: str):
     """Verify all five required build parts are present."""
     from kit.verify_parts import verify_all
 
-    ok = verify_all(config)
+    result = verify_all(config)
+    ok = result.get("pass") if isinstance(result, dict) else bool(result)
     raise SystemExit(0 if ok else 1)
 
 
@@ -675,6 +676,43 @@ def import_ga4_history_cmd(
         dry_run=dry_run,
         mirror_bq=mirror_bq,
     )
+
+
+@main.command("demo-ui")
+@click.option("--port", "-p", default=8765, help="Local port (default 8765)")
+@click.option("--config", "-c", default="config/client.yaml", help="Client config for actions")
+@click.option(
+    "--open-browser/--no-open-browser",
+    default=None,
+    help="Open http://127.0.0.1:PORT in the default browser (default: on when OYDK_DEMO_OPEN_BROWSER=1)",
+)
+@click.option("--quiet", "-q", is_flag=True, help="Hide per-request logs (for background / judge laptops)")
+def demo_ui(port: int, config: str, open_browser: bool | None, quiet: bool):
+    """Open the judge demo console (local web UI with one-click actions)."""
+    import os
+    import threading
+    import time
+    import webbrowser
+
+    os.environ["OYDK_DEMO_PORT"] = str(port)
+    os.environ["OYDK_CONFIG"] = config
+    if quiet:
+        os.environ["OYDK_DEMO_QUIET"] = "1"
+    if open_browser is None:
+        open_browser = os.environ.get("OYDK_DEMO_OPEN_BROWSER", "0") == "1"
+    from demo.console.server import main
+
+    url = f"http://127.0.0.1:{port}"
+    if not quiet:
+        console.print(f"[bold green]Starting demo console on {url}[/bold green]")
+    if open_browser:
+
+        def _open() -> None:
+            time.sleep(0.8)
+            webbrowser.open(url)
+
+        threading.Thread(target=_open, daemon=True).start()
+    main()
 
 
 @main.command("retention-run")

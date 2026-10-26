@@ -36,6 +36,10 @@ history:
 
 GA4 export dataset name is usually `analytics_<PROPERTY_ID>` (Admin → BigQuery links).
 
+**Not the same as `matomo_export`** — that table is Matomo → BQ (connectors). History import needs the **GA4 native export** dataset in the project you linked in GA4 Admin.
+
+Set `history.ga4_bigquery.location` to match the export region (e.g. `asia-south1`). If the dataset is missing, BigQuery may report “not found in location US” because the default query region is US.
+
 ## How it works
 
 1. **Read** — SQL over `` `project.dataset.events_*` `` for date range (or fixture JSON).

@@ -20,8 +20,8 @@ def google_auth_guide(config_path: str, runtime: dict | None = None) -> dict:
         "needs": [
             {
                 "task": "Live migration, parity, Matomo API",
-                "google_auth": "GA4/GTM service account JSON (credentials/ga-service-account.json) — not gcloud user login",
-                "also": "MATOMO_API_TOKEN in .env",
+                "google_auth": "Service account JSON — grant that SA Administrator on your GA4 property and GTM container, then upload on Deploy",
+                "also": "MATOMO_API_TOKEN in .env after Matomo wizard",
                 "where": "Repo .env + YAML on the PC running the console (or Cloud Run secrets if hosted)",
             },
             {

@@ -5,23 +5,39 @@ from typing import Any
 
 from kit.notify_email import send_email, smtp_ready
 
+# Aurablush / Tatvic demo distribution (used when YAML omits alert_emails)
+DEFAULT_PARITY_ALERT_EMAILS = [
+    "mohit@tatvic.com",
+    "tushar@tatvic.com",
+    "parshwa@tatvic.com",
+    "dhruvi.p@tatvic.com",
+    "prakash.katariya@tatvic.com",
+]
+
 
 def parity_recipients(cfg: dict) -> list[str]:
     parity = cfg.get("parity", {})
     raw = parity.get("alert_emails")
+    emails: list[str] = []
     if raw:
         if isinstance(raw, str):
-            return [e.strip() for e in raw.split(",") if e.strip()]
-        return [str(e).strip() for e in raw if str(e).strip()]
+            emails = [e.strip() for e in raw.split(",") if e.strip()]
+        else:
+            emails = [str(e).strip() for e in raw if str(e).strip()]
 
-    single = (parity.get("alert_email") or "").strip()
-    if single and "example.com" not in single.lower() and not single.startswith("you@"):
-        return [single]
+    if not emails:
+        single = (parity.get("alert_email") or "").strip()
+        if single and "example.com" not in single.lower() and not single.startswith("you@"):
+            emails = [single]
 
-    env = os.getenv("PARITY_ALERT_EMAILS", "")
-    if env.strip():
-        return [e.strip() for e in env.split(",") if e.strip()]
-    return []
+    if not emails:
+        env = os.getenv("PARITY_ALERT_EMAILS", "")
+        if env.strip():
+            emails = [e.strip() for e in env.split(",") if e.strip()]
+
+    if not emails:
+        emails = list(DEFAULT_PARITY_ALERT_EMAILS)
+    return emails
 
 
 def _client_name(cfg: dict) -> str:
@@ -30,9 +46,10 @@ def _client_name(cfg: dict) -> str:
 
 def build_parity_email(report: dict, client_name: str) -> tuple[str, str, str]:
     """Return (subject, plain_body, html_body) for daily parity report."""
-    date = report["date"]
-    target = report["target_gap_percent"]
-    missed = [g for g in report["gaps"] if not g["within_target"]]
+    date = report.get("date") or "unknown"
+    target = report.get("target_gap_percent", 5)
+    gaps = report.get("gaps") or []
+    missed = [g for g in gaps if not g.get("within_target")]
     n_miss = len(missed)
     all_ok = report.get("all_within_target", n_miss == 0)
     break_tag = report.get("simulated_break_tag")
@@ -73,10 +90,10 @@ def build_parity_email(report: dict, client_name: str) -> tuple[str, str, str]:
     table_header = "| Metric | GA4 | Matomo | Gap % | Status |"
     table_sep = "|--------|-----|--------|-------|--------|"
     table_rows = []
-    for g in report["gaps"]:
-        status = "OK" if g["within_target"] else "MISS"
+    for g in gaps:
+        status = "OK" if g.get("within_target") else "MISS"
         table_rows.append(
-            f"| {g['metric']} | {g['ga4']} | {g['matomo']} | {g['gap_percent']}% | {status} |"
+            f"| {g.get('metric')} | {g.get('ga4')} | {g.get('matomo')} | {g.get('gap_percent')}% | {status} |"
         )
     table_md = "\n".join([table_header, table_sep] + table_rows)
 

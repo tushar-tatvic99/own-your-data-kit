@@ -41,12 +41,22 @@ def read_from_fixture(fixture_path: Path, limit: int) -> list[dict[str, Any]]:
     return [normalize_ga4_row(r) for r in rows[:limit]]
 
 
+def resolve_bq_location(client: bigquery.Client, project_id: str, dataset: str) -> str | None:
+    """Return dataset location (e.g. asia-south1) when the dataset exists."""
+    try:
+        ds = client.get_dataset(f"{project_id}.{dataset}")
+        return ds.location
+    except Exception:
+        return None
+
+
 def read_from_bigquery(
     project_id: str,
     dataset: str,
     start_date: str,
     end_date: str,
     limit: int,
+    location: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Query GA4 export tables `project.dataset.events_*`.
@@ -56,6 +66,7 @@ def read_from_bigquery(
     start_suffix = start_date.replace("-", "")
     end_suffix = end_date.replace("-", "")
     client = bigquery.Client(project=project_id)
+    job_location = location or resolve_bq_location(client, project_id, dataset)
     query = f"""
         SELECT
           event_timestamp,
@@ -78,7 +89,10 @@ def read_from_bigquery(
         ]
     )
     rows = []
-    for row in client.query(query, job_config=job_config).result():
+    query_kwargs: dict[str, Any] = {"job_config": job_config}
+    if job_location:
+        query_kwargs["location"] = job_location
+    for row in client.query(query, **query_kwargs).result():
         rows.append(
             normalize_ga4_row(
                 {

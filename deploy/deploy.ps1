@@ -15,32 +15,52 @@ $Zone = "asia-south1-a"
 $RootDir = Split-Path -Parent $PSScriptRoot
 $KitRemote = "/opt/own-your-data-kit"
 
-# Ensure Terraform is available (system PATH or bootstrapped in .tools\bin)
-$LocalTfDir = Join-Path "$RootDir" ".tools\bin"
-if (Test-Path (Join-Path $LocalTfDir "terraform.exe")) {
-    $env:PATH = "$LocalTfDir;$env:PATH"
-}
-if (-not (Get-Command terraform -ErrorAction SilentlyContinue)) {
-    $LocalTf = Join-Path $LocalTfDir "terraform.exe"
-    if (-not (Test-Path $LocalTf)) {
-        Write-Host "Terraform not found in PATH - downloading Terraform 1.8.5 to $LocalTfDir..." -ForegroundColor Yellow
-        $TfArch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "amd64" }
-        $TfZip = Join-Path $env:TEMP "terraform_windows_$TfArch.zip"
-        try {
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            New-Item -ItemType Directory -Force -Path $LocalTfDir | Out-Null
-            $prevProgress = $ProgressPreference
-            $ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -UseBasicParsing -Uri "https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_windows_$TfArch.zip" -OutFile $TfZip
-            $ProgressPreference = $prevProgress
-            Expand-Archive -Path $TfZip -DestinationPath $LocalTfDir -Force
-            Remove-Item $TfZip -Force -ErrorAction SilentlyContinue
-        } catch {
-            throw "Failed to download Terraform automatically: $_. Please install Terraform 1.5+ manually."
+# Native CLIs (gcloud/terraform) write progress to stderr; with Stop that aborts even when exit code is 0.
+function Invoke-NativeCli {
+    param(
+        [Parameter(Mandatory = $true)][string]$FilePath,
+        [Parameter(Mandatory = $true)][string[]]$ArgumentList,
+        [string]$PipelineInput = $null,
+        [switch]$CaptureOutput
+    )
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $collected = New-Object System.Collections.Generic.List[string]
+    try {
+        $lines = if ($null -ne $PipelineInput) {
+            $PipelineInput | & $FilePath @ArgumentList 2>&1
+        } else {
+            & $FilePath @ArgumentList 2>&1
         }
+        foreach ($line in @($lines)) {
+            if ($null -eq $line) { continue }
+            $text = if ($line -is [System.Management.Automation.ErrorRecord]) {
+                $line.ToString()
+            } else {
+                $line.ToString()
+            }
+            if ($CaptureOutput) { [void]$collected.Add($text) } else { Write-Host $text }
+        }
+        if ($LASTEXITCODE -ne 0) {
+            throw ("{0} {1} failed with exit code {2}" -f $FilePath, ($ArgumentList -join " "), $LASTEXITCODE)
+        }
+        if ($CaptureOutput) { return ($collected -join "`n").Trim() }
+    } finally {
+        $ErrorActionPreference = $prev
     }
-    $env:PATH = "$LocalTfDir;$env:PATH"
-    Write-Host "[OK] Using Terraform at $LocalTf" -ForegroundColor Green
+}
+
+function Invoke-GcloudCli {
+    param(
+        [Parameter(Mandatory = $true)][string[]]$GcloudArgs,
+        [string]$PipelineInput = $null
+    )
+    Invoke-NativeCli -FilePath "gcloud" -ArgumentList $GcloudArgs -PipelineInput $PipelineInput
+}
+
+function Invoke-Terraform {
+    param([Parameter(Mandatory = $true)][string[]]$TfArgs, [switch]$CaptureOutput)
+    Invoke-NativeCli -FilePath "terraform" -ArgumentList $TfArgs -CaptureOutput:$CaptureOutput
 }
 
 Write-Host "========================================"
@@ -69,32 +89,25 @@ if ($env:OYDK_LOCAL -eq "1") {
 
 # 1. Enable APIs
 Write-Host "[1/7] Enabling GCP APIs..."
-gcloud services enable compute.googleapis.com storage.googleapis.com `
-    secretmanager.googleapis.com monitoring.googleapis.com `
-    cloudscheduler.googleapis.com bigquery.googleapis.com `
-    tagmanager.googleapis.com analyticsadmin.googleapis.com `
-    --project=$ProjectId
+Invoke-GcloudCli @(
+    "services", "enable",
+    "compute.googleapis.com", "storage.googleapis.com",
+    "secretmanager.googleapis.com", "monitoring.googleapis.com",
+    "cloudscheduler.googleapis.com", "bigquery.googleapis.com",
+    "tagmanager.googleapis.com", "analyticsadmin.googleapis.com",
+    "--project=$ProjectId"
+)
+Write-Host "[OK] GCP APIs enabled (or already on)."
 
 # 2. Terraform
 Write-Host "[2/7] Provisioning infrastructure (profile: $Profile)..."
 Push-Location "$PSScriptRoot\terraform"
-terraform init -input=false
-# One Terraform workspace per client: with a single shared state, deploying a
-# new client slug destroyed the previously deployed client
-$Workspaces = (terraform workspace list) -replace '^[\s*]+', ''
-if ($Workspaces -contains $ClientName) {
-    terraform workspace select $ClientName
-} else {
-    $DefaultState = Join-Path (Get-Location) "terraform.tfstate"
-    if ((Test-Path $DefaultState) -and ((Get-Content $DefaultState -Raw) -match "`"$ClientName-analytics`"")) {
-        # Client deployed before per-client workspaces: move its state over
-        terraform workspace new "-state=$DefaultState" $ClientName
-        if ($LASTEXITCODE -eq 0) { Move-Item $DefaultState "$DefaultState.migrated-$ClientName" -Force }
-    } else {
-        terraform workspace new $ClientName
-    }
+try {
+    Invoke-Terraform -TfArgs @("init", "-input=false")
+} catch {
+    Pop-Location
+    throw
 }
-if ($LASTEXITCODE -ne 0) { Pop-Location; throw "Could not select Terraform workspace '$ClientName'" }
 $tfVars = @(
     "-var=project_id=$ProjectId",
     "-var=client_name=$ClientName",
@@ -104,111 +117,77 @@ $tfVars = @(
 )
 if ($MachineType) { $tfVars += "-var=machine_type=$MachineType" }
 if ($DiskSizeGb -gt 0) { $tfVars += "-var=disk_size_gb=$DiskSizeGb" }
-terraform apply -auto-approve @tfVars
-if ($LASTEXITCODE -ne 0) { Pop-Location; throw "Terraform apply failed" }
-$AnalyticsIp = terraform output -raw analytics_ip
-$BackupBucket = terraform output -raw backup_bucket
-$MatomoUrl = terraform output -raw matomo_url
-$EffectiveMachine = terraform output -raw machine_type
-$EffectiveDisk = terraform output -raw disk_size_gb
+if ($env:OYDK_DRY_RUN -eq "1") {
+    Write-Host "[DRY-RUN] terraform plan (no resources will be created)..."
+    try {
+        Invoke-Terraform -TfArgs (@("plan") + $tfVars)
+    } finally {
+        Pop-Location
+    }
+    Write-Host "[DRY-RUN] Complete. Re-run enterprise-deploy.ps1 and choose GCP live execution to apply."
+    exit 0
+}
+try {
+    Invoke-Terraform -TfArgs (@("apply", "-auto-approve") + $tfVars)
+    $AnalyticsIp = Invoke-Terraform -TfArgs @("output", "-raw", "analytics_ip") -CaptureOutput
+    $BackupBucket = Invoke-Terraform -TfArgs @("output", "-raw", "backup_bucket") -CaptureOutput
+    $MatomoUrl = Invoke-Terraform -TfArgs @("output", "-raw", "matomo_url") -CaptureOutput
+    $EffectiveMachine = Invoke-Terraform -TfArgs @("output", "-raw", "machine_type") -CaptureOutput
+    $EffectiveDisk = Invoke-Terraform -TfArgs @("output", "-raw", "disk_size_gb") -CaptureOutput
+} catch {
+    Pop-Location
+    throw
+}
 if (-not $AnalyticsIp) { Pop-Location; throw "Terraform did not return analytics_ip" }
 Pop-Location
 
 $MatomoHost = Get-MatomoPublicHost $AnalyticsIp
 $KitApiUrl = "http://${AnalyticsIp}:8090"
 
-$VmName = "${ClientName}-analytics"
-# gcloud.ps1 forwards $args as-is, so pass a flat array via splatting; --quiet and
-# --strict-host-key-checking=no keep keygen and host-key prompts from blocking the run
-$VmFlags = @("--zone=$Zone", "--project=$ProjectId", "--quiet", "--strict-host-key-checking=no")
-
 Write-Host "[3/7] Copying kit to server ($KitRemote)..."
-# Static IPs get reused across VMs; drop PuTTY's cached key for this IP so plink
-# doesn't raise a host-key mismatch warning against the new VM
-$PuttyKeys = "HKCU:\Software\SimonTatham\PuTTY\SshHostKeys"
-if (Test-Path $PuttyKeys) {
-    (Get-Item $PuttyKeys).Property | Where-Object { $_ -like "*:$AnalyticsIp" } |
-        ForEach-Object { Remove-ItemProperty -Path $PuttyKeys -Name $_ }
-}
+Invoke-GcloudCli @(
+    "compute", "ssh", "${ClientName}-analytics",
+    "--zone=$Zone", "--project=$ProjectId",
+    "--command=sudo mkdir -p $KitRemote && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
+)
 
-# A freshly created VM refuses SSH until it has finished booting
-for ($i = 1; $i -le 18; $i++) {
-    gcloud compute ssh $VmName @VmFlags `
-        --command="sudo mkdir -p $KitRemote/deploy && sudo chown -R `$(whoami):`$(whoami) $KitRemote"
-    if ($LASTEXITCODE -eq 0) { break }
-    if ($i -eq 18) { throw "SSH to $VmName failed after 3 minutes" }
-    Write-Host "  VM not accepting SSH yet, retrying in 10s... ($i/18)"
-    Start-Sleep -Seconds 10
-}
-
-# deploy\terraform holds ~100 MB of provider binaries and state files with
-# secrets; the VM needs only the rest of deploy\
-$DeploySources = @(Get-ChildItem (Join-Path $RootDir "deploy") | Where-Object Name -ne "terraform" | ForEach-Object FullName)
-$KitSources = @("kit", "agents", "dpdp", "connectors", "config", "requirements.txt", "docs") |
-    ForEach-Object { Join-Path $RootDir $_ } | Where-Object { Test-Path $_ }
-foreach ($copy in @(@{ Src = $DeploySources; Dest = "${KitRemote}/deploy/" }, @{ Src = @($KitSources); Dest = "${KitRemote}/" })) {
-    $ScpArgs = @("compute", "scp", "--recurse") + $copy.Src + @("${VmName}:$($copy.Dest)") + $VmFlags
-    gcloud @ScpArgs
-    if ($LASTEXITCODE -ne 0) { throw "Copying kit to $VmName failed" }
-}
+Invoke-GcloudCli @(
+    "compute", "scp", "--recurse",
+    "$RootDir\deploy", "$RootDir\kit", "$RootDir\agents",
+    "$RootDir\dpdp", "$RootDir\connectors", "$RootDir\config",
+    "$RootDir\requirements.txt", "$RootDir\docs",
+    "${ClientName}-analytics:${KitRemote}/",
+    "--zone=$Zone", "--project=$ProjectId"
+)
 
 Write-Host "[4/7] Configuring environment and TLS..."
-# Remote content travels base64-encoded inside --command: stdin is unusable because
-# gcloud feeds plink a "y" to accept the host key, and here-strings carry this
-# file's CRLF endings, which bash rejects
-function ConvertTo-RemoteBase64([string]$Text) {
-    [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($Text -replace "`r", "")))
-}
-
 $DeployEnv = @"
 GCP_PROJECT_ID=$ProjectId
 GCS_BACKUP_BUCKET=$BackupBucket
 MATOMO_PUBLIC_HOST=$MatomoHost
 OYDK_SCALE_PROFILE=$Profile
 "@
-gcloud compute ssh $VmName @VmFlags `
-    --command="echo $(ConvertTo-RemoteBase64 $DeployEnv) | base64 -d > ${KitRemote}/.deploy.env"
-if ($LASTEXITCODE -ne 0) { throw "Writing ${KitRemote}/.deploy.env on $VmName failed" }
+Invoke-GcloudCli -PipelineInput $DeployEnv -GcloudArgs @(
+    "compute", "ssh", "${ClientName}-analytics",
+    "--zone=$Zone", "--project=$ProjectId",
+    "--command=cat > ${KitRemote}/.deploy.env"
+)
 
-$RemoteSetup = @"
-# The VM startup script may still be installing Docker
-for i in `$(seq 1 60); do sudo docker compose version >/dev/null 2>&1 && break; echo "Waiting for Docker install on VM... (`$i/60)"; sleep 5; done
+$remoteSetup = @"
 set -e
 cd ${KitRemote}/deploy/docker
-if [ ! -f .env ]; then
-  cp .env.example .env
-  # Fresh install: replace placeholder passwords before the databases initialise
-  for k in MYSQL_ROOT_PASSWORD MYSQL_PASSWORD KIT_DB_PASSWORD; do sed -i "s|^`$k=.*|`$k=`$(openssl rand -hex 16)|" .env; done
-fi
-# .env.example ships another deployment's host, so always pin it to this VM
-if grep -q '^MATOMO_PUBLIC_HOST=' .env; then sed -i 's|^MATOMO_PUBLIC_HOST=.*|MATOMO_PUBLIC_HOST=$MatomoHost|' .env; else echo MATOMO_PUBLIC_HOST=$MatomoHost >> .env; fi
+cp -n .env.example .env || true
+grep -q MATOMO_PUBLIC_HOST .env || echo MATOMO_PUBLIC_HOST=$MatomoHost >> .env
 chmod +x backup-to-gcs.sh update-stack.sh matomo-https-config.sh 2>/dev/null || true
 if command -v docker-compose >/dev/null; then DC=docker-compose; else DC='docker compose'; fi
 sudo `$DC up -d --build
 if [ -f matomo-https-config.sh ]; then sudo ./matomo-https-config.sh || true; fi
 "@
-# plink drops long sessions with heavy output (docker build) with "nonexistent
-# channel", so run the setup detached on the VM and poll for its exit code
-$Launch = @"
-echo $(ConvertTo-RemoteBase64 $RemoteSetup) | base64 -d > /tmp/oydk-setup.sh
-rm -f /tmp/oydk-setup.exit
-setsid nohup bash -c 'bash /tmp/oydk-setup.sh > /tmp/oydk-setup.log 2>&1; echo `$? > /tmp/oydk-setup.exit' >/dev/null 2>&1 < /dev/null &
-"@
-gcloud compute ssh $VmName @VmFlags --command="echo $(ConvertTo-RemoteBase64 $Launch) | base64 -d | bash"
-if ($LASTEXITCODE -ne 0) { throw "Starting remote environment setup on $VmName failed" }
-
-$Poll = "if [ -f /tmp/oydk-setup.exit ]; then echo EXIT=`$(cat /tmp/oydk-setup.exit); else echo RUNNING; tail -n 1 /tmp/oydk-setup.log; fi"
-$SetupExit = $null
-for ($i = 1; $i -le 80 -and $null -eq $SetupExit; $i++) {
-    Start-Sleep -Seconds 15
-    $status = @(gcloud compute ssh $VmName @VmFlags --command="echo $(ConvertTo-RemoteBase64 $Poll) | base64 -d | bash")
-    $exitLine = $status | Where-Object { $_ -match '^EXIT=(\d+)' } | Select-Object -First 1
-    if ($exitLine) { $SetupExit = [int]($exitLine -replace '^EXIT=', '') }
-    else { Write-Host "  Setup running on VM ($i/80): $(($status | Select-Object -Last 1))" }
-}
-gcloud compute ssh $VmName @VmFlags --command="tail -n 15 /tmp/oydk-setup.log"
-if ($null -eq $SetupExit) { throw "Remote environment setup on $VmName did not finish within 20 minutes (log: /tmp/oydk-setup.log on the VM)" }
-if ($SetupExit -ne 0) { throw "Remote environment setup on $VmName failed with exit code $SetupExit (log: /tmp/oydk-setup.log on the VM)" }
+Invoke-GcloudCli @(
+    "compute", "ssh", "${ClientName}-analytics",
+    "--zone=$Zone", "--project=$ProjectId",
+    "--command=$remoteSetup"
+)
 
 Write-Host "[5/7] Waiting for Matomo (HTTPS)..."
 $ok = $false
@@ -226,10 +205,8 @@ for ($i = 1; $i -le 36; $i++) {
 if (-not $ok) { Write-Host "[yellow]Matomo HTTPS not ready yet - complete setup wizard in browser[/yellow]" }
 
 Write-Host "[6/7] Smoke test Kit API..."
-$kitOk = $false
 try {
     Invoke-WebRequest -Uri "$KitApiUrl/health" -UseBasicParsing -TimeoutSec 10 | Out-Null
-    $kitOk = $true
     Write-Host "Kit API: OK"
 } catch {
     Write-Host "[yellow]Kit API not responding yet on :8090[/yellow]"
@@ -253,5 +230,4 @@ Write-Host ""
     -MatomoUrl $MatomoUrl `
     -BackupBucket $BackupBucket `
     -KitApiUrl $KitApiUrl `
-    -RootDir $RootDir `
-    -Healthy:($ok -and $kitOk)
+    -RootDir $RootDir

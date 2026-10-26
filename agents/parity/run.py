@@ -1,302 +1,180 @@
 """Parity checker — compare GA4 vs Matomo, alert on gaps, diagnose causes."""
 
 import json
-import os
-import smtplib
 from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
 from pathlib import Path
-from typing import Any
 
 import requests
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
+from agents.parity.daily_log import append_parity_row
 from agents.parity.diagnosis import diagnose
+from agents.parity.fixture_metrics import FixtureGA4Metrics
 from agents.parity.ga4_metrics import GA4Metrics
-from agents.parity.crm_metrics import CRMBackendMetrics
 from dpdp.audit_log import log_action
-from kit.adapters import get_stack_adapter
 from kit.config import load_config
+from kit.analytics_stack import analytics_stack_from_config
 
 console = Console()
 
 
-def _gap_percent(source_val: float, engine_val: float) -> float:
-    if source_val == 0.0 and engine_val == 0.0:
+def _gap_percent(ga4_val: int, matomo_val: int) -> float:
+    if ga4_val == 0 and matomo_val == 0:
         return 0.0
-    baseline = max(abs(source_val), 1.0)
-    return abs(source_val - engine_val) / baseline * 100.0
+    baseline = max(ga4_val, 1)
+    return abs(ga4_val - matomo_val) / baseline * 100
+
+
+def _use_fixture_mode(cfg: dict, fixture_flag: bool) -> bool:
+    if fixture_flag or cfg.get("parity", {}).get("use_fixture"):
+        return True
+    return not Path(cfg["ga4"]["credentials_file"]).exists()
 
 
 def run_parity(
-    config_path: str = "config/client.yaml",
+    config_path: str,
     date: str | None = None,
-    simulate_break_event: str | None = None,
-    mode: str = "migration",
-    dry_run: bool = False,
-    override_events: list[str] | None = None,
     fixture: bool = False,
     break_tag: str | None = None,
 ) -> dict:
-    """Run continuous parity check (migration dual-run or post-migration CRM ground truth)."""
+    """Run parity check for a given date."""
     cfg = load_config(config_path)
-    parity_cfg = cfg.get("parity", {})
-    target_gap = float(parity_cfg.get("target_gap_percent", 5.0))
-    stack_type = cfg.get("stack", {}).get("type", "matomo").upper()
-
-    # Backward compatibility with main branch arguments
-    if fixture or parity_cfg.get("use_fixture"):
-        dry_run = True
-    if break_tag:
-        simulate_break_event = break_tag
+    parity_cfg = cfg["parity"]
+    target_gap = parity_cfg["target_gap_percent"]
+    fixture_mode = _use_fixture_mode(cfg, fixture)
 
     if date is None:
         date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-    sim_badge = f" [bold red][TAG-BREAK SIMULATION: {simulate_break_event}][/bold red]" if simulate_break_event else ""
-    mode_label = "MIGRATION DUAL-RUN (GA4 vs New Stack)" if mode == "migration" else "STEADY-STATE (New Stack vs Backend/CRM Truth)"
-    exec_mode_label = "[bold magenta]DRY-RUN SIMULATION[/bold magenta]" if dry_run else "[bold green]LIVE PRODUCTION TELEMETRY[/bold green]"
+    console.print(f"\n[bold]Parity Check — {date}[/bold] (target: ±{target_gap}%)\n")
+    if fixture_mode:
+        console.print("[yellow]Fixture mode[/yellow] — GA4 + Matomo baselines from snapshot\n")
+    if break_tag:
+        console.print(
+            f"[red]Simulated break[/red] — Matomo tag for [bold]{break_tag}[/bold] not firing\n"
+        )
 
-    console.print(f"\n[bold]Parity Check — {date}[/bold] [cyan]({mode_label})[/cyan] (target: ±{target_gap}%){sim_badge}")
-    console.print(f"Execution Mode: {exec_mode_label}\n")
+    fixture_reader: FixtureGA4Metrics | None = None
+    if fixture_mode:
+        fixture_path = Path(
+            parity_cfg.get("fixture_file", "agents/parity/fixtures/aurablush_parity.json")
+        )
+        fixture_reader = FixtureGA4Metrics(fixture_path)
+        ga4_users_sessions = fixture_reader.get_users_sessions(date)
+        ga4_events = fixture_reader.get_key_events(date, parity_cfg["key_events"])
+        ga4_sources = fixture_reader.get_traffic_sources(date)
+        matomo_baseline = fixture_reader.get_matomo_baseline(date)
+        matomo_users = int(matomo_baseline["users"])
+        matomo_sessions = int(matomo_baseline["sessions"])
+        matomo_event_counts = dict(matomo_baseline.get("key_events", {}))
+        matomo_sources_total = int(matomo_baseline.get("traffic_sources_total", matomo_sessions))
+    else:
+        ga4 = GA4Metrics(cfg["ga4"]["property_id"], cfg["ga4"]["credentials_file"])
+        ga4_users_sessions = ga4.get_users_sessions(date)
+        ga4_events = ga4.get_key_events(date, parity_cfg["key_events"])
+        ga4_sources = ga4.get_traffic_sources(date)
 
-    # Connect to target engine via adapter
-    try:
-        adapter = get_stack_adapter(cfg)
-        if dry_run:
-            # Explicit simulation fixtures for target engine
-            summary = {"users": 12, "sessions": 15}
-            engine_events_raw = [
-                {"label": "purchase", "nb_events": 3, "revenue": 4497.0},
-                {"label": "add_to_cart", "nb_events": 5, "revenue": 0.0},
-                {"label": "financial_lead_submitted", "nb_events": 1, "revenue": 0.0},
-            ]
-            engine_referrers = [{"name": "Direct", "nb_visits": 10}, {"name": "Search", "nb_visits": 5}]
-        else:
-            summary = adapter.get_daily_summary(date)
-            engine_events_raw = adapter.get_daily_events(date)
-            engine_referrers = adapter.get_daily_referrers(date)
-    except Exception as e:
-        console.print(Panel(
-            f"[bold red]Failed to fetch telemetry from analytics engine [{stack_type}][/bold red]\n\n"
-            f"Error: {e}\n\n"
-            f"Action Required:\n"
-            f"1. Check that the analytics stack is online at {cfg.get('stack', {}).get('url')}.\n"
-            f"2. Run 'oydk health' to test container connectivity.\n"
-            f"3. Run with '--dry-run' if you want to test parity workflows offline.",
-            title="[red]Engine Telemetry Fetch Error[/red]",
-            border_style="red",
-        ))
-        return {"status": "error", "stage": "engine_telemetry", "error": str(e)}
+        matomo = analytics_stack_from_config(config_path)
+        matomo_summary = matomo.get_visits_summary(period="day", date=date)
+        matomo_events_raw = matomo.get_events(period="day", date=date)
+        matomo_referrers = matomo.get_referrers(period="day", date=date)
 
-    engine_users = int(summary.get("users", 0))
-    engine_sessions = int(summary.get("sessions", 0))
+        matomo_users = int(matomo_summary.get("nb_uniq_visitors", 0))
+        matomo_sessions = int(matomo_summary.get("nb_visits", 0))
+        matomo_event_counts = None
+        matomo_sources_total = sum(int(r.get("nb_visits", 0)) for r in matomo_referrers) or 0
 
+    if break_tag and fixture_mode:
+        matomo_event_counts = matomo_event_counts or {}
+        matomo_event_counts[break_tag] = 0
+
+    # Compare
     gaps = []
 
-    # =========================================================================
-    # PATH A: POST-MIGRATION STEADY STATE (GA4 SWITCHED OFF -> BACKEND/CRM TRUTH)
-    # =========================================================================
-    if mode == "crm":
-        try:
-            crm = CRMBackendMetrics(cfg, dry_run=dry_run)
-            backend_orders_data = crm.get_backend_orders(date)
-            backend_leads_data = crm.get_crm_leads(date)
-        except RuntimeError as e:
-            console.print(Panel(
-                f"[bold red]Ground-Truth Backend / CRM Query Failed[/bold red]\n\n{e}",
-                title="[red]CRM Ground-Truth Error[/red]",
-                border_style="red",
-            ))
-            return {"status": "error", "stage": "crm_ground_truth", "error": str(e)}
+    users_gap = _gap_percent(ga4_users_sessions["users"], matomo_users)
+    gaps.append({
+        "metric": "users",
+        "ga4": ga4_users_sessions["users"],
+        "matomo": matomo_users,
+        "gap_percent": round(users_gap, 2),
+        "within_target": users_gap <= target_gap,
+    })
 
-        # 1. Orders Comparison (Analytics purchase vs Backend order ledger)
-        if simulate_break_event and simulate_break_event.lower() == "purchase":
-            analytics_orders = 0
-            console.print(f"  [red]⚡ [SIMULATOR] Muting 'purchase' telemetry from {stack_type} to simulate broken tag[/red]")
+    sessions_gap = _gap_percent(ga4_users_sessions["sessions"], matomo_sessions)
+    gaps.append({
+        "metric": "sessions",
+        "ga4": ga4_users_sessions["sessions"],
+        "matomo": matomo_sessions,
+        "gap_percent": round(sessions_gap, 2),
+        "within_target": sessions_gap <= target_gap,
+    })
+
+    for event_name in parity_cfg["key_events"]:
+        ga4_count = ga4_events.get(event_name, 0)
+        if fixture_mode:
+            matomo_count = int((matomo_event_counts or {}).get(event_name, 0))
         else:
-            analytics_orders = sum(
+            matomo_count = sum(
                 int(e.get("nb_events", 0))
-                for e in engine_events_raw
-                if str(e.get("label", "")).lower() == "purchase"
+                for e in matomo_events_raw
+                if e.get("label", "").lower() == event_name.lower()
             )
-
-        orders_gap = _gap_percent(float(backend_orders_data["orders"]), float(analytics_orders))
+        if break_tag and not fixture_mode and event_name == break_tag:
+            matomo_count = 0
+        event_gap = _gap_percent(ga4_count, matomo_count)
         gaps.append({
-            "metric": "backend_orders",
-            "source": f"Backend Orders ({backend_orders_data['source']})",
-            "source_val": backend_orders_data["orders"],
-            "target_engine": analytics_orders,
-            "gap_percent": round(orders_gap, 2),
-            "within_target": orders_gap <= target_gap,
+            "metric": f"key_event:{event_name}",
+            "ga4": ga4_count,
+            "matomo": matomo_count,
+            "gap_percent": round(event_gap, 2),
+            "within_target": event_gap <= target_gap,
         })
 
-        # 2. Revenue Comparison (Analytics revenue vs Accounting settled revenue)
-        if simulate_break_event and simulate_break_event.lower() == "purchase":
-            analytics_revenue = 0.0
-        else:
-            analytics_revenue = sum(
-                float(e.get("revenue", 0.0) or 0.0)
-                for e in engine_events_raw
-            )
-
-        rev_gap = _gap_percent(float(backend_orders_data["revenue"]), float(analytics_revenue))
-        gaps.append({
-            "metric": "settled_revenue",
-            "source": f"Accounting Settled Revenue ({backend_orders_data['source']})",
-            "source_val": f"₹{backend_orders_data['revenue']:,.0f}" if isinstance(backend_orders_data['revenue'], (int, float)) else backend_orders_data['revenue'],
-            "target_engine": f"₹{analytics_revenue:,.0f}",
-            "gap_percent": round(rev_gap, 2),
-            "within_target": rev_gap <= target_gap,
-        })
-
-        # 3. CRM Leads Comparison
-        if simulate_break_event and simulate_break_event.lower() in ("financial_lead_submitted", "lead"):
-            analytics_leads = 0
-            console.print(f"  [red]⚡ [SIMULATOR] Muting '{simulate_break_event}' telemetry to simulate broken lead tag[/red]")
-        else:
-            analytics_leads = sum(
-                int(e.get("nb_events", 0))
-                for e in engine_events_raw
-                if str(e.get("label", "")).lower() in ("financial_lead_submitted", "lead", "generate_lead")
-            )
-
-        leads_gap = _gap_percent(float(backend_leads_data["leads"]), float(analytics_leads))
-        gaps.append({
-            "metric": "crm_leads",
-            "source": f"CRM Leads ({backend_leads_data['source']})",
-            "source_val": backend_leads_data["leads"],
-            "target_engine": analytics_leads,
-            "gap_percent": round(leads_gap, 2),
-            "within_target": leads_gap <= target_gap,
-        })
-
-        # Display results table
-        table = Table(title=f"Steady-State Parity Report — {date} (Engine vs Client Backend/CRM Ground Truth)")
-        table.add_column("Business Metric & Ground Truth", style="cyan")
-        table.add_column("Backend / CRM Truth", justify="right")
-        table.add_column(f"{stack_type}", justify="right")
-        table.add_column("Gap %", justify="right")
-        table.add_column("Status")
-
-        missed = []
-        for g in gaps:
-            status = "[green]OK[/green]" if g["within_target"] else "[red]MISS[/red]"
-            table.add_row(g["source"], str(g["source_val"]), str(g["target_engine"]), f"{g['gap_percent']}%", status)
-            if not g["within_target"]:
-                missed.append(g)
-
-    # =========================================================================
-    # PATH B: MIGRATION DUAL-RUN (GA4 VS OPEN-SOURCE TARGET ENGINE)
-    # =========================================================================
+    # Traffic sources — compare top channels
+    ga4_total_sessions = sum(ga4_sources.values()) or 1
+    if fixture_mode:
+        matomo_total = matomo_sources_total or 1
     else:
-        # Fetch GA4 metrics
-        try:
-            ga4 = GA4Metrics(
-                property_id=cfg.get("ga4", {}).get("property_id", ""),
-                credentials_path=cfg.get("ga4", {}).get("credentials_file"),
-                dry_run=dry_run,
-            )
-            ga4_users_sessions = ga4.get_users_sessions(date)
-            monitored_events = override_events or parity_cfg.get("key_events", ["purchase", "add_to_cart"])
-            ga4_events = ga4.get_key_events(date, monitored_events)
-            ga4_sources = ga4.get_traffic_sources(date)
-        except RuntimeError as e:
-            console.print(Panel(
-                f"[bold red]GA4 Data API Query Failed[/bold red]\n\n{e}",
-                title="[red]GA4 Parity Fetch Error[/red]",
-                border_style="red",
-            ))
-            return {"status": "error", "stage": "ga4_metrics", "error": str(e)}
+        matomo_total = matomo_sources_total or 1
+    sources_gap = _gap_percent(ga4_total_sessions, matomo_total)
+    gaps.append({
+        "metric": "traffic_sources",
+        "ga4": ga4_total_sessions,
+        "matomo": matomo_total,
+        "gap_percent": round(sources_gap, 2),
+        "within_target": sources_gap <= target_gap,
+    })
 
-        users_gap = _gap_percent(float(ga4_users_sessions["users"]), float(engine_users))
-        gaps.append({
-            "metric": "users",
-            "ga4": ga4_users_sessions["users"],
-            "matomo": engine_users,
-            "target_engine": engine_users,
-            "gap_percent": round(users_gap, 2),
-            "within_target": users_gap <= target_gap,
-        })
+    # Display results
+    table = Table(title=f"Parity Report — {date}")
+    table.add_column("Metric", style="cyan")
+    table.add_column("GA4", justify="right")
+    table.add_column("Matomo", justify="right")
+    table.add_column("Gap %", justify="right")
+    table.add_column("Status")
 
-        sessions_gap = _gap_percent(float(ga4_users_sessions["sessions"]), float(engine_sessions))
-        gaps.append({
-            "metric": "sessions",
-            "ga4": ga4_users_sessions["sessions"],
-            "matomo": engine_sessions,
-            "target_engine": engine_sessions,
-            "gap_percent": round(sessions_gap, 2),
-            "within_target": sessions_gap <= target_gap,
-        })
-
-        for event_name in monitored_events:
-            ga4_count = ga4_events.get(event_name, 0)
-            
-            # Check if this event tag is simulated broken
-            if simulate_break_event and simulate_break_event.lower() == event_name.lower():
-                engine_count = 0
-                console.print(f"  [red]⚡ [SIMULATOR] Muting '{event_name}' telemetry from {stack_type} to simulate broken tag[/red]")
-            else:
-                engine_count = sum(
-                    int(e.get("nb_events", 0))
-                    for e in engine_events_raw
-                    if str(e.get("label", "")).lower() == event_name.lower()
-                )
-
-            event_gap = _gap_percent(float(ga4_count), float(engine_count))
-            gaps.append({
-                "metric": f"key_event:{event_name}",
-                "ga4": ga4_count,
-                "matomo": engine_count,
-                "target_engine": engine_count,
-                "gap_percent": round(event_gap, 2),
-                "within_target": event_gap <= target_gap,
-            })
-
-        # Traffic sources — compare top channels
-        ga4_total_sessions = sum(ga4_sources.values())
-        engine_total = sum(int(r.get("nb_visits", 0)) for r in engine_referrers)
-        sources_gap = _gap_percent(float(ga4_total_sessions), float(engine_total))
-        gaps.append({
-            "metric": "traffic_sources",
-            "ga4": ga4_total_sessions,
-            "matomo": engine_total,
-            "target_engine": engine_total,
-            "gap_percent": round(sources_gap, 2),
-            "within_target": sources_gap <= target_gap,
-        })
-
-        # Display results table
-        table = Table(title=f"Parity Report — {date} (Migration Dual-Run: GA4 vs {stack_type})")
-        table.add_column("Metric", style="cyan")
-        table.add_column("GA4", justify="right")
-        table.add_column(f"{stack_type}", justify="right")
-        table.add_column("Gap %", justify="right")
-        table.add_column("Status")
-
-        missed = []
-        for g in gaps:
-            status = "[green]OK[/green]" if g["within_target"] else "[red]MISS[/red]"
-            table.add_row(g["metric"], str(g.get("ga4", 0)), str(g.get("target_engine", 0)), f"{g['gap_percent']}%", status)
-            if not g["within_target"]:
-                missed.append(g)
+    missed = []
+    for g in gaps:
+        status = "[green]OK[/green]" if g["within_target"] else "[red]MISS[/red]"
+        table.add_row(g["metric"], str(g["ga4"]), str(g["matomo"]),
+                      f"{g['gap_percent']}%", status)
+        if not g["within_target"]:
+            missed.append(g)
 
     console.print(table)
 
     # Diagnose if target missed
     report = {
         "date": date,
-        "mode": mode,
-        "execution_mode": "dry_run" if dry_run else "live",
-        "target_engine": stack_type,
+        "mode": "fixture" if fixture_mode else "live",
+        "simulated_break_tag": break_tag,
         "target_gap_percent": target_gap,
-        "simulated_break": simulate_break_event,
         "gaps": gaps,
         "all_within_target": len(missed) == 0,
         "diagnosis": [],
         "alert_sent": False,
+        "email_alert": None,
     }
 
     if missed:
@@ -312,216 +190,147 @@ def run_parity(
                 "affected": d.affected_metric,
             })
 
-        # Send multi-recipient alerts (Email + Slack)
-        _send_alert(cfg, report, missed)
+        _send_threshold_alert(cfg, report)
         report["alert_sent"] = True
     else:
-        console.print("\n[green]✓ All metrics within target tolerance.[/green]")
+        console.print("\n[green]All metrics within target.[/green]")
 
-    # Save report (both JSON and Markdown summary)
+    _send_daily_report_email(cfg, report)
+
+    # Save report (fixture must not overwrite live JSON for the same date)
     output_dir = Path("output/parity")
     output_dir.mkdir(parents=True, exist_ok=True)
-    report_filename = f"parity-crm-{date}.json" if mode == "crm" else f"parity-{date}.json"
-    report_path = output_dir / report_filename
+    mode_tag = "-fixture" if fixture_mode else ""
+    if break_tag:
+        suffix = f"{mode_tag}-break-{break_tag}" if mode_tag else f"-break-{break_tag}"
+    else:
+        suffix = mode_tag
+    report_path = output_dir / f"parity-{date}{suffix}.json"
     with open(report_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, default=str)
+        json.dump(report, f, indent=2)
+    report["report_path"] = str(report_path)
+    report["report_file"] = report_path.name
 
-    md_filename = f"parity-crm-{date}.md" if mode == "crm" else f"parity-{date}.md"
-    md_path = output_dir / md_filename
+    md_path = output_dir / f"parity-{date}{suffix}.md"
     _write_markdown_report(md_path, report)
+    sheet_path = append_parity_row(report, output_dir)
+    report["parity_daily_sheet"] = str(sheet_path)
 
     log_action(
-        actor="parity-agent",
-        action="parity_crm_check" if mode == "crm" else "check",
-        resource=f"parity:{mode}:{date}",
+        "parity-agent",
+        "check",
+        f"date:{date}",
         details={
-            "mode": mode,
-            "execution": "dry_run" if dry_run else "live",
+            "mode": report["mode"],
             "missed": len(missed),
             "alert": report["alert_sent"],
-            "simulated_break": simulate_break_event,
+            "email": (report.get("email_alert") or {}).get("sent"),
+            "break_tag": break_tag,
         },
     )
 
-    console.print(f"\nReport saved: [bold cyan]{report_path}[/bold cyan]")
+    console.print(f"Report saved: {report_path}")
+    console.print(f"Summary: {md_path}")
+    console.print(f"Daily sheet: {sheet_path}")
     return report
 
 
-def _get_alert_recipients(parity_cfg: dict) -> list[str]:
-    """Extract list of alert recipients from config."""
-    recipients = []
-    # Support list format
-    if "alert_emails" in parity_cfg and isinstance(parity_cfg["alert_emails"], list):
-        recipients.extend([e.strip() for e in parity_cfg["alert_emails"] if e and isinstance(e, str)])
-    # Support legacy single email string
-    elif "alert_email" in parity_cfg and parity_cfg["alert_email"]:
-        single = str(parity_cfg["alert_email"]).strip()
-        if single:
-            recipients.append(single)
-    return list(dict.fromkeys(recipients))  # Unique preserve order
-
-
-def _send_alert(cfg: dict, report: dict, missed: list[dict]) -> None:
-    """Send alert via multi-recipient email and/or Slack webhook."""
-    parity_cfg = cfg.get("parity", {})
-    recipients = _get_alert_recipients(parity_cfg)
-    date = report.get("date", "Unknown Date")
-    target_gap = report.get("target_gap_percent", 5.0)
-
-    # 1. Format Email Content
-    subject = f"[OYDK ALERT] Analytics Parity Variance Exceeded ±{target_gap}% on {date}"
-    
-    body_lines = [
-        f"TATVIC OYDK — AUTOMATED PARITY ALERT",
-        f"==================================================",
-        f"Date: {date}",
-        f"Target Tolerance: ±{target_gap}%",
-        f"Missed Metrics: {len(missed)}",
-        f"Engine: {report.get('target_engine')}",
-        "",
-        "Variance Summary:",
-        "--------------------------------------------------",
+def _write_markdown_report(path: Path, report: dict) -> None:
+    lines = [
+        f"# Parity Report — {report['date']}",
+        f"Mode: **{report.get('mode', 'live')}** | Target: ±{report['target_gap_percent']}%",
     ]
-    for g in missed:
-        src = g.get("metric") or g.get("source")
-        src_val = g.get("ga4") if "ga4" in g else g.get("source_val")
-        tgt_val = g.get("target_engine")
-        gap = g.get("gap_percent")
-        body_lines.append(f"  • {src}: Source = {src_val}, Target = {tgt_val} (Gap: {gap}%)")
-
-    if report.get("diagnosis"):
-        body_lines.extend([
-            "",
-            "Root-Cause Diagnoses & Proposed Fixes:",
-            "--------------------------------------------------",
-        ])
+    if report.get("simulated_break_tag"):
+        lines.append(f"Simulated break: **{report['simulated_break_tag']}** (Matomo tag not firing)")
+    lines.extend(["", "| Metric | GA4 | Matomo | Gap % | Status |", "|--------|-----|--------|-------|--------|"])
+    for g in report["gaps"]:
+        status = "OK" if g["within_target"] else "**MISS**"
+        lines.append(
+            f"| {g['metric']} | {g['ga4']} | {g['matomo']} | {g['gap_percent']}% | {status} |"
+        )
+    if report["diagnosis"]:
+        lines.extend(["", "## Diagnosis"])
         for d in report["diagnosis"]:
-            body_lines.append(f"  • Cause ({d['confidence']}): {d['cause']}")
-            body_lines.append(f"    Fix: {d['fix']}")
+            lines.append(f"- **{d['confidence']}**: {d['cause']}")
+            lines.append(f"  - Fix: {d['fix']}")
+    path.write_text("\n".join(lines), encoding="utf-8")
 
-    body_lines.extend([
-        "",
-        "--------------------------------------------------",
-        "Generated autonomously by Tatvic Own-Your-Data Analytics Kit",
-    ])
-    email_text = "\n".join(body_lines)
 
-    # Log to permanent alerts file
-    alert_log_path = Path("output/parity/alerts.log")
-    alert_log_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(alert_log_path, "a", encoding="utf-8") as f:
-        f.write(f"\n--- Alert dispatched at {datetime.now(timezone.utc).isoformat()} ---\n")
-        f.write(f"Recipients: {', '.join(recipients) if recipients else 'None configured'}\n")
-        f.write(email_text + "\n")
+def _send_threshold_alert(cfg: dict, report: dict) -> None:
+    """Log threshold miss and optional Slack (email is sent with every daily report)."""
+    from pathlib import Path
 
-    # Dispatch via SMTP if configured
-    smtp_cfg = parity_cfg.get("smtp", {})
-    smtp_host = os.environ.get("SMTP_HOST") or smtp_cfg.get("host")
-    smtp_port = int(os.environ.get("SMTP_PORT") or smtp_cfg.get("port", 587))
-    smtp_user = os.environ.get("SMTP_USER") or smtp_cfg.get("user")
-    smtp_pass = os.environ.get("SMTP_PASSWORD") or smtp_cfg.get("password")
+    missed = [g for g in report["gaps"] if not g["within_target"]]
+    alert_line = (
+        f"Parity ALERT {report['date']}: "
+        + ", ".join(f"{g['metric']} gap={g['gap_percent']}%" for g in missed)
+    )
+    console.print(f"  [bold red]{alert_line}[/bold red]")
+    log_dir = Path("output/parity")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    with open(log_dir / "alerts.log", "a", encoding="utf-8") as fh:
+        fh.write(alert_line + "\n")
 
-    if recipients:
-        if smtp_host:
-            try:
-                msg = EmailMessage()
-                msg["Subject"] = subject
-                msg["From"] = smtp_user or "oydk-alerts@tatvic.com"
-                msg["To"] = ", ".join(recipients)
-                msg.set_content(email_text)
-
-                with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-                    server.starttls()
-                    if smtp_user and smtp_pass:
-                        server.login(smtp_user, smtp_pass)
-                    server.send_message(msg)
-                console.print(f"  [green]✓ Email alert transmitted via SMTP to:[/green] {', '.join(recipients)}")
-            except Exception as e:
-                console.print(f"  [yellow]Notice: SMTP transmission error ({e}). Alert logged to {alert_log_path}[/yellow]")
-        else:
-            console.print(f"  [cyan]ℹ Notification alert recorded for {len(recipients)} recipient(s):[/cyan] {', '.join(recipients)}")
-            console.print(f"    [dim](Logged to {alert_log_path}. Set SMTP_HOST in env to relay live outbound emails)[/dim]")
-
-    # 2. Dispatch via Slack if configured
-    webhook = parity_cfg.get("alert_slack_webhook") or os.environ.get("SLACK_WEBHOOK_URL")
-    if webhook and not webhook.startswith("${") and webhook.startswith("http"):
-        slack_payload = {
-            "text": f"⚠️ Parity Alert — {date}: {len(missed)} metric(s) exceeded ±{target_gap}%",
+    webhook = cfg["parity"].get("alert_slack_webhook")
+    if webhook and not webhook.startswith("${"):
+        missed = [g for g in report["gaps"] if not g["within_target"]]
+        message = {
+            "text": f"Parity Alert — {report['date']}",
             "blocks": [
-                {"type": "header", "text": {"type": "plain_text", "text": f"🚨 Parity Variance Alert — {date}"}},
+                {"type": "header", "text": {"type": "plain_text", "text": "Parity Target Missed"}},
                 {"type": "section", "text": {
                     "type": "mrkdwn",
                     "text": "\n".join(
-                        f"• *{g.get('metric', g.get('source'))}*: Source={g.get('ga4', g.get('source_val'))}, Target={g.get('target_engine')} (*{g['gap_percent']}%* gap)"
+                        f"• *{g['metric']}*: GA4={g['ga4']}, Matomo={g['matomo']}, gap={g['gap_percent']}%"
                         for g in missed
                     ),
                 }},
             ],
         }
-        if report.get("diagnosis"):
-            fixes = "\n".join(f"• *{d['cause']}*\n  `Fix:` {d['fix']}" for d in report["diagnosis"])
-            slack_payload["blocks"].append({
+        if report["diagnosis"]:
+            fixes = "\n".join(f"• {d['fix']}" for d in report["diagnosis"])
+            message["blocks"].append({
                 "type": "section",
-                "text": {"type": "mrkdwn", "text": f"*Proposed Remediation:*\n{fixes}"},
+                "text": {"type": "mrkdwn", "text": f"*Proposed fixes:*\n{fixes}"},
             })
         try:
-            resp = requests.post(webhook, json=slack_payload, timeout=10)
-            if resp.status_code == 200:
-                console.print("  [green]✓ Alert dispatched to Slack channel[/green]")
+            requests.post(webhook, json=message, timeout=10)
+            console.print("  Alert sent via Slack")
         except Exception as e:
-            console.print(f"  [yellow]Slack alert webhook notice: {e}[/yellow]")
-
-
-def _write_markdown_report(path: Path, report: dict) -> None:
-    """Generate human-readable markdown summary for dashboard or email archiving."""
-    lines = [
-        f"# Parity Report — {report.get('date')}",
-        f"Mode: **{report.get('mode', 'live')}** ({report.get('execution_mode', 'live')}) | Target: ±{report.get('target_gap_percent')}%",
-    ]
-    if report.get("simulated_break"):
-        lines.append(f"Simulated break: **{report['simulated_break']}**")
-    lines.extend(["", "| Metric / Source | Baseline | Target Engine | Gap % | Status |", "|---|---|---|---|---|"])
-    for g in report.get("gaps", []):
-        status = "OK" if g.get("within_target") else "**MISS**"
-        metric_name = g.get("metric") or g.get("source")
-        base_val = g.get("ga4") if "ga4" in g else g.get("source_val")
-        tgt_val = g.get("target_engine")
-        lines.append(f"| {metric_name} | {base_val} | {tgt_val} | {g.get('gap_percent')}% | {status} |")
-    if report.get("diagnosis"):
-        lines.extend(["", "## Root-Cause Diagnosis & Proposed Fixes"])
-        for d in report["diagnosis"]:
-            lines.append(f"- **{d.get('confidence')}**: {d.get('cause')}")
-            lines.append(f"  - Fix: {d.get('fix')}")
-    path.write_text("\n".join(lines), encoding="utf-8")
-
-
-def _send_threshold_alert(cfg: dict, report: dict) -> None:
-    """Backward compatibility alias for threshold miss alerts."""
-    missed = [g for g in report.get("gaps", []) if not g.get("within_target")]
-    _send_alert(cfg, report, missed)
+            console.print(f"  [yellow]Alert failed: {e}[/yellow]")
 
 
 def _send_daily_report_email(cfg: dict, report: dict) -> None:
-    """Backward compatibility alias for daily parity email dispatch."""
-    missed = [g for g in report.get("gaps", []) if not g.get("within_target")]
-    _send_alert(cfg, report, missed)
+    """Email full daily parity table to alert_emails; includes diagnosis when over threshold."""
+    from agents.parity.email_alert import send_parity_report_email
+
+    email_status = send_parity_report_email(cfg, report)
+    report["email_alert"] = email_status
+    if email_status.get("sent"):
+        label = "Daily parity report emailed to"
+        console.print(f"  [green]{label}: {', '.join(email_status['recipients'])}[/green]")
+    elif email_status.get("reason") == "smtp_not_configured":
+        console.print(
+            "  [yellow]Daily report not emailed — set OYDK_SMTP_USER/OYDK_SMTP_PASS "
+            f"(recipients: {', '.join(email_status.get('recipients', []))})[/yellow]"
+        )
+    elif email_status.get("reason") == "no_recipients":
+        console.print("  [yellow]Daily report not emailed — no parity.alert_emails[/yellow]")
+    elif email_status.get("reason") == "disabled":
+        pass
 
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="OYDK Continuous Parity Engine")
-    parser.add_argument("config", nargs="?", default="config/client.yaml", help="Client config file")
-    parser.add_argument("date", nargs="?", default=None, help="Check date (YYYY-MM-DD)")
-    parser.add_argument("--dry-run", action="store_true", help="Run in simulation mode without querying live APIs")
-    parser.add_argument("--fixture", action="store_true", help="Alias for --dry-run (offline mode)")
-    parser.add_argument("--mode", choices=["migration", "crm"], default="migration", help="Parity mode")
-    parser.add_argument("--break-event", "--break-tag", dest="break_event", default=None, help="Simulate a broken tag event")
-    args = parser.parse_args()
+    import sys
 
-    run_parity(
-        config_path=args.config,
-        date=args.date,
-        simulate_break_event=args.break_event,
-        mode=args.mode,
-        dry_run=args.dry_run or args.fixture,
-    )
+    args = sys.argv[1:]
+    fixture = "--fixture" in args
+    break_tag = None
+    if "--break-tag" in args:
+        idx = args.index("--break-tag")
+        break_tag = args[idx + 1]
+        args = args[:idx] + args[idx + 2 :]
+    args = [a for a in args if a != "--fixture"]
+    config = args[0] if args else "config/client.yaml"
+    date = args[1] if len(args) > 1 else None
+    run_parity(config, date, fixture=fixture, break_tag=break_tag)

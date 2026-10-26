@@ -224,7 +224,22 @@ def _subprocess_no_window(cmd: str | list[str], *, shell: bool = False) -> subpr
 
 def start_gcloud_login(gcp_project_id: str = "") -> dict[str, Any]:
     """Start gcloud auth in the background; user completes sign-in in the browser only."""
+    from demo.console.runtime import deploy_capabilities
+
     project = (gcp_project_id or os.environ.get("GOOGLE_CLOUD_PROJECT") or "").strip()
+    caps = deploy_capabilities()
+    # Cloud Run has no gcloud CLI — secrets are already mounted for the hosted demo.
+    if caps.get("host") == "cloud_run":
+        return {
+            "started": True,
+            "hosted": True,
+            "project": project or os.environ.get("GOOGLE_CLOUD_PROJECT") or "",
+            "message": (
+                "Hosted console is already connected via Google Secret Manager "
+                "(GA credentials + Matomo token). Use Run default here. "
+                "For interactive gcloud sign-in, open this console on your laptop."
+            ),
+        }
     try:
         if os.name == "nt":
             inner = "gcloud auth login && gcloud auth application-default login"
@@ -240,6 +255,11 @@ def start_gcloud_login(gcp_project_id: str = "") -> dict[str, Any]:
         if project:
             msg += f" Project will be set to {project} after login."
         return {"started": True, "message": msg, "project": project}
+    except FileNotFoundError:
+        return {
+            "started": False,
+            "error": "gcloud is not installed on this machine. Install Google Cloud SDK, then try again.",
+        }
     except Exception as exc:
         return {"started": False, "error": str(exc)}
 
