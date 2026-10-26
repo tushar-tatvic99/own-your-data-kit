@@ -506,14 +506,17 @@ function renderCart() {
   headerCartTotal.textContent = formatPrice(totals.subtotal);
 
   // Free shipping progress bar
-  const pct = Math.min(100, Math.round((totals.subtotal / totals.freeThreshold) * 100));
-  shippingProgressBar.style.width = `${pct}%`;
-  
-  if (totals.subtotal >= totals.freeThreshold) {
-    shippingProgressMsg.innerHTML = `🌸 <strong>Complimentary Luxury White-Glove Shipping Unlocked!</strong>`;
-  } else {
-    const remaining = totals.freeThreshold - totals.subtotal;
-    shippingProgressMsg.innerHTML = `Add <strong>${formatPrice(remaining)}</strong> more to unlock <strong>Free White-Glove Delivery</strong>!`;
+  if (shippingProgressBar) {
+    const pct = Math.min(100, Math.round((totals.subtotal / totals.freeThreshold) * 100));
+    shippingProgressBar.style.width = `${pct}%`;
+  }
+  if (shippingProgressMsg) {
+    if (totals.subtotal >= totals.freeThreshold) {
+      shippingProgressMsg.innerHTML = `🌸 <strong>Complimentary Luxury White-Glove Shipping Unlocked!</strong>`;
+    } else {
+      const remaining = totals.freeThreshold - totals.subtotal;
+      shippingProgressMsg.innerHTML = `Add <strong>${formatPrice(remaining)}</strong> more to unlock <strong>Free White-Glove Delivery</strong>!`;
+    }
   }
 
   // Matomo Ecommerce Cart Update Tracking
@@ -523,15 +526,21 @@ function renderCart() {
 
   // Empty state vs items
   if (state.cart.length === 0) {
-    cartItemsList.innerHTML = '';
-    cartItemsList.appendChild(cartEmptyState);
-    cartEmptyState.style.display = 'flex';
-    document.getElementById('cartDrawerFooter').style.opacity = '0.5';
-    proceedCheckoutBtn.disabled = true;
+    if (cartItemsList) cartItemsList.innerHTML = '';
+    if (cartEmptyState && cartItemsList) cartItemsList.appendChild(cartEmptyState);
+    if (cartEmptyState) cartEmptyState.style.display = 'flex';
+    const footerEl = document.getElementById('cartDrawerFooter') || document.getElementById('cartFooter');
+    if (footerEl) footerEl.style.opacity = '0.5';
+    if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = true;
+    const chkBtn = document.getElementById('checkoutBtn');
+    if (chkBtn) chkBtn.disabled = true;
   } else {
-    cartEmptyState.style.display = 'none';
-    document.getElementById('cartDrawerFooter').style.opacity = '1';
-    proceedCheckoutBtn.disabled = false;
+    if (cartEmptyState) cartEmptyState.style.display = 'none';
+    const footerEl = document.getElementById('cartDrawerFooter') || document.getElementById('cartFooter');
+    if (footerEl) footerEl.style.opacity = '1';
+    if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = false;
+    const chkBtn = document.getElementById('checkoutBtn');
+    if (chkBtn) chkBtn.disabled = false;
     cartItemsList.innerHTML = '';
 
     state.cart.forEach(item => {
@@ -1374,6 +1383,7 @@ quickViewModal?.addEventListener('click', (e) => {
 
 // Checkout Open & Close Buttons
 proceedCheckoutBtn?.addEventListener('click', openCheckout);
+  document.getElementById('checkoutBtn')?.addEventListener('click', openCheckout);
 closeCheckoutBtn?.addEventListener('click', closeCheckout);
 fillDemoAddressBtn?.addEventListener('click', fillDemoDetails);
 
@@ -2549,3 +2559,103 @@ if (document.readyState === 'loading') {
   initApp();
 }
 
+
+
+// ============================================================================
+// BFSI FORM SELECTOR DROPDOWN LOGIC
+// ============================================================================
+function switchBfsiForm(formId) {
+  const dropdown = document.getElementById('bfsiFormSelectDropdown');
+  if (dropdown && dropdown.value !== formId) {
+    dropdown.value = formId;
+  }
+
+  const hint = document.getElementById('bfsiFormPromptHint');
+  const formCards = ['apply-loan', 'open-savings', 'customer-login', 'dpdp-erasure'];
+
+  if (!formId) {
+    // Hide all forms, show prompt hint
+    formCards.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('is-hidden');
+    });
+    if (hint) hint.style.display = 'block';
+    return;
+  }
+
+  if (hint) hint.style.display = 'none';
+
+  if (formId === 'all') {
+    formCards.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('is-hidden');
+    });
+    return;
+  }
+
+  // Show only selected form, hide other forms
+  formCards.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === formId) {
+        el.classList.remove('is-hidden');
+      } else {
+        el.classList.add('is-hidden');
+      }
+    }
+  });
+
+  // Smoothly scroll to the chosen form
+  const targetCard = document.getElementById(formId);
+  if (targetCard) {
+    setTimeout(() => {
+      targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
+  // Push tracking events for dropdown selection
+  if (typeof window !== 'undefined' && window.dataLayer) {
+    window.dataLayer.push({
+      event: 'select_financial_category',
+      financial_category: formId,
+      interaction_source: 'form_dropdown_ui',
+      timestamp: new Date().toISOString()
+    });
+  }
+  if (typeof MatomoTracker !== 'undefined' && typeof MatomoTracker.trackCustomEvent === 'function') {
+    MatomoTracker.trackCustomEvent('BFSI_Navigation', 'form_dropdown_select', formId, 1);
+  }
+}
+
+function toggleFormCard(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  
+  const isHidden = card.classList.contains('is-hidden');
+  if (isHidden) {
+    switchBfsiForm(cardId);
+  } else {
+    card.classList.add('is-hidden');
+    const dropdown = document.getElementById('bfsiFormSelectDropdown');
+    if (dropdown && dropdown.value === cardId) {
+      dropdown.value = '';
+    }
+  }
+}
+
+// Auto open form if URL has hash
+if (typeof window !== 'undefined') {
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (['apply-loan', 'open-savings', 'customer-login', 'dpdp-erasure'].includes(hash)) {
+      switchBfsiForm(hash);
+    }
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (['apply-loan', 'open-savings', 'customer-login', 'dpdp-erasure'].includes(hash)) {
+      switchBfsiForm(hash);
+    }
+  });
+}

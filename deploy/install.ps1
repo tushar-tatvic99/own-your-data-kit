@@ -18,9 +18,9 @@ param(
     [string]$Engine = "matomo",
     [string]$Region = "asia-south1",
     [string]$Zone = "asia-south1-a",
-    [string]$Ga4PropertyId = "61760469326",
-    [string]$GtmContainerId = "GTM-MMXM5L53",
-    [string]$GtmAccountId = "6000000000",
+    [string]$Ga4PropertyId = "560630351",
+    [string]$GtmContainerId = "283402441",
+    [string]$GtmAccountId = "6399646488",
     [string]$CredentialsPath = "credentials/ga-service-account.json",
     [int]$ParityTargetGap = 5,
     [string]$AlertEmails = "analytics-owner@client.com,devops-alerts@tatvic.com",
@@ -210,15 +210,25 @@ if (-not $Unattended) {
         else { $Profile = "standard" }
     }
 
-    Write-Host "`n[5/5] GA4 & GTM Migration Source (Press Enter for practice property):" -ForegroundColor Yellow
-    $Ga4PropertyId = Prompt-User "Enter GA4 Property ID" $Ga4PropertyId
-    $GtmContainerId = Prompt-User "Enter GTM Container ID" $GtmContainerId
-    $CredInput = Prompt-User "Enter Service Account JSON key path (or leave empty to use Google account login)" ""
-    if ($CredInput -and (Test-Path $CredInput)) {
-        $credDir = Join-Path $RootDir "credentials"
-        New-Item -ItemType Directory -Force -Path $credDir | Out-Null
-        Copy-Item -Path $CredInput -Destination (Join-Path $credDir "ga-service-account.json") -Force
-        Write-Host "  [OK] Copied key to credentials\ga-service-account.json" -ForegroundColor Green
+    Write-Host "`n[5/5] GA4 & GTM Migration Source (Optional):" -ForegroundColor Yellow
+    $migrateChoice = Prompt-User "Do you want to configure GA4 & GTM migration? (y/n)" "y"
+    if ($migrateChoice -match "^[yY]") {
+        $Ga4PropertyId = Prompt-User "Enter GA4 Property ID" (if ($Ga4PropertyId) { $Ga4PropertyId } else { "560630351" })
+        $GtmContainerId = Prompt-User "Enter GTM Container ID (numeric)" (if ($GtmContainerId -and $GtmContainerId -ne "GTM-MMXM5L53") { $GtmContainerId } else { "283402441" })
+        if ($GtmContainerId -match "^GTM-") {
+            Write-Host "  [!] Note: $GtmContainerId is a public GTM ID. GTM API requires a numeric container ID (e.g. 283402441)." -ForegroundColor Yellow
+        }
+        $CredInput = Prompt-User "Enter Service Account JSON key path (or leave empty to use Google account login)" ""
+        if ($CredInput -and (Test-Path $CredInput)) {
+            $credDir = Join-Path $RootDir "credentials"
+            New-Item -ItemType Directory -Force -Path $credDir | Out-Null
+            Copy-Item -Path $CredInput -Destination (Join-Path $credDir "ga-service-account.json") -Force
+            Write-Host "  [OK] Copied key to credentials\ga-service-account.json" -ForegroundColor Green
+        }
+    } else {
+        $Ga4PropertyId = ""
+        $GtmContainerId = ""
+        Write-Host "  [i] Skipping GA4 & GTM migration configuration (fresh setup)." -ForegroundColor Cyan
     }
     $AlertEmails = Prompt-User "Enter alert notification email(s)" $AlertEmails
 }
@@ -238,8 +248,12 @@ if ($Target -eq "gcp") {
     Write-Host "  Cloud Region    : $Region (Mumbai, India)"
     Write-Host "  Scale Profile   : $Profile"
 }
-Write-Host "  GA4 Property    : $Ga4PropertyId"
-Write-Host "  GTM Container   : $GtmContainerId"
+if ($Ga4PropertyId) {
+    Write-Host "  GA4 Property    : $Ga4PropertyId"
+    Write-Host "  GTM Container   : $GtmContainerId (numeric)"
+} else {
+    Write-Host "  GA4 & GTM Migr. : Skipped (Fresh Setup)"
+}
 if ($DryRun) {
     Write-Host "  Execution Mode  : DRY-RUN SIMULATION (No Billing Impact)" -ForegroundColor Magenta
 } else {

@@ -95,7 +95,7 @@
                 <strong>Switch to E-Commerce Account</strong>
               </div>
             </a>
-            <a href="#customer-login" class="hamburger-option-item" id="hamburgerOptionLogin">
+            <a href="#customer-login" class="hamburger-option-item" id="hamburgerOptionLogin" onclick="switchBfsiForm('customer-login'); toggleBfsiHamburger();">
               <span class="option-icon">🔐</span>
               <div class="option-text">
                 <strong>Login</strong>
@@ -107,7 +107,7 @@
                 <strong>Account Creation</strong>
               </div>
             </a>
-            <a href="#apply-loan" class="hamburger-option-item" id="hamburgerOptionLoan">
+            <a href="#apply-loan" class="hamburger-option-item" id="hamburgerOptionLoan" onclick="switchBfsiForm('apply-loan'); toggleBfsiHamburger();">
               <span class="option-icon">💰</span>
               <div class="option-text">
                 <strong>Apply for Loan</strong>
@@ -127,9 +127,35 @@
     <div class="section-container">
 
       <!-- FORM 1: APPLY LOAN FORM -->
-      <section class="bfsi-simple-card" id="apply-loan">
-        <div class="card-top-header">
+            <!-- =========================================================================
+           BFSI FORMS SELECTOR DROPDOWN (ONLY SHOWS SELECTED FORM)
+           ========================================================================= -->
+      <div class="bfsi-dropdown-selector-box" id="formSelectorBox">
+        <label for="bfsiFormSelectDropdown" class="bfsi-dropdown-label">
+          <span class="dropdown-icon">📑</span> Select Banking Service to Open Form:
+        </label>
+        <div class="bfsi-select-dropdown-wrap">
+          <select id="bfsiFormSelectDropdown" class="bfsi-form-dropdown" onchange="switchBfsiForm(this.value)">
+            <option value="" selected>▾ Select a Form (Click to View Form)...</option>
+            <option value="apply-loan">💰 1. Apply for a Loan</option>
+            <option value="open-savings">🏦 2. Open Savings Account</option>
+            <option value="customer-login">🔐 3. Customer NetBanking Login</option>
+            <option value="dpdp-erasure">🛡️ 4. DPDP Petition for Data Erasure</option>
+            <option value="all">👁️ Show All Forms</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bfsi-form-placeholder-hint" id="bfsiFormPromptHint">
+        <p style="margin: 0; font-size: 0.88rem; color: #475569;">
+          👆 <strong>Select a form from the dropdown above</strong> to display and fill the application.
+        </p>
+      </div>
+
+      <section class="bfsi-simple-card is-hidden" id="apply-loan">
+        <div class="card-top-header card-collapsible-header" onclick="toggleFormCard('apply-loan')">
           <h2 class="card-heading">1. Apply for a Loan</h2>
+          <span class="dropdown-chevron-icon" id="chevron-apply-loan">▾</span>
         </div>
 
         <form class="bfsi-form-clean" id="applyLoanForm" onsubmit="submitLoanForm(event)">
@@ -214,9 +240,10 @@
 
 
       <!-- FORM 2: OPEN SAVINGS ACCOUNT FORM -->
-      <section class="bfsi-simple-card" id="open-savings">
-        <div class="card-top-header">
+      <section class="bfsi-simple-card is-hidden" id="open-savings">
+        <div class="card-top-header card-collapsible-header" onclick="toggleFormCard('open-savings')">
           <h2 class="card-heading">2. Open Savings Account</h2>
+          <span class="dropdown-chevron-icon" id="chevron-open-savings">▾</span>
         </div>
 
         <form class="bfsi-form-clean" id="openSavingsForm" onsubmit="submitSavingsForm(event)">
@@ -285,9 +312,10 @@
 
 
       <!-- FORM 3: CUSTOMER LOGIN FORM -->
-      <section class="bfsi-simple-card" id="customer-login">
-        <div class="card-top-header">
+      <section class="bfsi-simple-card is-hidden" id="customer-login">
+        <div class="card-top-header card-collapsible-header" onclick="toggleFormCard('customer-login')">
           <h2 class="card-heading">3. Customer Login</h2>
+          <span class="dropdown-chevron-icon" id="chevron-customer-login">▾</span>
         </div>
 
         <form class="bfsi-form-clean" id="customerLoginForm" onsubmit="submitLoginForm(event)">
@@ -348,9 +376,10 @@
             <!-- =========================================================================
            DPDP ACT 2023 • PETITION FOR DATA ERASURE
            ========================================================================= -->
-      <section class="bfsi-simple-card" id="dpdp-erasure">
-        <div class="card-top-header">
+      <section class="bfsi-simple-card is-hidden" id="dpdp-erasure">
+        <div class="card-top-header card-collapsible-header" onclick="toggleFormCard('dpdp-erasure')">
           <h2 class="card-heading">DPDP Act 2023 • Petition for Data Erasure</h2>
+          <span class="dropdown-chevron-icon" id="chevron-dpdp-erasure">▾</span>
         </div>
 
         <form class="bfsi-form-clean" id="dpdpRequestForm">
@@ -403,11 +432,11 @@
       <div class="footer-inline-links">
         <a href="ecommerce.html" id="footerSwitchEcom">Switch to E-Commerce Store</a>
         <span class="sep">•</span>
-        <a href="#apply-loan">Apply Loan</a>
+        <a href="#apply-loan" onclick="switchBfsiForm('apply-loan')">Apply Loan</a>
         <span class="sep">•</span>
-        <a href="#open-savings">Open Savings Account</a>
+        <a href="#open-savings" onclick="switchBfsiForm('open-savings')">Open Savings Account</a>
         <span class="sep">•</span>
-        <a href="#customer-login">Customer Login</a>
+        <a href="#customer-login" onclick="switchBfsiForm('customer-login')">Customer Login</a>
         <span class="sep">•</span>
         <a href="tel:+18005550199" id="footerHelpCta">Helpline: +1 (800) 555-0199</a>
       </div>

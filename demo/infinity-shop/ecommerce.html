@@ -112,38 +112,596 @@
     </div>
   </section>
 
-  <!-- Shopping Bag Drawer -->
+  
+  <!-- ============================================== -->
+  <!-- SHOPPING BAG DRAWER (Full Working Implementation) -->
+  <!-- ============================================== -->
   <div class="drawer-overlay" id="cartOverlay"></div>
   <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping Bag">
     <div class="drawer-header">
       <div class="drawer-title-wrap">
-        <h3 class="drawer-title">Shopping Bag</h3>
+        <h3 class="drawer-title">Executive Acquisitions</h3>
         <span class="item-count-badge" id="cartBadgeCount">(0 items)</span>
       </div>
       <button class="drawer-close-btn" id="closeCartBtn" aria-label="Close Shopping Bag">✕</button>
     </div>
 
-    <div class="cart-items-container" id="cartItemsList">
-      <!-- Items dynamically populated -->
+    <!-- Free Shipping Progress Bar -->
+    <div class="shipping-progress-box">
+      <div class="progress-message" id="shippingProgressMsg">
+        Acquire <strong>$75.00</strong> more to unlock <strong>Complimentary Armored Courier &amp; Vault Escrow</strong>!
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="shippingProgressBar" style="width: 0%;"></div>
+      </div>
     </div>
 
-    <div class="cart-drawer-footer" id="cartFooter">
-      <div class="summary-line subtotal">
-        <span>Subtotal</span>
-        <span class="amount" id="drawerSubtotal">$0.00</span>
+    <!-- Cart Items Scroll Area -->
+    <div class="cart-items-container" id="cartItemsList">
+      <!-- Items dynamically populated -->
+      <div class="cart-empty-state" id="cartEmptyState">
+        <span class="empty-icon">🛍️</span>
+        <h4>Your Bag is Whispering for Beauty</h4>
+        <p>Explore our curated treasures and treat yourself or someone cherished.</p>
+        <button class="btn btn-primary" id="emptyCartShopBtn">Explore Collection</button>
       </div>
-      <button class="btn btn-primary btn-checkout" id="checkoutBtn">
-        <span>Proceed to Secure Checkout</span>
+    </div>
+
+    <!-- Cart Footer with Totals and Gift Message -->
+    <div class="drawer-footer" id="cartDrawerFooter">
+      <!-- Gift Wrap & Message Toggle -->
+      <div class="gift-option-card">
+        <label class="gift-toggle-label">
+          <input type="checkbox" id="giftWrapToggle">
+          <span class="custom-checkbox"></span>
+          <span class="gift-toggle-text">
+            <strong>Diplomatic Armored Box &amp; Archival Certificate</strong>
+            <small>Includes wax seal, insured custody tracking &amp; provenance certificate</small>
+          </span>
+        </label>
+        <div class="gift-message-field" id="giftMessageField" style="display: none;">
+          <textarea id="giftMessageInput" placeholder="Executive dispatch instructions or custody recipient notes..." maxlength="200" rows="2"></textarea>
+          <small class="char-limit"><span id="giftCharCount">0</span>/200 characters</small>
+        </div>
+      </div>
+
+      <!-- Coupon Code Form -->
+      <div class="coupon-box">
+        <div class="coupon-input-group">
+          <input type="text" id="couponInput" placeholder="Promo code (e.g. GIRLGLOW15)" class="coupon-input" uppercase>
+          <button class="btn-coupon" id="applyCouponBtn">Apply</button>
+        </div>
+        <div class="coupon-feedback" id="couponFeedback"></div>
+      </div>
+
+      <!-- Price Breakdown -->
+      <div class="price-breakdown">
+        <div class="price-row">
+          <span>Subtotal</span>
+          <span id="cartSubtotal">$0.00</span>
+        </div>
+        <div class="price-row discount-row" id="cartDiscountRow" style="display: none;">
+          <span id="cartDiscountLabel">Promo Discount</span>
+          <span id="cartDiscountAmount">-$0.00</span>
+        </div>
+        <div class="price-row">
+          <span>White-Glove Shipping</span>
+          <span id="cartShippingCost">Calculated at checkout</span>
+        </div>
+        <div class="price-row grand-total-row">
+          <strong>Estimated Total</strong>
+          <strong class="total-amount" id="cartGrandTotal">$0.00</strong>
+        </div>
+      </div>
+
+      <!-- Direct Checkout Trigger -->
+      <button class="btn btn-primary btn-checkout" id="proceedCheckoutBtn">
+        <span>Proceed to Checkout</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
       </button>
+
+      <div class="secure-guarantee">
+        <span>🔒 256-Bit SSL Encrypted • 30-Day Custody Guarantee</span>
+      </div>
     </div>
   </aside>
 
-  <!-- Wishlist Drawer -->
+  <!-- ============================================== -->
+  <!-- 4-STEP CHECKOUT MODAL (Complete Flow with Events) -->
+  <!-- ============================================== -->
+  <!-- ============================================== -->
+  <div class="checkout-modal-backdrop" id="checkoutModal">
+    <div class="checkout-modal-window">
+      
+      <!-- Checkout Header -->
+      <div class="checkout-header">
+        <div class="checkout-brand">
+          <span class="checkout-brand-sub">INSTITUTIONAL CLIENT CHECKOUT</span>
+          <span class="checkout-brand-title">Infinity</span>
+        </div>
+        
+        <!-- Multi-Step Indicator -->
+        <div class="checkout-stepper">
+          <div class="step-node active" id="stepNode1">
+            <span class="step-num">1</span>
+            <span class="step-text">Details</span>
+          </div>
+          <div class="step-line" id="stepLine1"></div>
+          <div class="step-node" id="stepNode2">
+            <span class="step-num">2</span>
+            <span class="step-text">Shipping</span>
+          </div>
+          <div class="step-line" id="stepLine2"></div>
+          <div class="step-node" id="stepNode3">
+            <span class="step-num">3</span>
+            <span class="step-text">Payment</span>
+          </div>
+          <div class="step-line" id="stepLine3"></div>
+          <div class="step-node" id="stepNode4">
+            <span class="step-num">4</span>
+            <span class="step-text">Confirmation</span>
+          </div>
+        </div>
+
+        <button class="checkout-close-btn" id="closeCheckoutBtn" aria-label="Close Checkout">✕</button>
+      </div>
+
+      <!-- Checkout Body (Split Grid: Left Form, Right Order Summary) -->
+      <div class="checkout-body">
+        
+        <!-- Left: Dynamic Steps Form -->
+        <div class="checkout-form-container">
+
+          <!-- ================= STEP 1: CONTACT & DELIVERY ================= -->
+          <div class="checkout-step-panel active" id="checkoutStep1">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Customer &amp; Shipping Details</h3>
+                <p>Where shall our courier deliver your luxury parcel?</p>
+              </div>
+              <button type="button" class="btn-demo-fill" id="fillDemoAddressBtn" title="Fill with demo test address">
+                ✨ Fill Demo Details
+              </button>
+            </div>
+
+            <form id="step1Form" class="step-form">
+              <div class="form-group">
+                <label for="custEmail">Email Address *</label>
+                <input type="email" id="custEmail" required placeholder="claire.dupont@vogue.com">
+                <small class="field-hint">We'll send your tracking updates and digital receipt here.</small>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="custFirstName">First Name *</label>
+                  <input type="text" id="custFirstName" required placeholder="Claire">
+                </div>
+                <div class="form-group">
+                  <label for="custLastName">Last Name *</label>
+                  <input type="text" id="custLastName" required placeholder="Dupont">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="custStreet">Street Address *</label>
+                <input type="text" id="custStreet" required placeholder="24 Rue de Rivoli, Apt 4B">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="custCity">City *</label>
+                  <input type="text" id="custCity" required placeholder="Paris / New York">
+                </div>
+                <div class="form-group">
+                  <label for="custState">State / Region *</label>
+                  <input type="text" id="custState" required placeholder="Île-de-France / NY">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="custZip">Postal / ZIP Code *</label>
+                  <input type="text" id="custZip" required placeholder="75001">
+                </div>
+                <div class="form-group">
+                  <label for="custCountry">Country *</label>
+                  <select id="custCountry" required>
+                    <option value="United States">United States</option>
+                    <option value="France">France</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Germany">Germany</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="custPhone">Mobile Phone (for courier notifications)</label>
+                <input type="tel" id="custPhone" placeholder="+1 (555) 234-5678">
+              </div>
+
+              <div class="step-navigation">
+                <button type="button" class="btn btn-outline" id="backToBagBtn">Return to Bag</button>
+                <button type="submit" class="btn btn-primary">
+                  <span>Continue to Shipping</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ================= STEP 2: SHIPPING METHODS ================= -->
+          <div class="checkout-step-panel" id="checkoutStep2">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Select Delivery Method</h3>
+                <p>Choose your preferred white-glove courier experience</p>
+              </div>
+            </div>
+
+            <!-- Recipient Summary Card -->
+            <div class="summary-pill-card">
+              <div class="summary-pill-line">
+                <span class="sp-label">Ship to:</span>
+                <span class="sp-value" id="shipToPreview">24 Rue de Rivoli, Paris, 75001</span>
+                <button type="button" class="sp-edit" id="editStep1Btn">Change</button>
+              </div>
+            </div>
+
+            <form id="step2Form" class="step-form">
+              <div class="shipping-methods-list">
+                
+                <label class="shipping-option selected" id="shipOptStandard">
+                  <input type="radio" name="shippingMethod" value="standard" checked>
+                  <div class="ship-details">
+                    <div class="ship-title-row">
+                      <strong class="ship-name">Standard Insured Custody Dispatch</strong>
+                      <span class="ship-price" id="rateStandard">$0.00 (Free)</span>
+                    </div>
+                    <p class="ship-desc">3–5 Business Days • Delivered via armored, tamper-evident security courier.</p>
+                  </div>
+                </label>
+
+                <label class="shipping-option" id="shipOptExpress">
+                  <input type="radio" name="shippingMethod" value="express">
+                  <div class="ship-details">
+                    <div class="ship-title-row">
+                      <strong class="ship-name">Priority Armored Diplomatic Courier 🛡️</strong>
+                      <span class="ship-price" id="rateExpress">$12.00</span>
+                    </div>
+                    <p class="ship-desc">1–2 Business Days • Armored escort + Diplomatic priority clearance.</p>
+                  </div>
+                </label>
+
+                <label class="shipping-option" id="shipOptParisian">
+                  <input type="radio" name="shippingMethod" value="parisian">
+                  <div class="ship-details">
+                    <div class="ship-title-row">
+                      <strong class="ship-name">Parisian Rose Express 🌹</strong>
+                      <span class="ship-price" id="rateParisian">$24.00</span>
+                    </div>
+                    <p class="ship-desc">Next Morning White-Glove • Hand-delivered with a fresh real Ecuadorian rose.</p>
+                  </div>
+                </label>
+
+              </div>
+
+              <div class="step-navigation">
+                <button type="button" class="btn btn-outline" id="backToStep1Btn">Back to Details</button>
+                <button type="submit" class="btn btn-primary">
+                  <span>Continue to Payment</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ================= STEP 3: LUXURY PAYMENT ================= -->
+          <div class="checkout-step-panel" id="checkoutStep3">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Payment &amp; Security</h3>
+                <p>All transactions are 256-bit encrypted and bank-grade secure.</p>
+              </div>
+            </div>
+
+            <!-- Express Checkout Buttons -->
+            <div class="express-checkout-block">
+              <span class="express-label">Express Instant Checkout:</span>
+              <div class="express-btn-group">
+                <button type="button" class="btn-express apple-pay" id="expressApplePayBtn">
+                  <span>Pay</span>
+                </button>
+                <button type="button" class="btn-express gpay" id="expressGPayBtn">
+                  <span>G Pay</span>
+                </button>
+                <button type="button" class="btn-express paypal" id="expressPayPalBtn">
+                  <span>PayPal</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="divider-text">
+              <span>OR PAY WITH CREDIT / DEBIT CARD</span>
+            </div>
+
+            <!-- Interactive 3D Card Preview -->
+            <div class="credit-card-preview-container">
+              <div class="card-visual" id="cardVisual">
+                <div class="card-front">
+                  <div class="card-top-row">
+                    <span class="card-chip"></span>
+                    <span class="card-brand-logo" id="cardBrandLogo">VISA</span>
+                  </div>
+                  <div class="card-number-display" id="cardDisplayNumber">•••• •••• •••• ••••</div>
+                  <div class="card-bottom-row">
+                    <div class="card-holder-col">
+                      <span class="card-label">CARD HOLDER</span>
+                      <span class="card-val" id="cardDisplayName">CLAIRE DUPONT</span>
+                    </div>
+                    <div class="card-expiry-col">
+                      <span class="card-label">EXPIRES</span>
+                      <span class="card-val" id="cardDisplayExpiry">MM/YY</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Inputs Form -->
+            <form id="step3Form" class="step-form">
+              <div class="form-group">
+                <label for="cardNumber">Card Number *</label>
+                <input type="text" id="cardNumber" required placeholder="4242 •••• •••• 4242" maxlength="19">
+              </div>
+
+              <div class="form-group">
+                <label for="cardName">Name on Card *</label>
+                <input type="text" id="cardName" required placeholder="Claire Dupont">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cardExpiry">Expiration Date (MM/YY) *</label>
+                  <input type="text" id="cardExpiry" required placeholder="08/28" maxlength="5">
+                </div>
+                <div class="form-group">
+                  <label for="cardCvv">CVV / CVC *</label>
+                  <input type="password" id="cardCvv" required placeholder="•••" maxlength="4">
+                </div>
+              </div>
+
+              <div class="security-lock-note">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Encrypted with bank-level SSL 256-bit protocol. You will not be charged in demo mode.</span>
+              </div>
+
+              <div class="step-navigation">
+                <button type="button" class="btn btn-outline" id="backToStep2Btn">Back to Shipping</button>
+                <button type="submit" class="btn btn-primary btn-pay-now" id="payNowBtn">
+                  <span id="payBtnText">Authorize &amp; Complete Order</span>
+                  <div class="spinner" id="paySpinner" style="display: none;"></div>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ================= STEP 4: ORDER CONFIRMATION & CELEBRATION ================= -->
+          <div class="checkout-step-panel" id="checkoutStep4">
+            <div class="confirmation-container">
+              <div class="celebration-badge">
+                <span class="sparkle-circle">🌸</span>
+              </div>
+              <h2 class="confirm-title">Merci Beaucoup! Your Order is Confirmed</h2>
+              <p class="confirm-subtitle">
+                We are preparing your exquisite keepsakes with utmost delicacy. A confirmation email has been dispatched to <strong id="confirmEmail">claire.dupont@vogue.com</strong>.
+              </p>
+
+              <!-- Order Reference Box -->
+              <div class="order-ref-box">
+                <div class="ref-col">
+                  <small>ORDER NUMBER</small>
+                  <strong class="order-id-highlight" id="confirmedOrderId">#AB-84920</strong>
+                </div>
+                <div class="ref-col">
+                  <small>ESTIMATED ARRIVAL</small>
+                  <strong id="confirmedDeliveryDate">Friday, Oct 27</strong>
+                </div>
+                <div class="ref-col">
+                  <small>DELIVERY STATUS</small>
+                  <strong class="status-badge">Preparing In Atelier 🎀</strong>
+                </div>
+              </div>
+
+              <!-- Live Order Tracking Timeline -->
+              <div class="tracking-timeline-card">
+                <h4>Order Journey Tracker</h4>
+                <div class="timeline-steps">
+                  <div class="t-step active done">
+                    <div class="t-dot">✓</div>
+                    <div class="t-info">
+                      <strong>Order Placed</strong>
+                      <small>Payment authorized &amp; confirmed</small>
+                    </div>
+                  </div>
+                  <div class="t-step active current">
+                    <div class="t-dot">🎀</div>
+                    <div class="t-info">
+                      <strong>Atelier Packaging</strong>
+                      <small>Scented French tissue &amp; gold seal</small>
+                    </div>
+                  </div>
+                  <div class="t-step">
+                    <div class="t-dot">🕊️</div>
+                    <div class="t-info">
+                      <strong>Dispatched with Courier</strong>
+                      <small>Real-time GPS tracking enabled</small>
+                    </div>
+                  </div>
+                  <div class="t-step">
+                    <div class="t-dot">✨</div>
+                    <div class="t-info">
+                      <strong>Delivered to You</strong>
+                      <small>White-glove doorstep delivery</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gift Note Preview if present -->
+              <div class="confirmed-gift-card" id="confirmedGiftSection" style="display: none;">
+                <div class="gift-card-inner">
+                  <span class="gift-calligraphy-title">Your Handwritten Gold Card Message:</span>
+                  <p class="gift-calligraphy-text" id="confirmedGiftMessageText">"To my darling, with all my love."</p>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="confirmation-actions">
+                <button class="btn btn-outline" id="printReceiptBtn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                  </svg>
+                  <span>Print Receipt / Invoice</span>
+                </button>
+                <button class="btn btn-primary" id="finishShoppingBtn">
+                  <span>Continue Shopping</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Fixed Order Summary Column -->
+        <div class="checkout-summary-column">
+          <div class="summary-card">
+            <h4 class="summary-title">Order Summary</h4>
+            
+            <div class="summary-items-list" id="checkoutItemsList">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <div class="summary-breakdown">
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="checkoutSubtotal">$0.00</span>
+              </div>
+              <div class="summary-row discount-row" id="checkoutDiscountRow" style="display: none;">
+                <span id="checkoutDiscountLabel">Promo Discount</span>
+                <span id="checkoutDiscountAmount">-$0.00</span>
+              </div>
+              <div class="summary-row">
+                <span>Courier Delivery</span>
+                <span id="checkoutShippingCost">$0.00</span>
+              </div>
+              <div class="summary-row" id="checkoutGiftRow" style="display: none;">
+                <span>Gift Packaging</span>
+                <span class="free-tag">Complimentary</span>
+              </div>
+              <div class="summary-row grand-total">
+                <strong>Total Amount</strong>
+                <strong class="summary-total-val" id="checkoutGrandTotal">$0.00</strong>
+              </div>
+            </div>
+
+            <!-- Customer Service note -->
+            <div class="concierge-badge">
+              <span class="concierge-icon">📞</span>
+              <div>
+                <strong>Concierge Helpline</strong>
+                <small>24/7 Priority Support for your order</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  
+
+  <!-- ============================================== -->
+  <!-- PRODUCT QUICK VIEW MODAL -->
+  <!-- ============================================== -->
+  <!-- ============================================== -->
+  <div class="quickview-backdrop" id="quickViewModal">
+    <div class="quickview-modal">
+      <button class="quickview-close-btn" id="closeQuickViewBtn" aria-label="Close product preview">✕</button>
+      <div class="quickview-grid">
+        <div class="quickview-image-container">
+          <img src="assets/images/perfume.jpg" alt="Product Image" id="qvProductImg" class="quickview-main-img">
+          <span class="quickview-badge" id="qvProductBadge">Sovereign Tier</span>
+        </div>
+        <div class="quickview-details">
+          <div class="qv-category" id="qvCategory">SWISS HOROLOGY</div>
+          <h2 class="qv-title" id="qvTitle">Infinite Sovereign Chronometer</h2>
+          <div class="qv-rating">
+            <span class="qv-stars" id="qvStars">★★★★★</span>
+            <span class="qv-reviews" id="qvReviews">4.98 (142 reviews)</span>
+          </div>
+          <div class="qv-price" id="qvPrice">$450.00</div>
+          <p class="qv-description" id="qvDescription">
+            Precision automatic movement with sapphire crystal face, dual-timezone complication, and brushed titanium case engineered in Geneva.
+          </p>
+
+          <div class="qv-highlights" id="qvHighlights">
+            <!-- Highlights bullets -->
+          </div>
+
+          <div class="qv-controls">
+            <div class="quantity-selector">
+              <button class="qty-btn" id="qvQtyMinus">-</button>
+              <input type="number" id="qvQtyInput" value="1" min="1" max="10" readonly>
+              <button class="qty-btn" id="qvQtyPlus">+</button>
+            </div>
+            <button class="btn btn-primary btn-qv-add" id="qvAddToCartBtn">
+              <span>Add to Shopping Bag</span>
+            </button>
+            <button class="btn-wishlist-qv" id="qvWishlistBtn" aria-label="Save to Wishlist">
+              ♡
+            </button>
+          </div>
+
+          <div class="qv-perks">
+            <span>✨ Swiss chronometer certified</span>
+            <span>🎀 Complimentary diplomatic packaging</span>
+            <span>🕊️ Express armored delivery</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- ============================================== -->
+  <!-- WISHLIST DRAWER -->
+  <!-- ============================================== -->
+  <!-- ============================================== -->
   <div class="drawer-overlay" id="wishlistOverlay"></div>
   <aside class="wishlist-drawer" id="wishlistDrawer" aria-label="Saved Wishlist">
     <div class="drawer-header">
       <div class="drawer-title-wrap">
-        <h3 class="drawer-title">Saved Wishlist</h3>
+        <h3 class="drawer-title">Your Saved Curations</h3>
         <span class="item-count-badge" id="wishlistBadgeCount">(0 items)</span>
       </div>
       <button class="drawer-close-btn" id="closeWishlistBtn" aria-label="Close Wishlist">✕</button>
@@ -154,132 +712,9 @@
     </div>
   </aside>
 
-  <!-- Product Quick View Modal (Properly hidden by default with .quickview-modal) -->
-  <div class="quickview-modal" id="productModal">
-    <div class="modal-window">
-      <button class="modal-close-btn" id="closeModalBtn" aria-label="Close modal">✕</button>
-      <div class="modal-body" id="modalProductContent">
-        <!-- Rendered dynamically -->
-      </div>
-    </div>
-  </div>
-
-  <!-- 4-Step Checkout Modal (Properly hidden by default with .checkout-modal-backdrop) -->
-  <div class="checkout-modal-backdrop" id="checkoutModal">
-    <div class="modal-window checkout-modal-window">
-      <button class="modal-close-btn" id="closeCheckoutBtn" aria-label="Close checkout">✕</button>
-      
-      <div class="checkout-header">
-        <h2 class="checkout-title" style="font-size: 1.15rem;">Secure Checkout</h2>
-        <div class="checkout-stepper">
-          <div class="step active" data-step="1"><span>1</span><label>Contact</label></div>
-          <div class="step-line"></div>
-          <div class="step" data-step="2"><span>2</span><label>Delivery</label></div>
-          <div class="step-line"></div>
-          <div class="step" data-step="3"><span>3</span><label>Payment</label></div>
-          <div class="step-line"></div>
-          <div class="step" data-step="4"><span>4</span><label>Receipt</label></div>
-        </div>
-      </div>
-
-      <div class="checkout-body">
-        <!-- Step 1: Customer Details -->
-        <div class="checkout-step-panel active" id="step1">
-          <h3 class="step-heading" style="font-size: 0.95rem;">Client Identity &amp; Contact</h3>
-          <form class="checkout-form" id="contactForm">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="checkoutFname">First Name *</label>
-                <input type="text" id="checkoutFname" required placeholder="Lord Alistair">
-              </div>
-              <div class="form-group">
-                <label for="checkoutLname">Last Name *</label>
-                <input type="text" id="checkoutLname" required placeholder="Vance">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="checkoutEmail">Email *</label>
-              <input type="email" id="checkoutEmail" required placeholder="vance@sovereign-holdings.ch">
-            </div>
-            <div class="form-group">
-              <label for="checkoutPhone">Mobile *</label>
-              <input type="tel" id="checkoutPhone" required placeholder="+41 22 819 0000">
-            </div>
-            <div class="step-actions">
-              <button type="button" class="btn btn-primary" id="toStep2Btn">Continue to Delivery</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Step 2: Shipping -->
-        <div class="checkout-step-panel" id="step2">
-          <h3 class="step-heading" style="font-size: 0.95rem;">Delivery Address</h3>
-          <form class="checkout-form" id="shippingForm">
-            <div class="form-group">
-              <label for="shipAddress">Address *</label>
-              <input type="text" id="shipAddress" required placeholder="74 Rue du Rhône, Suite 400">
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="shipCity">City *</label>
-                <input type="text" id="shipCity" required placeholder="Geneva">
-              </div>
-              <div class="form-group">
-                <label for="shipZip">Postal Code *</label>
-                <input type="text" id="shipZip" required placeholder="1204">
-              </div>
-            </div>
-            <div class="step-actions dual-actions">
-              <button type="button" class="btn btn-outline" id="backToStep1Btn">Back</button>
-              <button type="button" class="btn btn-primary" id="toStep3Btn">Continue to Payment</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Step 3: Payment -->
-        <div class="checkout-step-panel" id="step3">
-          <h3 class="step-heading" style="font-size: 0.95rem;">Payment</h3>
-          <form class="checkout-form" id="paymentForm">
-            <div class="form-group">
-              <label for="cardNum">Card Number *</label>
-              <input type="text" id="cardNum" required placeholder="•••• •••• •••• 8492" maxlength="19">
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="cardExp">Expiry *</label>
-                <input type="text" id="cardExp" required placeholder="12/28" maxlength="5">
-              </div>
-              <div class="form-group">
-                <label for="cardCvv">CVV *</label>
-                <input type="password" id="cardCvv" required placeholder="•••" maxlength="4">
-              </div>
-            </div>
-            <div class="order-summary-box">
-              <div class="order-line"><span>Total</span><strong id="checkoutFinalTotal">$0.00</strong></div>
-            </div>
-            <div class="step-actions dual-actions">
-              <button type="button" class="btn btn-outline" id="backToStep2Btn">Back</button>
-              <button type="button" class="btn btn-primary" id="completeOrderBtn">Pay &amp; Complete</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Step 4: Receipt -->
-        <div class="checkout-step-panel" id="step4">
-          <div class="order-success-card">
-            <div class="success-icon">✓</div>
-            <h3 class="success-title">Order Confirmed</h3>
-            <p class="order-id-label">TRANSACTION ID: <span id="receiptOrderId">#INF-84920</span></p>
-            <button type="button" class="btn btn-primary btn-sm" id="finishCheckoutBtn">Back to Store</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Simple Text Footer -->
   
-            <!-- =========================================================================
+
+  <!-- =========================================================================
            DPDP ACT 2023 • PETITION FOR DATA ERASURE
            ========================================================================= -->
       <section class="bfsi-simple-card" id="dpdp-erasure">
