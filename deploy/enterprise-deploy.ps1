@@ -28,17 +28,28 @@ function Write-Banner {
 function Ensure-GcloudAuth {
     $prevEap = $ErrorActionPreference
     $ErrorActionPreference = "SilentlyContinue"
-    $acct = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>&1 | Select-Object -First 1
+    $prevPrompt = $env:CLOUDSDK_CORE_DISABLE_PROMPTS
+    $env:CLOUDSDK_CORE_DISABLE_PROMPTS = "1"
+    $acct = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>$null | Select-Object -First 1
+    $token = $null
+    $cmd = Get-Command "gcloud.cmd" -ErrorAction SilentlyContinue
+    if ($cmd) { $token = & $cmd.Source auth print-access-token 2>$null }
+    else { $token = gcloud auth print-access-token 2>$null }
+    $tokenOk = ($LASTEXITCODE -eq 0 -and $token -and (($token | Out-String).Trim().Length -gt 20))
     $ErrorActionPreference = $prevEap
-    if (-not $acct) {
-        Write-Host "[!] Not signed in to Google Cloud. Opening gcloud auth login..."
-        gcloud auth login
+    if ($null -eq $prevPrompt) { Remove-Item Env:CLOUDSDK_CORE_DISABLE_PROMPTS -ErrorAction SilentlyContinue }
+    else { $env:CLOUDSDK_CORE_DISABLE_PROMPTS = $prevPrompt }
+
+    if (-not $acct -or -not $tokenOk) {
+        Remove-Item Env:CLOUDSDK_CORE_DISABLE_PROMPTS -ErrorAction SilentlyContinue
+        Write-Host "[!] Google Cloud browser sign-in required (no password in this window)..."
+        gcloud auth login --update-adc --force
         $acct = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>$null | Select-Object -First 1
     }
     if ($acct) {
         Write-Host "[OK] Signed in to Google Cloud as $acct"
     } else {
-        throw "gcloud authentication required for GCP deploy."
+        throw "gcloud authentication required for GCP deploy - complete browser login."
     }
 }
 

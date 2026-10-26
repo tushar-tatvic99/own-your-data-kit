@@ -22,9 +22,11 @@ from demo.console.connector_views import connector_view
 from demo.console.deploy_wizard import (
     build_powershell_launcher,
     deploy_preflight,
+    ga_credentials_status,
     get_deploy_status,
     preview_deploy,
     save_client_config,
+    save_ga_credentials_content,
     start_deploy,
     start_deploy_in_terminal,
 )
@@ -49,7 +51,7 @@ from kit.env import load_kit_env
 
 STATIC = Path(__file__).resolve().parent / "static"
 # Bump when static UI changes; Cloud Run must be redeployed to pick up new assets.
-CONSOLE_UI_VERSION = "20261025tv2"
+CONSOLE_UI_VERSION = "20261026deploy7"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = os.environ.get("OYDK_CONFIG", "config/client.yaml")
 
@@ -296,6 +298,8 @@ class DemoHandler(BaseHTTPRequestHandler):
                 return self._send_json(200, get_provision_status(_cfg()))
             except Exception as exc:
                 return self._send_json(500, {"error": str(exc)})
+        if path == "/api/deploy/ga-credentials":
+            return self._send_json(200, ga_credentials_status())
         if path.startswith("/api/deploy/status"):
             from urllib.parse import parse_qs
 
@@ -437,6 +441,14 @@ class DemoHandler(BaseHTTPRequestHandler):
                 return self._send_json(400, {"ok": False, "error": msg})
         if path == "/api/deploy/preview":
             return self._send_json(200, preview_deploy(body.get("fields") or {}))
+        if path == "/api/deploy/ga-credentials":
+            content = body.get("content") or ""
+            try:
+                return self._send_json(200, save_ga_credentials_content(content))
+            except ValueError as exc:
+                return self._send_json(400, {"ok": False, "error": str(exc)})
+            except Exception as exc:
+                return self._send_json(500, {"ok": False, "error": str(exc)})
         if path == "/api/deploy/save-config":
             return self._send_json(200, save_client_config(body.get("fields") or {}))
         if path == "/api/deploy/start":

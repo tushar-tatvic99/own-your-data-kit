@@ -97,6 +97,7 @@ function activatePanel(panel) {
   if (panel === "demo") loadSession();
   if (panel === "deploy") {
     loadMatomoProvisionStatus();
+    loadGaCredentialsStatus();
   }
 }
 
@@ -209,20 +210,15 @@ function isHostedMatomoUrl(url) {
 function applyMatomoUrlToForms(url) {
   const clean = (url || "").trim();
   if (!clean) return;
-  const prov = document.getElementById("matomo-provision-url");
+  const hidden = document.getElementById("deploy-matomo-url");
   const form = document.getElementById("deploy-form");
-  if (prov) prov.value = clean;
+  if (hidden) hidden.value = clean;
   if (form?.elements?.matomo_url) form.elements.matomo_url.value = clean;
 }
 
 function setMatomoSourceMode(_mode) {
-  const urlInput = document.getElementById("matomo-provision-url");
-  const openOwnBtn = document.getElementById("btn-open-matomo-own");
-  const matomoUrl =
-    document.getElementById("deploy-form")?.elements?.matomo_url?.value?.trim() ||
-    urlInput?.value?.trim() ||
-    "";
-  if (openOwnBtn) openOwnBtn.classList.toggle("hidden", !matomoUrl);
+  /* Deploy tab is one-button only — keep Open Matomo / extras hidden. */
+  document.getElementById("btn-open-matomo-own")?.classList.add("hidden");
 }
 
 function stopMatomoDeployPoll() {
@@ -252,11 +248,21 @@ async function refreshMatomoUrlFromDeploy(silent) {
       setDeployStatus(data.last_error || "Deploy failed — see log below.", false);
       focusMatomoDeployOutput();
     } else if (data.deploy_complete) {
+      const wasActive = matomoGcpDeployActive;
       matomoGcpDeployActive = false;
       stopMatomoDeployPoll();
-      setDeployStatus(data.matomo_url ? `Deploy complete — ${data.matomo_url}` : "Deploy complete.", true);
+      setDeployStatus(
+        data.matomo_url
+          ? `Matomo live on your GCP — ${data.matomo_url}. Starting Migration → Parity → DPDP → Connectors…`
+          : "GCP stack live. Starting Migration → Parity → DPDP → Connectors…",
+        true
+      );
+      if (wasActive && !window.__oydkPostDeployKitStarted) {
+        window.__oydkPostDeployKitStarted = true;
+        runKitAfterDeploy(data.matomo_url || "");
+      }
     } else if (data.deploy_running && matomoGcpDeployActive) {
-      setDeployStatus("GCP deploy running… watch the log in Step 1 below.", true);
+      setDeployStatus("Hosting Matomo on your GCP… (PowerShell). Next: migration, parity, DPDP, connectors.", true);
     }
     return data;
   } catch (e) {
@@ -267,9 +273,101 @@ async function refreshMatomoUrlFromDeploy(silent) {
 
 function startMatomoDeployPoll() {
   stopMatomoDeployPoll();
+  window.__oydkPostDeployKitStarted = false;
   matomoGcpDeployActive = true;
   matomoDeployPollTimer = setInterval(() => refreshMatomoUrlFromDeploy(true), 5000);
   refreshMatomoUrlFromDeploy(true);
+}
+
+async function runKitAfterDeploy(matomoUrl) {
+  const out = document.getElementById("matomo-provision-result");
+  const append = (line) => {
+    if (!out) return;
+    out.textContent = (out.textContent || "") + (out.textContent ? "\n" : "") + line;
+  };
+  try {
+    const fields = deployFields();
+    if (matomoUrl) {
+      applyMatomoUrlToForms(matomoUrl);
+      fields.matomo_url = matomoUrl;
+    }
+    append("");
+    append("=== Kit pipeline (after GCP Matomo) ===");
+    append("1) Save profile for your GA4/GTM/Matomo");
+    await apiPost("/api/deploy/save-config", { fields });
+    await apiPost("/api/session/custom", { fields });
+    setModeUI("custom", false);
+
+    append("2) Migration (GA4 / GTM → Matomo)");
+    setDeployStatus("Running migration (GA4/GTM → Matomo)…", true);
+    let mig;
+    try {
+      mig = await apiPost("/api/run", { action: "migrate_linked", params: {} });
+    } catch (e) {
+      mig = { status: "error", stderr: String(e?.message || e) };
+    }
+    append(
+      mig.status === "ok"
+        ? "   Migration OK"
+        : `   Migration needs attention: ${(mig.stderr || mig.message || "").slice(0, 200)}`
+    );
+
+    append("3) Parity check (GA4 vs Matomo)");
+    setDeployStatus("Running parity check…", true);
+    let parity;
+    try {
+      parity = await apiPost("/api/run", { action: "parity_live", params: { date_offset: 1 } });
+    } catch (_) {
+      try {
+        parity = await apiPost("/api/run", { action: "parity_fixture_ok", params: { date_offset: 1 } });
+        append("   Live parity not ready yet — showed fixture parity so the flow continues.");
+      } catch (e2) {
+        parity = { status: "error", stderr: String(e2?.message || e2) };
+      }
+    }
+    if (parity?.status === "ok") {
+      const r = parity.result || {};
+      append(
+        r.all_within_target != null
+          ? `   Parity OK (within target=${r.all_within_target})`
+          : "   Parity finished"
+      );
+    } else {
+      append(`   Parity: ${(parity?.stderr || "see Parity tab").slice(0, 200)}`);
+    }
+
+    append("4) DPDP verify");
+    setDeployStatus("Verifying DPDP…", true);
+    try {
+      const dpdp = await apiPost("/api/run", { action: "verify_dpdp", params: {} });
+      append(dpdp.status === "ok" ? "   DPDP OK" : `   DPDP: ${(dpdp.stderr || "").slice(0, 160)}`);
+    } catch (e) {
+      append(`   DPDP: ${String(e?.message || e).slice(0, 160)}`);
+    }
+
+    append("5) Connectors");
+    setDeployStatus("Testing connectors…", true);
+    try {
+      const conn = await apiPost("/api/run", { action: "connectors_test", params: {} });
+      append(conn.status === "ok" ? "   Connectors OK" : `   Connectors: ${(conn.stderr || "").slice(0, 160)}`);
+    } catch (e) {
+      append(`   Connectors: ${String(e?.message || e).slice(0, 160)}`);
+    }
+
+    append("");
+    append("Done. Open Migration / Parity / DPDP / Connectors tabs for details.");
+    setDeployStatus("Deploy + kit pipeline finished — check tabs 2–5 for details.", true);
+    focusMatomoDeployOutput();
+    const root = document.getElementById("deploy-log-root");
+    if (root) root.open = true;
+  } catch (e) {
+    append(`Kit pipeline error: ${e?.message || e}`);
+    setDeployStatus(
+      "GCP Matomo is up, but kit steps need a Matomo API token / GA credentials — see log.",
+      false
+    );
+    focusMatomoDeployOutput();
+  }
 }
 
 function downloadTextFile(filename, text, mime) {
@@ -284,7 +382,66 @@ function downloadTextFile(filename, text, mime) {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+function setGaCredentialsStatus(data) {
+  const el = document.getElementById("ga-credentials-status");
+  if (!el) return;
+  if (data?.present) {
+    el.textContent = `Key on file: ${data.client_email || "service account"} (${data.path})`;
+    el.className = "ga-upload-status hint ok";
+  } else if (data?.error) {
+    el.textContent = data.error;
+    el.className = "ga-upload-status hint err";
+  } else {
+    el.textContent = "No key uploaded yet — add your JSON before migration/parity.";
+    el.className = "ga-upload-status hint";
+  }
+}
+
+async function loadGaCredentialsStatus() {
+  try {
+    const data = await apiGet("/api/deploy/ga-credentials");
+    setGaCredentialsStatus(data);
+    return data;
+  } catch (e) {
+    setGaCredentialsStatus({ present: false, error: String(e?.message || e) });
+    return { present: false };
+  }
+}
+
+async function uploadGaCredentialsFile(file) {
+  if (!file) return;
+  if (file.size > 512 * 1024) {
+    setGaCredentialsStatus({ present: false, error: "File too large (max 512 KB)." });
+    return;
+  }
+  const status = document.getElementById("ga-credentials-status");
+  if (status) {
+    status.textContent = "Uploading…";
+    status.className = "ga-upload-status hint";
+  }
+  const text = await file.text();
+  try {
+    const data = await apiPost("/api/deploy/ga-credentials", { content: text });
+    setGaCredentialsStatus({ present: true, client_email: data.client_email, path: data.path });
+    setDeployStatus(data.message || "Service account key saved.", true);
+  } catch (e) {
+    setGaCredentialsStatus({ present: false, error: e?.message || String(e) });
+    setDeployStatus(e?.message || "Upload failed", false);
+  }
+}
+
+async function confirmDeployWithoutGaKey() {
+  const st = await loadGaCredentialsStatus();
+  if (st.present) return true;
+  return confirm(
+    "No GA/GTM service account JSON uploaded yet.\n\n" +
+      "Migration and parity need a key whose service account is Administrator on your GA4 property and GTM container.\n\n" +
+      "Deploy Matomo on GCP anyway? (You can upload the key later.)"
+  );
+}
+
 async function downloadPowershellDeployLauncher() {
+  if (!(await confirmDeployWithoutGaKey())) return null;
   const fields = deployFields();
   if (!(fields.gcp_project_id || "").trim()) {
     setDeployStatus("Enter GCP project ID in the form below (required for your Matomo VM).", false);
@@ -297,14 +454,19 @@ async function downloadPowershellDeployLauncher() {
   }
   const data = await apiPost("/api/deploy/powershell-launcher", { fields });
   if (!data.ok) throw new Error(data.error || "Could not build PowerShell launcher");
-  downloadTextFile(data.filename || "OYDK-Open-PowerShell-Deploy.cmd", data.script, data.content_type);
+  downloadTextFile(data.filename || "OYDK-Deploy.cmd", data.script, data.content_type);
   const detail = [
-    data.message,
+    data.message || "Downloaded OYDK-Deploy.cmd",
     "",
-    "1. Open the downloaded OYDK-Open-PowerShell-Deploy.cmd",
-    "2. A PowerShell window opens (same deploy as local)",
-    "3. If asked, enter your own-your-data-kit repo path",
+    "What happens next (on your Windows PC):",
+    "1. Double-click OYDK-Deploy.cmd",
+    "2. PowerShell installs gcloud/Terraform if needed, then Google sign-in",
+    "3. Runs one-command GCP deploy (VM + Matomo + kit) for your project",
+    "4. If the repo is missing, it can clone own-your-data-kit for you",
     data.saved_config ? `Saved profile: ${data.saved_config}` : "",
+    data.ga_credentials_bundled
+      ? "GA key is included in the launcher (credentials/ga-service-account.json on your PC)."
+      : "Upload the GA JSON on Deploy before download to bundle it into the launcher.",
   ]
     .filter(Boolean)
     .join("\n");
@@ -315,6 +477,7 @@ async function downloadPowershellDeployLauncher() {
 }
 
 async function deployMatomoOnMyGcp() {
+  if (!(await confirmDeployWithoutGaKey())) return;
   const fields = deployFields();
   if (!(fields.gcp_project_id || "").trim()) {
     setDeployStatus("Enter GCP project ID in the form below (required for your Matomo VM).", false);
@@ -338,7 +501,14 @@ async function deployMatomoOnMyGcp() {
 
   if (
     !confirm(
-      "Open PowerShell on this PC?\n\nIt will install Terraform/gcloud if needed, sign you into Google if needed, then deploy Matomo on your GCP project (15–25 min)."
+      "One-command deploy for your data?\n\n" +
+        `GCP: ${fields.gcp_project_id}\nClient: ${fields.client_name}\n\n` +
+        "1) Host Matomo + kit on your GCP\n" +
+        "2) Migrate GA4/GTM → Matomo\n" +
+        "3) Parity check\n" +
+        "4) DPDP verify\n" +
+        "5) Connectors\n\n" +
+        "PowerShell runs step 1 (~15–25 min). This console continues 2–5 when Matomo is up."
     )
   ) {
     return;
@@ -348,7 +518,14 @@ async function deployMatomoOnMyGcp() {
   focusMatomoDeployOutput();
   const out = document.getElementById("matomo-provision-result");
   if (out) {
-    out.textContent = "Launching PowerShell deploy window…";
+    out.textContent = "Saving your profile, then launching one-command deploy…";
+  }
+  try {
+    await apiPost("/api/deploy/save-config", { fields });
+    await apiPost("/api/session/custom", { fields });
+    setModeUI("custom", false);
+  } catch (_) {
+    /* deploy can still run; profile activation is best-effort */
   }
   let data;
   try {
@@ -388,7 +565,7 @@ function matomoLoginUrl(baseUrl) {
 
 function openMatomoLogin() {
   const url =
-    matomoLoginUrl(document.getElementById("matomo-provision-url")?.value) ||
+    matomoLoginUrl(document.getElementById("deploy-matomo-url")?.value) ||
     matomoLoginUrl(document.getElementById("deploy-form")?.elements?.matomo_url?.value);
   if (!url) return;
   window.open(url, "_blank", "noopener,noreferrer");
@@ -398,10 +575,7 @@ async function loadMatomoProvisionStatus() {
   try {
     const data = await apiGet("/api/matomo/provision/status");
     matomoProvisionMeta = data;
-    const matomoInput = document.getElementById("matomo-provision-url");
-    if (matomoInput && data.default_matomo_url && !matomoInput.value) {
-      matomoInput.value = data.default_matomo_url;
-    }
+    // Do not pre-fill Matomo URL on Deploy — only set after the user's GCP deploy completes.
     setMatomoSourceMode("own");
   } catch (_) {
     setMatomoSourceMode("own");
@@ -449,7 +623,7 @@ function deployFields() {
   data.connectors_demo = true;
   const emailEl = document.querySelector('input[name="provision_email"]');
   if (emailEl?.value) data.provision_email = emailEl.value;
-  const matomoUrlEl = document.getElementById("matomo-provision-url");
+  const matomoUrlEl = document.getElementById("deploy-matomo-url");
   const formMatomo = form.elements.namedItem("matomo_url");
   const matomoUrl = (matomoUrlEl?.value || formMatomo?.value || "").trim();
   if (matomoUrl) data.matomo_url = matomoUrl;
@@ -461,10 +635,13 @@ function deployFields() {
   return data;
 }
 
+const DEPLOY_FORM_SKIP_PREFILL = new Set(["matomo_url", "site_id"]);
+
 function fillDeployForm(fields) {
   if (!fields) return;
   const form = document.getElementById("deploy-form");
   Object.entries(fields).forEach(([k, v]) => {
+    if (DEPLOY_FORM_SKIP_PREFILL.has(k)) return;
     const el = form.elements.namedItem(k);
     if (el && v != null && v !== "") el.value = v;
   });
@@ -945,20 +1122,23 @@ async function loadLinks() {
   if (judgeBanner) judgeBanner.classList.add("hidden");
   const banner = document.getElementById("deploy-cloud-banner");
   if (banner) banner.classList.add("hidden");
-  // Same Deploy / Demo button set on local and Cloud Run (no host-specific layout).
   const btnGcp = document.getElementById("btn-deploy-start");
-  const btnLocal = document.getElementById("btn-deploy-local");
-  const btnGcloud = document.getElementById("btn-go-demo-gcloud");
-  const btnMatomoGcp = document.getElementById("btn-matomo-gcp-deploy");
   const btnGcloudLogin = document.getElementById("btn-gcloud-login");
   if (btnGcp) {
     btnGcp.classList.remove("hidden");
-    btnGcp.textContent = "Deploy to GCP";
+    btnGcp.textContent = "Deploy";
   }
-  if (btnMatomoGcp) btnMatomoGcp.classList.remove("hidden");
   if (btnGcloudLogin) btnGcloudLogin.classList.remove("hidden");
-  if (btnLocal) btnLocal.classList.add("hidden");
-  if (btnGcloud) btnGcloud.classList.add("hidden");
+  [
+    "btn-matomo-gcp-deploy",
+    "btn-open-powershell-deploy",
+    "btn-deploy-activate",
+    "btn-open-matomo-own",
+    "btn-deploy-local",
+    "btn-go-demo-gcloud",
+    "btn-deploy-preview",
+    "btn-deploy-save",
+  ].forEach((id) => document.getElementById(id)?.classList.add("hidden"));
 }
 
 function formatDeployStartResponse(data) {
@@ -980,9 +1160,8 @@ function formatDeployStartResponse(data) {
 }
 
 async function handleDeployStart(localOnly, opts = {}) {
-  const matomoGcp = !!opts.matomoGcp;
   const dep = linksCache.deploy || {};
-  // Hosted browser cannot spawn PowerShell — download launcher that opens PS and runs deploy.
+  // Hosted console cannot spawn PowerShell — download .cmd that runs the same steps on the user's PC.
   if (!localOnly && dep.host === "cloud_run") {
     try {
       await downloadPowershellDeployLauncher();
@@ -991,49 +1170,32 @@ async function handleDeployStart(localOnly, opts = {}) {
     }
     return;
   }
-  const msg = localOnly
-    ? "Start local Docker deploy on this PC?"
-    : matomoGcp
-      ? "Deploy Matomo + kit stack on YOUR GCP project in the background?\n\nRequires gcloud sign-in (Demo mode → Sign in to Google Cloud). This can take 15–25 minutes."
-      : "Start GCP deploy in background on this PC?\n\nFirst: Demo mode → Sign in to Google Cloud (gcloud auth).";
+  // Local console: full one-command path in a visible PowerShell window (install tools → auth → deploy).
+  if (!localOnly) {
+    await deployMatomoOnMyGcp();
+    return;
+  }
+  const msg = "Start local Docker Matomo + kit stack on this PC?";
   if (!confirm(msg)) return;
   let data;
   try {
     data = await apiPost("/api/deploy/start", {
       fields: deployFields(),
-      local_only: localOnly,
+      local_only: true,
     });
   } catch (e) {
     const err = e?.message || String(e);
     setDeployStatus(err, false);
-    if (matomoGcp) renderDeployLogPanel({ last_error: err }, "Deploy could not start");
+    renderDeployLogPanel({ last_error: err }, "Local Docker could not start");
     focusMatomoDeployOutput();
     return;
   }
   const text = formatDeployStartResponse(data);
   setDeployLog(text);
   const ok = !!data.started;
-  setDeployStatus(data.message || data.error || (ok ? "Deploy started" : "Deploy did not start"), ok);
-  if (matomoGcp) {
-    focusMatomoDeployOutput();
-    if (!ok) {
-      renderDeployLogPanel(
-        { last_error: data.error || data.message, log_tail: "" },
-        "Deploy did not start"
-      );
-      if (data.preflight?.checks) {
-        const hints = data.preflight.checks
-          .filter((c) => !c.ok)
-          .map((c) => `• ${c.name}: ${c.hint}`)
-          .join("\n");
-        document.getElementById("matomo-provision-result").textContent += "\n\n" + hints;
-      }
-    } else {
-      startMatomoDeployPoll();
-    }
-  } else if (ok && !localOnly) {
-    activatePanel("demo");
-  }
+  setDeployStatus(data.message || data.error || (ok ? "Local Docker started" : "Did not start"), ok);
+  focusMatomoDeployOutput();
+  if (ok) startMatomoDeployPoll();
 }
 
 function formatParityFromReport(report) {
@@ -1687,6 +1849,10 @@ async function loadInfra() {
 }
 
 function wireDeploy() {
+  document.getElementById("ga-credentials-upload")?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (file) uploadGaCredentialsFile(file);
+  });
   document.getElementById("btn-matomo-gcp-deploy")?.addEventListener("click", (e) => {
     e.preventDefault();
     deployMatomoOnMyGcp();
@@ -1816,8 +1982,14 @@ function wireDeploy() {
     );
     setDeployLog(`Profile active:\n${data.config_path}\n\nParity alerts: ${deployFields().alert_emails}`);
   });
-  document.getElementById("btn-deploy-start")?.addEventListener("click", () => handleDeployStart(false));
-  document.getElementById("btn-deploy-local")?.addEventListener("click", () => handleDeployStart(true));
+  document.getElementById("btn-deploy-start")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    handleDeployStart(false);
+  });
+  document.getElementById("btn-deploy-local")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    handleDeployStart(true);
+  });
   document.getElementById("btn-go-demo-gcloud")?.addEventListener("click", () => {
     activatePanel("demo");
     document.getElementById("btn-gcloud-login")?.scrollIntoView({ behavior: "smooth" });

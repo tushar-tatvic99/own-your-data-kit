@@ -38,7 +38,9 @@ $envVars = @(
   "OYDK_CONFIG=config/cloud-run.client.yaml",
   "OYDK_DEFAULT_CONFIG=config/cloud-run.client.yaml",
   "KIT_API_URL=http://35.234.210.199:8090",
-  "OYDK_DEMO_HOST=0.0.0.0"
+  "OYDK_DEMO_HOST=0.0.0.0",
+  "OYDK_GIT_URL=https://github.com/tushar-tatvic99/own-your-data-kit.git",
+  "OYDK_HOSTED_CONSOLE_URL=https://oydk-demo-console-qvoqwz57fq-el.a.run.app"
 )
 if ($BasicUser -and $BasicPassword) {
   $envVars += "OYDK_DEMO_BASIC_USER=$BasicUser"

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20261025tv2" />
+  <link rel="stylesheet" href="/styles.css?v=20261026deploy7" />
 </head>
 <body>
   <div class="shell">
@@ -22,9 +22,8 @@
         <button type="button" class="nav-btn" data-panel="deploy"><span class="n">1</span>Deploy</button>
         <button type="button" class="nav-btn" data-panel="migration"><span class="n">2</span>Migrate</button>
         <button type="button" class="nav-btn" data-panel="parity"><span class="n">3</span>Parity</button>
-        <button type="button" class="nav-btn" data-panel="dpdp" data-scroll="consent-cards"><span class="n">4</span>Consent</button>
-        <button type="button" class="nav-btn" data-panel="dpdp" data-scroll="audit-requests-table"><span class="n">5</span>Erasure</button>
-        <button type="button" class="nav-btn" data-panel="connectors"><span class="n">6</span>Conversion</button>
+        <button type="button" class="nav-btn" data-panel="dpdp"><span class="n">4</span>Consent &amp; erasure</button>
+        <button type="button" class="nav-btn" data-panel="connectors"><span class="n">5</span>Conversion</button>
         <div class="nav-label">Extras</div>
         <button type="button" class="nav-btn stretch" data-panel="bq">GA4 → Matomo (BQ)</button>
         <button type="button" class="nav-btn stretch" data-panel="cost">Cost calculator</button>
@@ -71,38 +70,54 @@
       <section class="panel" id="panel-deploy">
         <header class="panel-head">
           <h1>Deploy</h1>
-          <p>One command, fresh India-region cloud project.</p>
+          <p>
+            Enter your GCP project and GA4/GTM details, then click <strong>Deploy</strong>.
+            We host Matomo on your GCP, then run Migration → Parity → DPDP → Connectors for your data.
+          </p>
         </header>
-        <div class="parity-controls deploy-controls">
-          <button type="button" class="btn primary" id="btn-matomo-gcp-deploy">Deploy Matomo on my GCP</button>
-          <button type="button" class="btn secondary" id="btn-open-powershell-deploy">Open PowerShell deploy</button>
-          <button type="button" class="btn secondary" id="btn-deploy-activate">Save &amp; activate</button>
-          <button type="button" class="btn primary" id="btn-deploy-start">Deploy to GCP</button>
-          <button type="button" class="btn ghost hidden" id="btn-open-matomo-own">Open Matomo</button>
-          <button type="button" class="btn ghost hidden" id="btn-deploy-local">Local Docker only</button>
-          <button type="button" class="btn ghost hidden" id="btn-go-demo-gcloud">Open Demo → gcloud sign-in</button>
+        <div class="deploy-banner ok deploy-prereq" id="deploy-ga-prereq" role="note">
+          <strong>Before migration:</strong> Use a Google Cloud <strong>service account</strong> JSON key whose email has
+          <strong>Administrator</strong> access on the <strong>GA4 property</strong> and <strong>GTM container</strong> you enter below
+          (GA4 → Admin → Property access management; GTM → Admin → User management). Upload the key here — we store it as
+          <code>credentials/ga-service-account.json</code> for migration and parity.
         </div>
         <form id="deploy-form" class="form-grid">
-          <label>GCP project ID <input name="gcp_project_id" required placeholder="tvc-int-matomo" /></label>
-          <label>Client name <input name="client_name" value="aurablush" /></label>
+          <label>GCP project ID <input name="gcp_project_id" required placeholder="your-gcp-project" /></label>
+          <label>Client name <input name="client_name" required placeholder="acme" value="aurablush" /></label>
           <label>Scale profile
             <select name="profile"><option value="small">small</option><option value="standard" selected>standard</option><option value="enterprise">enterprise</option></select>
           </label>
-          <label>Shop URL <input name="website_url" placeholder="https://…run.app" /></label>
-          <label>Matomo URL <input name="matomo_url" placeholder="https://matomo…" /></label>
-          <label>Matomo site ID <input name="site_id" value="1" /></label>
-          <label>GA4 property ID <input name="ga4_property_id" /></label>
+          <label>Website / shop URL <input name="website_url" placeholder="https://www.example.com" /></label>
+          <label>GA4 property ID <input name="ga4_property_id" placeholder="123456789" /></label>
           <label>GA4 measurement ID <input name="ga4_measurement_id" placeholder="G-XXXX" /></label>
           <label>GTM account ID <input name="gtm_account_id" /></label>
           <label>GTM container ID <input name="gtm_container_id" /></label>
-          <label>Parity alert emails <input name="alert_emails" value="tushar@tatvic.com" placeholder="you@company.com" /></label>
-          <label>Parity threshold %
-            <input name="parity_threshold" type="number" value="5" min="1" max="20" />
+          <label>Alert emails <input name="alert_emails" value="tushar@tatvic.com" placeholder="you@company.com" /></label>
+          <label class="span-full ga-upload-label">
+            GA / GTM service account JSON key
+            <input type="file" id="ga-credentials-upload" accept=".json,application/json" />
+            <span class="ga-upload-status hint" id="ga-credentials-status">No key uploaded yet</span>
           </label>
-          <label>BQ dataset <input name="bq_dataset" value="matomo_export" /></label>
+          <!-- Filled automatically after deploy (not user input before Matomo exists) -->
+          <input type="hidden" name="matomo_url" id="deploy-matomo-url" value="" />
+          <input type="hidden" name="site_id" value="1" />
+          <input type="hidden" name="parity_threshold" value="5" />
+          <input type="hidden" name="bq_dataset" value="matomo_export" />
         </form>
-        <input type="hidden" id="matomo-provision-url" name="matomo_url" value="" />
-        <p class="hint" id="deploy-empty">Fill project details, then deploy or activate.</p>
+        <div class="parity-controls deploy-controls deploy-controls-single">
+          <button type="button" class="btn primary lg" id="btn-deploy-start">Deploy</button>
+          <button type="button" class="btn ghost hidden" id="btn-deploy-activate">Save &amp; activate</button>
+          <button type="button" class="btn ghost hidden" id="btn-deploy-local">Local Docker only</button>
+          <button type="button" class="btn ghost hidden" id="btn-open-matomo-own">Open Matomo</button>
+          <button type="button" class="btn ghost hidden" id="btn-matomo-gcp-deploy">Deploy Matomo on my GCP</button>
+          <button type="button" class="btn ghost hidden" id="btn-open-powershell-deploy">Open PowerShell deploy</button>
+          <button type="button" class="btn ghost hidden" id="btn-go-demo-gcloud">Open Demo → gcloud sign-in</button>
+        </div>
+        <p class="hint" id="deploy-empty">
+          Required: GCP project ID and client name. GA4/GTM IDs for migration after Matomo is live.
+          You do <strong>not</strong> enter Matomo URL or site ID here — those are set when your deploy finishes.
+          Hosted console: Deploy downloads <strong>OYDK-Deploy.cmd</strong> for your Windows PC.
+        </p>
         <details class="deploy-status-fold hidden" id="deploy-log-root">
           <summary class="deploy-status-summary">
             <span id="deploy-status" class="deploy-status-line" role="status">No deploy yet</span>
@@ -188,6 +203,7 @@
           <h1>Consent &amp; Erasure</h1>
           <p>Consent on the live shop + statutory requests processed through kit-api / Matomo.</p>
         </header>
+        <h3>Consent</h3>
         <div class="consent-cards" id="consent-cards"></div>
         <h3 id="erasure-anchor">Shop rights requests</h3>
         <div class="table-wrap" id="shop-requests-table"></div>
@@ -299,6 +315,6 @@
     </main>
   </div>
   <div class="tv-footer-logo" aria-hidden="true">LOGO</div>
-  <script src="/app.js?v=20261025z18"></script>
+  <script src="/app.js?v=20261026deploy7"></script>
 </body>
 </html>

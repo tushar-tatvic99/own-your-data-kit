@@ -69,26 +69,90 @@ function Ensure-Terraform {
     }
 }
 
+function Test-GcloudAccessToken {
+    # Quiet check only. Never password-prompt; never throw (Stop + gcloud.ps1 stderr).
+    # False means caller must open browser login.
+    $prevPrompt = $env:CLOUDSDK_CORE_DISABLE_PROMPTS
+    $prevEap = $ErrorActionPreference
+    $env:CLOUDSDK_CORE_DISABLE_PROMPTS = "1"
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        # gcloud.cmd avoids PowerShell wrapping python stderr as NativeCommandError
+        $exe = $null
+        $cmd = Get-Command "gcloud.cmd" -ErrorAction SilentlyContinue
+        if ($cmd) { $exe = $cmd.Source } else {
+            $g = Get-Command "gcloud" -ErrorAction SilentlyContinue
+            if ($g) { $exe = $g.Source }
+        }
+        if (-not $exe) { return $false }
+
+        $raw = & $exe auth print-access-token 2>$null
+        if ($LASTEXITCODE -ne 0) { return $false }
+        $text = (($raw | Out-String) -replace '\s', '').Trim()
+        if ([string]::IsNullOrWhiteSpace($text)) { return $false }
+        if ($text -match 'ERROR|Reauthentication|cannotprompt') { return $false }
+        return ($text.Length -gt 20)
+    } catch {
+        return $false
+    } finally {
+        $ErrorActionPreference = $prevEap
+        if ($null -eq $prevPrompt) { Remove-Item Env:CLOUDSDK_CORE_DISABLE_PROMPTS -ErrorAction SilentlyContinue }
+        else { $env:CLOUDSDK_CORE_DISABLE_PROMPTS = $prevPrompt }
+    }
+}
+
+function Invoke-GcloudBrowserLogin {
+    # Browser flow must be interactive - prompts must NOT be disabled.
+    Remove-Item Env:CLOUDSDK_CORE_DISABLE_PROMPTS -ErrorAction SilentlyContinue
+    Write-Host "Opening Google sign-in in your browser (required - no password in this window)." -ForegroundColor Cyan
+    Write-Host "Complete the browser flow for the Google account that owns your GCP project."
+    Write-Host "Waiting for browser login to finish..." -ForegroundColor Yellow
+    & gcloud auth login --update-adc --force
+    if ($LASTEXITCODE -ne 0) { throw "gcloud auth login failed - complete the browser sign-in and re-run Deploy." }
+    if (-not (Test-GcloudAccessToken)) {
+        throw "gcloud still has no valid token after browser login."
+    }
+    Write-Host "[OK] Browser sign-in complete." -ForegroundColor Green
+}
+
 function Ensure-GcloudAuth {
-    Write-Step "Google Cloud sign-in"
+    Write-Step "Google Cloud sign-in (browser)"
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
     $acct = $null
     try {
-        $acct = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>$null | Select-Object -First 1
-    } catch { }
-    if (-not $acct) {
-        Write-Host "No active gcloud account - complete sign-in in your browser when prompted."
-        gcloud auth login
-        if ($LASTEXITCODE -ne 0) { throw "gcloud auth login failed" }
-        gcloud auth application-default login
-        if ($LASTEXITCODE -ne 0) { throw "gcloud application-default login failed" }
+        $acct = (& gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>$null | Select-Object -First 1)
+        if ($acct) { $acct = $acct.ToString().Trim() }
+        if ([string]::IsNullOrWhiteSpace($acct) -or $acct -match 'ERROR') { $acct = $null }
+    } catch { $acct = $null }
+    $ErrorActionPreference = $prevEap
+
+    $tokenOk = Test-GcloudAccessToken
+    if (-not $acct -or -not $tokenOk) {
+        if ($acct -and -not $tokenOk) {
+            Write-Host "Saved login for $acct is expired. Opening browser to re-authenticate..." -ForegroundColor Yellow
+        } else {
+            Write-Host "No valid Google Cloud login. Opening browser..." -ForegroundColor Yellow
+        }
+        Invoke-GcloudBrowserLogin
+        $acct = (& gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>$null | Select-Object -First 1)
     } else {
-        Write-Host "[OK] Signed in as $acct" -ForegroundColor Green
+        Write-Host "[OK] Signed in as $acct (token valid)" -ForegroundColor Green
     }
+
     Write-Host "Setting project to $ProjectId ..."
-    gcloud config set project $ProjectId
-    if ($LASTEXITCODE -ne 0) { throw "gcloud config set project failed" }
-    $token = gcloud auth print-access-token 2>$null
-    if (-not $token) { throw "gcloud token check failed - run gcloud auth login again" }
+    # Keep prompts enabled so a failed set can fall through to browser login.
+    & gcloud config set project $ProjectId
+    if ($LASTEXITCODE -ne 0 -or -not (Test-GcloudAccessToken)) {
+        Write-Host "Project set needs a fresh Google login - opening browser..." -ForegroundColor Yellow
+        Invoke-GcloudBrowserLogin
+        & gcloud config set project $ProjectId
+        if ($LASTEXITCODE -ne 0) { throw "gcloud config set project failed" }
+    }
+    if (-not (Test-GcloudAccessToken)) {
+        throw "gcloud token check failed after project set - re-run Deploy and finish browser login."
+    }
+    Write-Host "[OK] gcloud ready for project $ProjectId" -ForegroundColor Green
 }
 
 function Save-OydkClientYaml {
@@ -123,7 +187,8 @@ New-Item -ItemType Directory -Force -Path (Split-Path $DeployLog) | Out-Null
 Add-Content -Path $DeployLog -Value "`n--- deploy start (interactive terminal) ---`n"
 
 Write-Host "========================================" -ForegroundColor Green
-Write-Host " OYDK - Deploy Matomo on YOUR GCP" -ForegroundColor Green
+Write-Host " OYDK - ONE-COMMAND DEPLOY (your GCP)" -ForegroundColor Green
+Write-Host " Steps: tools -> gcloud auth -> Terraform VM + Matomo + kit" -ForegroundColor Green
 Write-Host " Project: $ProjectId  Client: $ClientName  Profile: $Profile" -ForegroundColor Green
 Write-Host " Log: $DeployLog" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
@@ -163,7 +228,8 @@ try {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
-Write-Host " Deploy script finished." -ForegroundColor Green
-Write-Host " Return to the OYDK console - it will pick up the Matomo URL." -ForegroundColor Green
-Write-Host " Finish the Matomo install wizard in the browser if prompted." -ForegroundColor Green
+Write-Host " ONE-COMMAND DEPLOY: COMPLETE" -ForegroundColor Green
+Write-Host " Matomo is on your GCP. Return to the OYDK console -" -ForegroundColor Green
+Write-Host " it will continue: Migration -> Parity -> DPDP -> Connectors." -ForegroundColor Green
+Write-Host " If Matomo shows the install wizard, finish it and set MATOMO_API_TOKEN." -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Green
