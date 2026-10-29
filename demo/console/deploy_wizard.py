@@ -484,42 +484,55 @@ function Test-OydkRepo([string]$Path) {{
   return (Test-Path (Join-Path $Path 'scripts\\matomo-gcp-deploy-terminal.ps1')) -or
     (Test-Path (Join-Path $Path 'deploy\\deploy.ps1'))
 }}
+function Install-OydkKit([string]$Target) {{
+  if (-not $GitUrl) {{ throw 'Git URL missing in launcher config.' }}
+  if (Test-OydkRepo $Target) {{ return $Target }}
+  if (Test-Path $Target) {{
+    throw "Folder exists but is not OYDK: $Target — remove it or set OYDK_REPO to another path."
+  }}
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) {{
+    if (Get-Command winget -ErrorAction SilentlyContinue) {{
+      Write-Host "Installing Git for Windows (required to download the kit)..." -ForegroundColor Yellow
+      winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
+      $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')
+    }}
+  }}
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) {{
+    throw 'Git is required to download the OYDK kit. Install from https://git-scm.com/download/win then re-run OYDK-Deploy.cmd.'
+  }}
+  New-Item -ItemType Directory -Force -Path (Split-Path $Target) | Out-Null
+  Write-Host "Downloading Own-Your-Data kit to this PC (one-time)..." -ForegroundColor Cyan
+  Write-Host "  $Target"
+  git clone --depth 1 -b main $GitUrl $Target
+  if ($LASTEXITCODE -ne 0) {{
+    Write-Host "Retrying clone (default branch)..." -ForegroundColor Yellow
+    git clone --depth 1 $GitUrl $Target
+  }}
+  if (-not (Test-OydkRepo $Target)) {{ throw "Download finished but deploy scripts missing under $Target" }}
+  Write-Host "[OK] OYDK kit ready on this PC." -ForegroundColor Green
+  return $Target
+}}
 function Find-OydkRepo {{
   if ($env:OYDK_REPO -and (Test-OydkRepo $env:OYDK_REPO)) {{ return $env:OYDK_REPO }}
   $candidates = @(
     (Join-Path $env:USERPROFILE 'Projects\\own-your-data-kit'),
     (Join-Path $env:USERPROFILE 'Documents\\own-your-data-kit'),
-    (Join-Path $env:USERPROFILE 'own-your-data-kit'),
-    'C:\\Users\\TusharBorude\\Projects\\own-your-data-kit'
+    (Join-Path $env:USERPROFILE 'own-your-data-kit')
   )
   foreach ($c in $candidates) {{
     if (Test-OydkRepo $c) {{ return $c }}
   }}
   $default = Join-Path $env:USERPROFILE 'Projects\\own-your-data-kit'
-  if ($GitUrl) {{
-    $ans = Read-Host "OYDK repo not found. Clone into $default now? (Y/n)"
-    if ($ans -notmatch '^[Nn]') {{
-      New-Item -ItemType Directory -Force -Path (Split-Path $default) | Out-Null
-      if (-not (Get-Command git -ErrorAction SilentlyContinue)) {{
-        throw 'git is required to clone. Install Git for Windows, then re-run OYDK-Deploy.cmd.'
-      }}
-      if (Test-Path $default) {{ throw "Folder already exists: $default" }}
-      git clone $GitUrl $default
-      if (-not (Test-OydkRepo $default)) {{ throw "Clone finished but deploy scripts missing under $default" }}
-      return $default
-    }}
-  }}
-  Add-Type -AssemblyName Microsoft.VisualBasic
-  $picked = [Microsoft.VisualBasic.Interaction]::InputBox(
-    'Enter the full path to your own-your-data-kit folder (must contain deploy\\deploy.ps1):',
-    'OYDK repo path',
-    $default
-  )
-  if (-not $picked) {{ throw 'Repo path required for one-command deploy.' }}
-  $picked = $picked.Trim()
-  if (-not (Test-OydkRepo $picked)) {{ throw "Not an OYDK repo: $picked" }}
-  return $picked
+  return (Install-OydkKit $default)
 }}
+$Log = Join-Path $env:USERPROFILE 'oydk-deploy-launcher.log'
+function Write-Log([string]$Message) {{
+  $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $Message"
+  Add-Content -Path $Log -Value $line -ErrorAction SilentlyContinue
+  Write-Host $Message
+}}
+try {{
+Write-Log 'OYDK launcher started on this PC'
 $Repo = Find-OydkRepo
 $Script = Join-Path $Repo 'scripts\\matomo-gcp-deploy-terminal.ps1'
 if (-not (Test-Path $Script)) {{ throw "Missing $Script" }}
@@ -538,7 +551,8 @@ Write-Host '[OK] GA/GTM service account key copied to credentials\\ga-service-ac
 Write-Host "OYDK one-command deploy on this PC" -ForegroundColor Cyan
 Write-Host "Repo: $Repo"
 Write-Host "Project: $ProjectId  Client: $ClientName  Profile: $Profile"
-Start-Process -FilePath powershell.exe -WorkingDirectory $Repo -ArgumentList @(
+Write-Log "Starting deploy script: $Script"
+$proc = Start-Process -FilePath powershell.exe -WorkingDirectory $Repo -PassThru -ArgumentList @(
   '-NoExit',
   '-ExecutionPolicy', 'Bypass',
   '-File', $Script,
@@ -550,26 +564,45 @@ Start-Process -FilePath powershell.exe -WorkingDirectory $Repo -ArgumentList @(
   '-AlertEmails', $AlertEmails,
   '-RepoRoot', $Repo
 )
+if (-not $proc) { throw 'Could not open the deploy PowerShell window.' }
+Write-Host 'Deploy window opened (keep it open until deploy finishes).' -ForegroundColor Green
+Write-Log 'Deploy window started'
+Start-Sleep -Seconds 2
+} catch {
+  $err = $_.Exception.Message
+  Write-Host ""
+  Write-Host "OYDK launcher failed: $err" -ForegroundColor Red
+  Write-Host "Log file: $Log"
+  Write-Log "ERROR: $err"
+  Read-Host "Press Enter to close this window"
+}
 """
     b64 = base64.b64encode(ps.encode("utf-8")).decode("ascii")
     cmd = (
         "@echo off\r\n"
         "title OYDK Deploy\r\n"
-        "echo Starting OYDK one-command deploy on this PC...\r\n"
-        "powershell -NoProfile -ExecutionPolicy Bypass -Command "
-        "\"$p=Join-Path $env:TEMP 'oydk-deploy.ps1'; "
+        "echo OYDK Deploy - if the window closes instantly, read:\r\n"
+        "echo   %USERPROFILE%\\oydk-deploy-launcher.log\r\n"
+        "echo.\r\n"
+        "powershell -NoProfile -NoExit -ExecutionPolicy Bypass -Command "
+        "\"$log=Join-Path $env:USERPROFILE 'oydk-deploy-launcher.log'; "
+        "try { "
+        f"$p=Join-Path $env:TEMP 'oydk-deploy.ps1'; "
         f"[IO.File]::WriteAllText($p,[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{b64}'))); "
-        "Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',$p\"\r\n"
-        "if errorlevel 1 (\r\n"
-        "  echo Failed to start PowerShell.\r\n"
-        "  pause\r\n"
-        ")\r\n"
+        "& $p "
+        "} catch { "
+        "$m=$_.Exception.Message; "
+        "Add-Content -Path $log -Value $m; "
+        "Write-Host $m -ForegroundColor Red; "
+        "Read-Host 'Press Enter to close' "
+        "}\""
+        "\r\n"
     )
     saved = save_client_config(fields)
     ga_st = ga_credentials_status()
     msg = (
-        "Downloaded OYDK-Deploy.cmd — double-click on your Windows PC to install tools, "
-        "sign in to Google, and run one-command GCP deploy (Matomo + kit)."
+        "Downloaded OYDK-Deploy.cmd — one file for end users. "
+        "First run downloads the full OYDK kit to this PC, then deploys Matomo on their GCP."
     )
     if ga_st.get("present"):
         msg += f" Your uploaded GA key ({ga_st.get('client_email')}) is bundled into the launcher."

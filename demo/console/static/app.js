@@ -458,11 +458,11 @@ async function downloadPowershellDeployLauncher() {
   const detail = [
     data.message || "Downloaded OYDK-Deploy.cmd",
     "",
-    "What happens next (on your Windows PC):",
+    "What happens on the user's Windows PC (one deploy file):",
     "1. Double-click OYDK-Deploy.cmd",
-    "2. PowerShell installs gcloud/Terraform if needed, then Google sign-in",
-    "3. Runs one-command GCP deploy (VM + Matomo + kit) for your project",
-    "4. If the repo is missing, it can clone own-your-data-kit for you",
+    "2. First run: downloads full OYDK kit to %USERPROFILE%\\Projects\\own-your-data-kit (needs Git or winget)",
+    "3. Installs gcloud/Terraform if needed, Google sign-in, GCP Matomo deploy (~15–25 min)",
+    "4. If something fails, read %USERPROFILE%\\oydk-deploy-launcher.log",
     data.saved_config ? `Saved profile: ${data.saved_config}` : "",
     data.ga_credentials_bundled
       ? "GA key is included in the launcher (credentials/ga-service-account.json on your PC)."

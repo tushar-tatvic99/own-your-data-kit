@@ -13,6 +13,22 @@ param(
 $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot -Parent
 
+function Ensure-GcloudAuthForDeploy {
+  $prevEap = $ErrorActionPreference
+  $ErrorActionPreference = "SilentlyContinue"
+  $token = & gcloud.cmd auth print-access-token 2>$null
+  $ErrorActionPreference = $prevEap
+  if ($LASTEXITCODE -eq 0 -and $token) { return }
+  throw @"
+gcloud is not signed in (or token expired). In this IDE terminal run:
+  gcloud auth login --update-adc
+  gcloud config set project $Project
+Then re-run: .\scripts\deploy-demo-console.ps1
+"@
+}
+
+Ensure-GcloudAuthForDeploy
+
 if (-not (Test-Path (Join-Path $Root $GaCredentialsFile))) {
   throw "Missing $GaCredentialsFile - required for live GA4/GTM actions on Cloud Run"
 }
