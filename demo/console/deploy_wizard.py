@@ -481,14 +481,30 @@ $AlertEmails = '{q(emails)}'
 $GitUrl = '{q(git_url)}'
 function Test-OydkRepo([string]$Path) {{
   if (-not $Path) {{ return $false }}
-  return (Test-Path (Join-Path $Path 'scripts\\matomo-gcp-deploy-terminal.ps1')) -or
-    (Test-Path (Join-Path $Path 'deploy\\deploy.ps1'))
+  return Test-Path (Join-Path $Path 'scripts\\matomo-gcp-deploy-terminal.ps1')
+}}
+function Repair-OydkKit([string]$Target) {{
+  if (-not (Test-Path $Target)) {{ return $false }}
+  $gitDir = Join-Path $Target '.git'
+  if (-not (Test-Path $gitDir)) {{ return $false }}
+  Write-Host "Refreshing incomplete OYDK kit at $Target ..." -ForegroundColor Yellow
+  Write-Log "git refresh: $Target"
+  Push-Location $Target
+  try {{
+    git fetch --depth 1 origin main 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {{ git reset --hard origin/main 2>$null | Out-Null }}
+    if ($LASTEXITCODE -ne 0) {{ git pull --ff-only 2>$null | Out-Null }}
+  }} finally {{
+    Pop-Location
+  }}
+  return (Test-OydkRepo $Target)
 }}
 function Install-OydkKit([string]$Target) {{
   if (-not $GitUrl) {{ throw 'Git URL missing in launcher config.' }}
   if (Test-OydkRepo $Target) {{ return $Target }}
   if (Test-Path $Target) {{
-    throw "Folder exists but is not OYDK: $Target - remove it or set OYDK_REPO to another path."
+    if (Repair-OydkKit $Target) {{ return $Target }}
+    throw "Folder exists but is not a complete OYDK kit: $Target`nRename or remove it, then re-run OYDK-Deploy.cmd (or set OYDK_REPO to another path)."
   }}
   if (-not (Get-Command git -ErrorAction SilentlyContinue)) {{
     if (Get-Command winget -ErrorAction SilentlyContinue) {{
@@ -521,6 +537,10 @@ function Find-OydkRepo {{
   )
   foreach ($c in $candidates) {{
     if (Test-OydkRepo $c) {{ return $c }}
+    if (Test-Path $c) {{
+      Write-Host "Incomplete OYDK folder skipped: $c" -ForegroundColor DarkYellow
+      if (Repair-OydkKit $c) {{ return $c }}
+    }}
   }}
   $default = Join-Path $env:USERPROFILE 'Projects\\own-your-data-kit'
   return (Install-OydkKit $default)
