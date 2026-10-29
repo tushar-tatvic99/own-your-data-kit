@@ -51,7 +51,7 @@ from kit.env import load_kit_env
 
 STATIC = Path(__file__).resolve().parent / "static"
 # Bump when static UI changes; Cloud Run must be redeployed to pick up new assets.
-CONSOLE_UI_VERSION = "20261026deploy8"
+CONSOLE_UI_VERSION = "20261026deploy9"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = os.environ.get("OYDK_CONFIG", "config/client.yaml")
 

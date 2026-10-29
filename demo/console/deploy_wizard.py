@@ -488,7 +488,7 @@ function Install-OydkKit([string]$Target) {{
   if (-not $GitUrl) {{ throw 'Git URL missing in launcher config.' }}
   if (Test-OydkRepo $Target) {{ return $Target }}
   if (Test-Path $Target) {{
-    throw "Folder exists but is not OYDK: $Target — remove it or set OYDK_REPO to another path."
+    throw "Folder exists but is not OYDK: $Target - remove it or set OYDK_REPO to another path."
   }}
   if (-not (Get-Command git -ErrorAction SilentlyContinue)) {{
     if (Get-Command winget -ErrorAction SilentlyContinue) {{
@@ -578,26 +578,40 @@ Start-Sleep -Seconds 2
 }
 """
     b64 = base64.b64encode(ps.encode("utf-8")).decode("ascii")
-    cmd = (
-        "@echo off\r\n"
-        "title OYDK Deploy\r\n"
-        "echo OYDK Deploy - if the window closes instantly, read:\r\n"
-        "echo   %USERPROFILE%\\oydk-deploy-launcher.log\r\n"
-        "echo.\r\n"
-        "powershell -NoProfile -NoExit -ExecutionPolicy Bypass -Command "
-        "\"$log=Join-Path $env:USERPROFILE 'oydk-deploy-launcher.log'; "
+    # Windows CreateProcess limit is 8191 chars; bundled GA makes inline base64 exceed that.
+    chunk_size = 4000
+    chunks = [b64[i : i + chunk_size] for i in range(0, len(b64), chunk_size)]
+    cmd_lines = [
+        "@echo off",
+        "title OYDK Deploy",
+        "echo OYDK Deploy - if the window closes instantly, read:",
+        "echo   %USERPROFILE%\\oydk-deploy-launcher.log",
+        "echo.",
+        'set "OYDK_B64=%TEMP%\\oydk-launcher.b64"',
+        'if exist "%OYDK_B64%" del /f /q "%OYDK_B64%" 2>nul',
+    ]
+    for chunk in chunks:
+        cmd_lines.append(f'>>"%OYDK_B64%" echo {chunk}')
+    bootstrap = (
+        "$log=Join-Path $env:USERPROFILE 'oydk-deploy-launcher.log'; "
         "try { "
-        f"$p=Join-Path $env:TEMP 'oydk-deploy.ps1'; "
-        f"[IO.File]::WriteAllText($p,[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{b64}'))); "
+        "$raw=[IO.File]::ReadAllText($env:OYDK_B64); "
+        "$raw=$raw -replace '[\\r\\n\\s]',''; "
+        "$p=Join-Path $env:TEMP 'oydk-deploy.ps1'; "
+        "[IO.File]::WriteAllText($p,[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($raw))); "
         "& $p "
         "} catch { "
         "$m=$_.Exception.Message; "
         "Add-Content -Path $log -Value $m; "
         "Write-Host $m -ForegroundColor Red; "
         "Read-Host 'Press Enter to close' "
-        "}\""
-        "\r\n"
+        "}"
     )
+    cmd_lines.append(
+        "powershell -NoProfile -NoExit -ExecutionPolicy Bypass -Command "
+        f'"{bootstrap}"'
+    )
+    cmd = "\r\n".join(cmd_lines) + "\r\n"
     saved = save_client_config(fields)
     ga_st = ga_credentials_status()
     msg = (
