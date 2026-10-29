@@ -509,7 +509,7 @@ function Install-OydkKit([string]$Target) {{
   if (-not (Get-Command git -ErrorAction SilentlyContinue)) {{
     if (Get-Command winget -ErrorAction SilentlyContinue) {{
       Write-Host "Installing Git for Windows (required to download the kit)..." -ForegroundColor Yellow
-      winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
+      & winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements 2>&1 | ForEach-Object {{ Write-Host $_ }}
       $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')
     }}
   }}
@@ -519,10 +519,10 @@ function Install-OydkKit([string]$Target) {{
   New-Item -ItemType Directory -Force -Path (Split-Path $Target) | Out-Null
   Write-Host "Downloading Own-Your-Data kit to this PC (one-time)..." -ForegroundColor Cyan
   Write-Host "  $Target"
-  git clone --depth 1 -b main $GitUrl $Target
+  & git clone --depth 1 -b main $GitUrl $Target 2>&1 | ForEach-Object {{ Write-Host $_ }}
   if ($LASTEXITCODE -ne 0) {{
     Write-Host "Retrying clone (default branch)..." -ForegroundColor Yellow
-    git clone --depth 1 $GitUrl $Target
+    & git clone --depth 1 $GitUrl $Target 2>&1 | ForEach-Object {{ Write-Host $_ }}
   }}
   if (-not (Test-OydkRepo $Target)) {{ throw "Download finished but deploy scripts missing under $Target" }}
   Write-Host "[OK] OYDK kit ready on this PC." -ForegroundColor Green
@@ -543,7 +543,15 @@ function Find-OydkRepo {{
     }}
   }}
   $default = Join-Path $env:USERPROFILE 'Projects\\own-your-data-kit'
-  return (Install-OydkKit $default)
+  $installed = Install-OydkKit $default
+  if ($installed -is [System.Array]) {{ $installed = $installed[-1] }}
+  return [string]$installed
+}}
+function Resolve-OydkRepoPath($Value) {{
+  if ($null -eq $Value) {{ return '' }}
+  if ($Value -is [string]) {{ return $Value.Trim() }}
+  $last = ($Value | Select-Object -Last 1)
+  return [string]$last
 }}
 $Log = Join-Path $env:USERPROFILE 'oydk-deploy-launcher.log'
 function Write-Log([string]$Message) {{
@@ -553,7 +561,8 @@ function Write-Log([string]$Message) {{
 }}
 try {{
 Write-Log 'OYDK launcher started on this PC'
-$Repo = Find-OydkRepo
+$Repo = Resolve-OydkRepoPath (Find-OydkRepo)
+if (-not (Test-OydkRepo $Repo)) {{ throw "Could not resolve OYDK kit folder (got: $Repo)" }}
 $Script = Join-Path $Repo 'scripts\\matomo-gcp-deploy-terminal.ps1'
 if (-not (Test-Path $Script)) {{ throw "Missing $Script" }}
 """
