@@ -659,6 +659,20 @@ async function loadSession() {
     gcpIn.value = sessionCache.default_fields.gcp_project_id;
   }
   setModeUI(sessionCache.mode || "default", false);
+  const matomoHint = document.getElementById("suite-matomo-hint");
+  const creds = sessionCache.credentials || {};
+  if (matomoHint) {
+    if (creds.matomo_reachable === false) {
+      const url = creds.matomo_url || "configured Matomo URL";
+      matomoHint.classList.remove("hidden");
+      matomoHint.textContent =
+        `Demo Matomo is unreachable (${url}). Live migrate/parity will use fixture data in Run default, or click Run fixture suite. ` +
+        "Start the demo VM or point config at your deployed Matomo for full live checks.";
+    } else {
+      matomoHint.classList.add("hidden");
+      matomoHint.textContent = "";
+    }
+  }
   await loadLinks();
 }
 
@@ -913,6 +927,7 @@ function wireDemoMode() {
     fillDeployForm(sessionCache.default_fields);
   });
   document.getElementById("btn-run-default-suite")?.addEventListener("click", () => runDemoSuite(false));
+  document.getElementById("btn-run-fixture-suite")?.addEventListener("click", () => runDemoSuite(true));
   document.getElementById("btn-gcloud-login")?.addEventListener("click", async () => {
     const data = await apiPost("/api/gcloud/login", { gcp_project_id: gcloudProjectId() });
     const msg = data.message || data.error || "Google Cloud sign-in";

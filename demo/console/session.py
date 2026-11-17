@@ -7,6 +7,8 @@ import threading
 from pathlib import Path
 from typing import Any
 
+import requests
+
 from demo.console.deploy_wizard import GENERATED_CONFIG, save_client_config
 from kit.config import load_config
 from kit.env import load_kit_env
@@ -99,6 +101,17 @@ def _config_path_abs(rel: str) -> Path:
     return p if p.is_absolute() else REPO_ROOT / p
 
 
+def _matomo_reachable(matomo_url: str, timeout: float = 8.0) -> tuple[bool, str]:
+    base = (matomo_url or "").strip().rstrip("/")
+    if not base:
+        return False, "Matomo URL not configured"
+    try:
+        r = requests.get(f"{base}/index.php", timeout=timeout)
+        return (r.status_code < 500), f"HTTP {r.status_code}"
+    except Exception as exc:
+        return False, str(exc)[:240]
+
+
 def credential_status(config_path: str | None = None) -> dict[str, Any]:
     load_kit_env()
     path = config_path or active_config_path()
@@ -107,20 +120,25 @@ def credential_status(config_path: str | None = None) -> dict[str, Any]:
     ga_path = REPO_ROOT / ga_file
     matomo_ok = False
     matomo_err = ""
+    matomo_url = (cfg.get("stack") or {}).get("url", "")
     try:
         token = resolve_matomo_token(cfg["stack"]["api_token"])
         matomo_ok = bool(token and "your-" not in token.lower())
     except Exception as exc:
         matomo_err = str(exc)
+    matomo_up, matomo_probe = _matomo_reachable(matomo_url)
     return {
         "matomo_token": matomo_ok,
         "matomo_error": matomo_err,
+        "matomo_url": matomo_url,
+        "matomo_reachable": matomo_up,
+        "matomo_probe_detail": matomo_probe,
         "ga_credentials_file": ga_file,
         "ga_credentials_present": ga_path.is_file(),
         "smtp_ready": bool(os.getenv("OYDK_SMTP_PASS") or os.getenv("OYDK_SMTP_USER")),
         "openai_optional": bool(os.getenv("OYDK_OPENAI_API_KEY")),
-        "live_migration_ready": ga_path.is_file(),
-        "live_parity_ready": ga_path.is_file() and matomo_ok,
+        "live_migration_ready": ga_path.is_file() and matomo_up,
+        "live_parity_ready": ga_path.is_file() and matomo_ok and matomo_up,
     }
 
 

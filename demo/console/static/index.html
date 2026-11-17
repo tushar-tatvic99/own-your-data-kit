@@ -56,8 +56,10 @@
         <input type="hidden" name="demo-mode" id="demo-mode-value" value="default" />
         <div class="btn-row">
           <button type="button" class="btn primary lg" id="btn-run-default-suite">Run default</button>
+          <button type="button" class="btn secondary" id="btn-run-fixture-suite">Run fixture suite</button>
           <button type="button" class="btn secondary" id="btn-gcloud-login">Sign in to Google Cloud</button>
         </div>
+        <p class="hint hidden" id="suite-matomo-hint" role="status"></p>
         <input type="hidden" id="gcloud-project-input" value="" />
         <h3>Combined suite output</h3>
         <div id="suite-report" class="suite-report">
